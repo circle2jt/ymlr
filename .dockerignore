@@ -1,0 +1,9 @@
+node_modules
+.github
+.devcontainer
+.changeset
+.jest
+.pnpm-store
+.vscode
+scripts
+shares

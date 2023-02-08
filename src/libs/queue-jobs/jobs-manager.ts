@@ -1,0 +1,97 @@
+import { Logger } from '../logger'
+import { StorageInterface } from '../storage/storage.interface'
+import { Job } from './job'
+import { JobHandler } from './job-handler.interface'
+import { JobsManagerOption } from './jobs-manager.props'
+
+export class JobsManager {
+  private concurrent = 1
+  private resolve?: Function
+  private reject?: Function
+  private runningJobsCount = 0
+  private error?: any
+
+  private readonly dbJobs = new Array<Job>()
+  private readonly queueJobs = new Array<Job>()
+  private readonly jobHandler?: JobHandler
+  private readonly storage?: StorageInterface
+
+  constructor(private readonly logger: Logger, opts: JobsManagerOption) {
+    Object.assign(this, opts)
+  }
+
+  async add(job: Job) {
+    this.dbJobs.push(job)
+    await this.storage?.save(this.dbJobs)
+    this.queueJobs.push(job)
+    this.pullJobToRun()
+  }
+
+  pullJobToRun() {
+    if (!this.resolve || !this.reject) return
+    if (!this.concurrent) {
+      if (!this.runningJobsCount) {
+        this.error ? this.reject(this.error) : this.resolve()
+      }
+      return
+    }
+    if (this.queueJobs.length && this.runningJobsCount < this.concurrent) {
+      const job = this.queueJobs.shift()
+      if (job) {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setImmediate(async (job: Job) => {
+          this.runningJobsCount++
+          this.logger.debug('Pulled a job').trace('%j', job)
+          try {
+            if (this.jobHandler?.onJobRun) await this.jobHandler.onJobRun(job)
+            await job.jobExecute()
+            this.logger.debug('Job successed      ').trace('%j', job)
+            if (this.jobHandler?.onJobSuccess) await this.jobHandler.onJobSuccess(job)
+            this.dbJobs.splice(this.dbJobs.indexOf(job), 1)
+            await this.storage?.save(this.dbJobs)
+          } catch (err1: any) {
+            this.logger.warn('Job failed         \t%s', err1?.message).trace('%j', job)
+            try {
+              if (!this.jobHandler?.onJobFailure) throw err1
+              const isRetry = await this.jobHandler.onJobFailure(err1, job)
+              if (isRetry) this.queueJobs.push(job)
+            } catch (err2: any) {
+              this.logger.error('Jobs manager stoped\t%s', err2?.message).trace('%j', job)
+              this.concurrent = 0
+              this.error = err2
+            }
+          } finally {
+            this.runningJobsCount--
+            if (this.jobHandler?.onJobDone) await this.jobHandler.onJobDone(job)
+          }
+          this.pullJobToRun()
+        }, job)
+      }
+    }
+  }
+
+  async start() {
+    if (this.jobHandler?.onJobInit) {
+      const jobsData = await this.storage?.load([]) as any[]
+      const jobs = await this.jobHandler?.onJobInit(jobsData)
+      if (jobs) {
+        const allJobs = Array.isArray(jobs) ? jobs : [jobs]
+        for (const job of allJobs) {
+          await this.add(job)
+        }
+      }
+    }
+    return await new Promise((resolve, reject) => {
+      this.resolve = resolve
+      this.reject = reject
+      new Array(this.concurrent)
+        .fill(null)
+        .forEach(() => this.pullJobToRun())
+    })
+  }
+
+  stop() {
+    this.concurrent = 0
+    this.pullJobToRun()
+  }
+}

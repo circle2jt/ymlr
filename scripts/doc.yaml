@@ -1,0 +1,16 @@
+- doc'md:
+    title: Common tags which is used in the program
+    includeDirs:
+      - ../src
+    includePattern: "^(?!.*\\.spec\\.ts$)"
+    excludeDirs:
+      - node_modules
+    prependMDs:
+      - path: ../INSTALLATION.md
+      - <br/>
+      - ""
+    appendMDs:
+      - <br/>
+      - ""
+      - "### Have fun :)"
+    saveTo: ../README.md

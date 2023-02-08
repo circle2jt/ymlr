@@ -1,0 +1,41 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "Build project"
+		},
+		{
+			"type": "npm",
+			"script": "test",
+			"group": "test",
+			"problemMatcher": [],
+			"label": "Unit test"
+		},
+		{
+			"type": "npm",
+			"script": "test:debug",
+			"group": "test",
+			"problemMatcher": [],
+			"label": "Debug unit test"
+		},
+		{
+			"type": "npm",
+			"script": "dev",
+			"problemMatcher": [],
+			"label": "Dev"
+		},
+		{
+			"type": "npm",
+			"script": "doc",
+			"problemMatcher": [],
+			"label": "Generate guideline document"
+		}
+	]
+}

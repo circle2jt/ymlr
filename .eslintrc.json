@@ -1,0 +1,26 @@
+{
+  "env": {
+    "browser": false,
+    "es2021": true
+  },
+  "extends": "standard-with-typescript",
+  "overrides": [],
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "rules": {
+    "@typescript-eslint/no-useless-constructor": "off",
+    "@typescript-eslint/space-before-function-paren": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-extraneous-class": "off",
+    "@typescript-eslint/strict-boolean-expressions": "off",
+    "no-template-curly-in-string": "off",
+    "@typescript-eslint/no-implied-eval": "off",
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "space-before-function-paren": "off"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "watch": [
+    "src"
+  ],
+  "signal": "SIGTERM",
+  "ext": "ts,json",
+  "ignore": [
+    "src/**/*.spec.ts"
+  ],
+  "exec": "node"
+}

@@ -1,0 +1,19 @@
+{
+    "workbench.iconTheme": "vs-seti",
+    "files.autoSave": "off",
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "npm.packageManager": "auto",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true,
+    },
+    "typescript.tsc.autoDetect": "off",
+    "npm.autoDetect": "off"
+}
