@@ -1,18 +1,10 @@
-name: publish to npm
+name: publish
 
 on:
   create:
     branches:
       - main
     ref_type: tag
-
-env:
-  REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository }}
-  PLATFORMS: linux/arm64,linux/amd64
-  NODE_VERSION: 18
-  ALPINE_VERSION: 3
-  VERSION: ${{ github.ref_name }}
 
 jobs:
   publish-npm:
@@ -36,9 +28,25 @@ jobs:
 
   publish-docker:
     needs: publish-npm
-    name: Build & publish to docker hub ${{ github.ref_name }}
+    name: Build & publish to docker hub
     runs-on: ubuntu-latest
+    environment: production
+    env:
+      IMAGE_NAME: ${{ github.repository }}
+      REGISTRY: ${{ vars.REGISTRY }}
+      PLATFORMS: ${{ vars.PLATFORMS }}
+      NODE_VERSION: ${{ vars.NODE_VERSION }}
+      ALPINE_VERSION: ${{ vars.ALPINE_VERSION }}
+      VERSION: ${{ vars.VERSION }}
     steps:
+      - name: "Set version to tag"
+        env:
+          DEFAULT_VERSION: ${{ github.ref_name }}
+        run: |
+          if [ -z "$VERSION" ]; then
+            echo "VERSION=$DEFAULT_VERSION" >> $GITHUB_ENV
+          fi
+
       - name: Check out the repo
         uses: actions/checkout@v3
 
@@ -52,8 +60,8 @@ jobs:
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.docker_password }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
