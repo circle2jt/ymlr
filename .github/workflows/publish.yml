@@ -1,10 +1,9 @@
 name: publish
 
 on:
-  create:
-    branches:
-      - main
-    ref_type: tag
+  push:
+    tags:
+      - '*'
 
 jobs:
   publish-npm:
