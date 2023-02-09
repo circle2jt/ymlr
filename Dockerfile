@@ -1,11 +1,14 @@
 ####################
-FROM node:alpine
+ARG NODE_VERSION=latest
+
+FROM node:$NODE_VERSION
 WORKDIR /scripts
 
-ARG version
+ARG VERSION=latest
+
 ENV NODE_ENV=production
 
-RUN yarn global add ymlr@$version pnpm
+RUN yarn global add ymlr@$VERSION pnpm
 RUN pnpm config -g set store-dir /home/node/.pnpm-store && \
     mkdir /my-tags && \
     echo -e '- Welcome to ymlr container' > /scripts/index.yaml

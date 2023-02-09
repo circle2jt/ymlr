@@ -1,10 +1,9 @@
-name: publish to npm
+name: publish a testing to npm
 
 on:
-  create:
+  push:
     branches:
-      - main
-    ref_type: tag
+      - feature/test-docker-buildx
 
 env:
   REGISTRY: docker.io
@@ -12,31 +11,11 @@ env:
   PLATFORMS: linux/arm64,linux/amd64
   NODE_VERSION: 18
   ALPINE_VERSION: 3
-  VERSION: ${{ github.ref_name }}
+  VERSION: 0.0.1-alpha.1
 
 jobs:
-  publish-npm:
-    name: Build & publish to npm registry ${{ github.ref_name }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: latest
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          registry-url: https://registry.npmjs.org
-          node-version: current
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile --prefer-offline --silent --reporter silent
-      - run: pnpm publish:npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
   publish-docker:
-    needs: publish-npm
-    name: Build & publish to docker hub ${{ github.ref_name }}
+    name: Publish a testing to docker hub
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
@@ -53,7 +32,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.docker_password }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
