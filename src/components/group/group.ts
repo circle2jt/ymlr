@@ -84,11 +84,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
         const { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
         if (inheritKeys) this.rootScene.extend(eProps, inheritKeys)
         if (exposeKey) this.rootScene.export(exposeKey, eProps)
-        const { if: condition, force, log, vars, async, loop, ...customProps } = eProps
+        const { if: condition, force, debug, vars, async, loop, ...customProps } = eProps
         baseProps = {
           if: condition,
           force,
-          log,
+          debug,
           vars,
           async,
           loop

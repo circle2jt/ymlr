@@ -10,7 +10,7 @@ afterEach(async () => {
 
 })
 
-test('Auto install external tags', async () => {
+test('auto install external tags', async () => {
   const tagsManager = Testing.rootScene.tagsManager
   const packagesManager = new PackagesManager(Testing.rootScene)
   try {

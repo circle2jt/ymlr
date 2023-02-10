@@ -35,7 +35,7 @@ export abstract class ElementShadow implements Element {
   skip?: boolean
   force?: boolean
   error?: any
-  log?: LoggerLevel
+  debug?: LoggerLevel
   vars?: VarsProps
   async?: boolean
   loop?: string
@@ -55,7 +55,7 @@ export abstract class ElementShadow implements Element {
   rootScene: RootScene
 
   get $$loggerLevel(): LoggerLevel {
-    return Logger.LogLevel || this.log || this.parent?.$$loggerLevel || LoggerLevel.ALL
+    return this.debug || this.parent?.$$loggerLevel || this.rootScene?.logger.levelName || LoggerLevel.ALL
   }
 
   asyncConstructor(_props?: any) { }

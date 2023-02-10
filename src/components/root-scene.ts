@@ -39,7 +39,6 @@ export class RootScene extends Scene {
   constructor(props: SceneProps, public logger: Logger) {
     super(props)
     this.$$ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
-    this.log = this.logger.levelName
     this.isRoot = true
     this.scene = this.rootScene = this
   }

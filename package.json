@@ -11,29 +11,6 @@
     "src"
   ],
   "preferGlobal": true,
-  "release-it": {
-    "hooks": {
-      "before:init": [
-        "pnpm test"
-      ],
-      "after:bump": "pnpm build",
-      "after:release": "echo Successfully released ${name} v${version} to ${repo.repository}."
-    },
-    "git": {
-      "requireCleanWorkingDir": false,
-      "requireBranch": "main",
-      "requireUpstream": true,
-      "requireCommits": true,
-      "commitMessage": "chore: release v${version}",
-      "tag": true,
-      "tagAnnotation": "${version}",
-      "pushArgs": [
-        "--follow-tags"
-      ],
-      "commit": false,
-      "push": false
-    }
-  },
   "devDependencies": {
     "@types/jest": "^29.2.1",
     "@types/koa": "^2.13.5",
@@ -60,7 +37,6 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "next": "release-it -i prerelease --no-npm --no-github --changelog",
     "clean": "rm -rf dist",
     "build:pre": "pnpm clean",
     "build": "pnpm build:pre && tsc --project tsconfig.build.json && pnpm build:post",

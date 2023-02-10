@@ -58,9 +58,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
       this.lazyInit(remoteFileProps)
     } else {
-      const { title: _title, log: _log, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { title, log, password, vars, varsFile } = await this.getVars({ title: _title, log: _log, password: _password, vars: _vars, varsFile: _varsFile }, this)
-      if (log) this.log = log
+      const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
+      const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this)
+      if (debug) this.debug = debug
       if (this.title === undefined) this.title = title
       this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
       if (password && !this.password) {
@@ -73,7 +73,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async exec() {
     this.copyVarsToLocal()
-    if (this.isRoot) this.logger.log('')
+    if (this.isRoot) this.logger.debug('')
     const results = await super.exec()
     return results || []
   }

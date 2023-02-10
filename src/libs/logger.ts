@@ -44,7 +44,6 @@ const MappingValue = Object.keys(Mapping).reduce<Record<number, LoggerLevel>>((s
 }, {})
 
 export class Logger {
-  static LogLevel?: LoggerLevel
   level = Mapping.all
   indentString = ''
   get levelName() {

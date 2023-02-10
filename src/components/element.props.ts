@@ -1,6 +1,6 @@
 import { VarsProps } from './vars/vars.props'
 
-export type ElementBaseProps = Pick<ElementProps, 'if' | 'force' | 'log' | 'vars' | 'async' | 'loop' | 'title'>
+export type ElementBaseProps = Pick<ElementProps, 'if' | 'force' | 'debug' | 'vars' | 'async' | 'loop' | 'title'>
 
 export interface ElementProps {
   [key: string]: any
@@ -100,27 +100,27 @@ export interface ElementProps {
     ```
   */
   title?: string
-  /** |**  log
+  /** |**  debug
     How to print log details for each of item.
     Default is `info`
-    Value must be:
-      - `all`: Print all of log message
-      - `trace`: Print all of log message
-      - `debug`: Print short of log
-      - `info`: Print title, not show log details
-      - `warn`: Only show warning log
-      - `error`: Only show error log
+    Value must be in:
+      - `all`: Print all of debug message
+      - `trace`: Print all of debug message
+      - `debug`: Print short of debug
+      - `info`: Print title, not show debug details
+      - `warn`: Only show warning debug
+      - `error`: Only show error debug
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
       - http'get:
           title: Get data from a API
-          log: debug
+          debug: debug
           url: http://...../data.json
     ```
   */
-  log?: 'all' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'silent'
+  debug?: 'all' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'silent'
   /** |**  vars
     Set value in the item to global vars to reused later
     @position top

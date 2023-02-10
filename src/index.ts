@@ -18,12 +18,13 @@ program
   .enablePositionalOptions(true)
   .passThroughOptions(true)
   .showHelpAfterError(true)
-  .option('--log <level>', 'set log details ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
+  .option('--debug <level>', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
   .option('--tagDirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
   .action(async (source: string, password?: string, opts = {}) => {
     try { await fetch('') } catch { }
-    const { log, env, tagDirs } = opts
+    let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
+    const { debug, env, tagDirs } = opts
     env?.filter((keyValue: string) => keyValue.includes('='))
       .forEach((keyValue: string) => {
         const idx = keyValue.indexOf('=')
@@ -31,8 +32,8 @@ program
         const vl = keyValue.substring(idx + 1)
         process.env[key] = vl
       })
-    if (log) Logger.LogLevel = log
-    const appLogger = new Logger(log ?? LoggerLevel.INFO)
+    if (debug) globalDebug = debug
+    const appLogger = new Logger(globalDebug)
     const app = new App(appLogger, source, password)
     tagDirs?.length && app.setDirTags(tagDirs)
     await app.exec()

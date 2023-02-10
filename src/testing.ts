@@ -16,7 +16,7 @@ export class Testing {
 
   static async reset() {
     await Testing.rootScene?.dispose()
-    Testing.rootScene = new RootScene({ content: '[]' }, new Logger(Logger.LogLevel = LoggerLevel.SILENT))
+    Testing.rootScene = new RootScene({ content: '[]' }, new Logger(LoggerLevel.SILENT))
     await Testing.rootScene.exec()
   }
 

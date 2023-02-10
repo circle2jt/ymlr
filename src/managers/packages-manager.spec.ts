@@ -20,9 +20,9 @@ test('Install a new modules', async () => {
   const moduleNames = ['lodash.merge']
   try {
     await packageManager.install(...moduleNames)
+    const dependencies = PackagesManager.Dependencies
     const rs = packageManager.getInstalledPackages(...moduleNames)
     expect(rs[0]).toBeTruthy()
-    const dependencies = PackagesManager.Dependencies
     expect(dependencies[moduleNames[0]]).toBeDefined()
   } finally {
     await packageManager.uninstall(...moduleNames)
