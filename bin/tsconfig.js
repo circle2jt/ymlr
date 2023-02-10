@@ -64,7 +64,7 @@ function autoReplaceTagInThePublishing() {
   const packageJson = require(join(curDir, 'package.json'))
   const pattern = /\d+\.\d+\.\d+-(\w+)/
   const m = packageJson.version.match(pattern)
-  let tag = ''
+  let tag = 'latest'
   if (m) {
     if (m[1]) {
       tag = m[1]
