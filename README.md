@@ -232,6 +232,28 @@ Example:
 ```  
 
 
+## <a id="debug"></a>debug  
+`It's a property in a tag`  
+How to print log details for each of item.
+Default is `info`
+Value must be in:
+- `all`: Print all of debug message
+- `trace`: Print all of debug message
+- `debug`: Print short of debug
+- `info`: Print title, not show debug details
+- `warn`: Only show warning debug
+- `error`: Only show error debug  
+
+Example:  
+
+```yaml
+  - http'get:
+      title: Get data from a API
+      debug: debug
+      url: http://...../data.json
+```  
+
+
 ## <a id="force"></a>force  
 `It's a property in a tag`  
 Try to execute and ignore error in the running  
@@ -262,28 +284,6 @@ Example:
   - echo:                               # No print
       if: ${vars.number < 10}
       content: Value is lessthan than 10
-```  
-
-
-## <a id="log"></a>log  
-`It's a property in a tag`  
-How to print log details for each of item.
-Default is `info`
-Value must be:
-- `all`: Print all of log message
-- `trace`: Print all of log message
-- `debug`: Print short of log
-- `info`: Print title, not show log details
-- `warn`: Only show warning log
-- `error`: Only show error log  
-
-Example:  
-
-```yaml
-  - http'get:
-      title: Get data from a API
-      log: debug
-      url: http://...../data.json
 ```  
 
 
