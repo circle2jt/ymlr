@@ -1,61 +1,83 @@
-const fs = require('fs')
-const path = require('path')
 const merge = require('lodash.merge')
+const { join, resolve, relative } = require('path')
+const { readFile, writeFile, readdirSync, writeFileSync, readFileSync, lstatSync } = require('fs')
 
-const curDir = path.resolve('.')
-let config = require(path.join(curDir, 'tsconfig.build.json'))
+const curDir = resolve('.')
+let config = require(join(curDir, 'tsconfig.build.json'))
 if (config.extends) {
   try {
-    const base = require(path.join(curDir, config.extends))
+    const base = require(join(curDir, config.extends))
     config = merge({}, base, config)
   } catch { }
 }
-const dist = path.join(curDir, config.compilerOptions.outDir)
+const dist = join(curDir, config.compilerOptions.outDir)
 
-const { compilerOptions } = config
-
-const map = {}
-for (const k in compilerOptions.paths) {
-  map[k.replace('/*', '')] = path.join(dist, compilerOptions.paths[k][0].replace('/*', ''))
-}
-function handleFile(p, ps) {
-  return new Promise((resolve, reject) => {
-    const m = {}
-    for (const k in map) {
-      m[k] = path.relative(p, map[k]).replace(/\\/g, '/')
-      if (!m[k].startsWith('../')) m[k] = (m[k] ? './' : '.') + m[k]
-    }
-    fs.readFile(ps, (err, data) => {
-      if (err) return reject(err)
-      let cnt = data.toString()
-      for (const k in m) {
-        cnt = cnt.replace(new RegExp(`(((require\\()|(from ))['"\`])${k}`, 'g'), `$1${m[k]}`)
+function replacePathsInTypescript() {
+  const map = {}
+  for (const k in config.compilerOptions.paths) {
+    map[k.replace('/*', '')] = join(dist, config.compilerOptions.paths[k][0].replace('/*', ''))
+  }
+  function handleFile(p, ps) {
+    return new Promise((resolve, reject) => {
+      const m = {}
+      for (const k in map) {
+        m[k] = relative(p, map[k]).replace(/\\/g, '/')
+        if (!m[k].startsWith('../')) m[k] = (m[k] ? './' : '.') + m[k]
       }
-      fs.writeFile(ps, cnt, (err) => {
+      readFile(ps, (err, data) => {
         if (err) return reject(err)
-        resolve(p)
+        let cnt = data.toString()
+        for (const k in m) {
+          cnt = cnt.replace(new RegExp(`(((require\\()|(from ))['"\`])${k}`, 'g'), `$1${m[k]}`)
+        }
+        writeFile(ps, cnt, (err) => {
+          if (err) return reject(err)
+          resolve(p)
+        })
       })
     })
-  })
+  }
+
+  const jobs = []
+
+  function replace(p) {
+    readdirSync(p).forEach(f => {
+      if (f.includes('node_modules/')) return
+      const ps = join(p, f)
+      if (lstatSync(ps).isDirectory()) {
+        replace(ps)
+      } else if (f.endsWith('.js') || f.endsWith('.ts')) {
+        jobs.push(handleFile(p, ps))
+      }
+    })
+  }
+
+  // Handle paths
+  replace(resolve(dist))
+
+  return Promise.all(jobs).then((ps) => {
+    console.log(`Replaced to resolve ${ps.length} files`)
+  }).catch(console.err)
 }
 
-const jobs = []
-
-function replace(p) {
-  fs.readdirSync(p).forEach(f => {
-    if (f.includes('node_modules/')) return
-    const ps = path.join(p, f)
-    if (fs.lstatSync(ps).isDirectory()) {
-      replace(ps)
-    } else if (f.endsWith('.js') || f.endsWith('.ts')) {
-      jobs.push(handleFile(p, ps))
+function autoReplaceTagInThePublishing() {
+  const packageJson = require(join(curDir, 'package.json'))
+  const pattern = /\d+\.\d+\.\d+-(\w+)/
+  const m = packageJson.version.match(pattern)
+  let tag = ''
+  if (m) {
+    if (m[1]) {
+      tag = m[1]
     }
-  })
+  }
+  // replace publish config with tag
+  writeFileSync(
+    join(dist, 'package.json'),
+    readFileSync(join(curDir, 'package.json')).toString().replace(`<PUBLISH.TAG>`, tag)
+  )
 }
 
-// Handle paths
-replace(path.resolve(dist))
-
-Promise.all(jobs).then((ps) => {
-  console.log(`Replaced to resolve ${ps.length} files`)
-}).catch(console.err)
+(async () => {
+  await replacePathsInTypescript()
+  await autoReplaceTagInThePublishing()
+})()
