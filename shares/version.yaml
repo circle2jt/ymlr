@@ -1,0 +1,135 @@
+title: Auto update package version
+description: Update package version and collect git logs into commit
+# debug: all
+vars:
+  preid: "" # [--preid]
+  versionName: "" # [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease]
+  commitFormat: ""
+  changeDir: ../changelogs
+  changeFile: ../CHANGELOG.md
+  force: false
+  version: ""
+  lastCommit: ""
+  scan: true
+  scanIndex: 0
+  scanCount: 10
+  gitLogs: []
+runs:
+  - group: 
+      title: Validate input
+      runs:
+        - input'select:
+            if: ${!vars.versionName}
+            title: Version name
+            var: versionName
+            choices:
+              - title: major
+                value: major
+              - title: minor
+                value: minor
+              - title: patch
+                value: patch
+              - title: premajor
+                value: premajor
+              - title: preminor
+                value: preminor
+              - title: prepatch
+                value: prepatch
+              - title: prerelease
+                value: prerelease
+        - input'text:
+            if: ${!vars.preid && !vars.force}
+            title: Preid
+            var: preid
+  - exec'js:
+      if: ${!vars.commitFormat}
+      script: |
+        vars.commitFormat = `chore[^:]*: ${vars.versionName} ([^ ]+)`
+  - exec'sh:
+      title: Get new version
+      script: |
+        mkdir -p "${this.scene.getPath(vars.changeDir)}"
+        npm version --no-commit-hooks --no-git-tag-version --preid=${vars.preid} ${vars.versionName}
+      vars:
+        lastCommit: "chore: prerelease ${this.result}"
+        version: ${this.result}
+
+  - group:
+      title: Commit information
+      runs:
+        - echo: "Version: ${vars.versionName} (${vars.version})"
+        - echo: "Preid: ${vars.preid}"
+        - echo: "Commit: ${vars.lastCommit}"
+  
+        - pause:
+            if: ${!vars.force}
+
+  - group: 
+      title: Collect git logs ${vars.scanIndex}
+      loop: ${vars.scan}
+      runs: 
+        - exec'sh: 
+            title: Get git log
+            script: |
+              git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%h)"
+            vars: 
+              gitLog: ${this.result.split('\n').map(e => e.trim()).filter(e => e)}
+        - exec'js: |
+            vars.scanIndex += vars.scanCount
+            const { gitLog, gitLogs } = vars
+            const m = new RegExp(vars.commitFormat)
+            for (const log of gitLog) {
+              if (m.test(log)) {
+                vars.scan = false
+                this.logger.debug('scan: stoped when match')
+                break          
+              }
+              gitLogs.push(log)
+            }
+            if (vars.scan && gitLog.length < vars.scanCount) {
+              vars.scan = false
+              this.logger.debug('scan: stoped when end')
+            }
+  - file'write:
+      path: ${vars.changeDir}/${Date.now()}--${vars.version}.md
+      content: |
+        ## ${vars.version}
+        ${vars.gitLogs.join('\n')}
+  
+  - group:
+      title: Concat changes file
+      runs:
+        - exec'js: |
+            const { readdirSync, readFileSync } = require('fs') 
+            const { join, basename } = require('path')
+            vars.changeDir = this.scene.getPath(vars.changeDir)
+            const files = readdirSync(vars.changeDir)
+            files.sort().reverse()
+            vars.changeContent = []
+            vars.changeMenu = []
+            files.forEach(f => {
+              const idx = f.indexOf('--')
+              const fname = basename(f)
+              const d = fname.substring(0, idx)
+              const mn = fname.substring(idx+2)
+              vars.changeMenu.push(`- [${mn}](#${d})  -  _${new Date(+d).toLocaleString()}_`)
+              vars.changeContent.push(`<a id="${d}"></a>\n${readFileSync(join(vars.changeDir, f)).toString()}`)
+            })
+            this.logger.debug(files)
+        - file'write:
+            if: ${vars.changeContent?.length}
+            path: ${vars.changeFile}
+            content: |
+              # Changes logs
+              ${vars.changeMenu.join('\n')}
+              # Details
+              ${vars.changeContent.join('  \n')}
+
+  - group:
+      title: Add and commit changelog
+      runs:
+        - exec'sh: |
+            git add ${this.scene.getPath('../CHANGELOG.md')}
+            git add ${this.scene.getPath('../package.json')}
+            git add ${this.scene.getPath('../changelogs')}
+            git commit -m "${vars.lastCommit}"

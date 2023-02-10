@@ -37,6 +37,8 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
+    "v:next": "pnpm start ./scripts/next.yaml",
+    "v:patch": "pnpm start ./scripts/patch.yaml",
     "clean": "rm -rf dist",
     "build:pre": "pnpm clean",
     "build": "pnpm build:pre && tsc --project tsconfig.build.json && pnpm build:post",
