@@ -50,7 +50,8 @@
     "test": "pnpm test:pre && pnpm jest --config=.jest/config.js && pnpm test:post",
     "test:post": "pnpm clean",
     "lint": "eslint --ext .ts ./src",
-    "publish:npm": "pnpm build && cd ./dist && pnpm publish --no-git-checks"
+    "publish:dev": "pnpm build && cd ./dist && pnpm publish --no-git-checks",
+    "publish:prod": "pnpm build && cd ./dist && pnpm publish --no-git-checks --tag latest"
   },
   "repository": {
     "type": "git",

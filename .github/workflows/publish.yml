@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish-npm:
-    name: Build & publish to npm registry ${{ github.ref_name }}
+    name: Publish to npm registry
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,31 +21,33 @@ jobs:
           node-version: current
           cache: pnpm
       - run: pnpm install --frozen-lockfile --prefer-offline --silent --reporter silent
-      - run: pnpm publish:npm
+
+      - name: Get branch names
+        id: branch-name
+        uses: tj-actions/branch-names@v6
+      - name: Publish with prod config
+        run: pnpm publish:prod
+        if: ${{ steps.branch-name.outputs.current_branch == 'main' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish with dev config
+        run: pnpm publish:dev
+        if: ${{ steps.branch-name.outputs.current_branch == 'dev' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-docker:
     needs: publish-npm
-    name: Build & publish to docker hub
+    name: Publish to docker hub
     runs-on: ubuntu-latest
-    environment: production
     env:
-      IMAGE_NAME: ${{ github.repository }}
+      IMAGE_NAME: ${{ GITHUB.repository }}
       REGISTRY: ${{ vars.REGISTRY }}
       PLATFORMS: ${{ vars.PLATFORMS }}
       NODE_VERSION: ${{ vars.NODE_VERSION }}
       ALPINE_VERSION: ${{ vars.ALPINE_VERSION }}
-      VERSION: ${{ vars.VERSION }}
+      VERSION: ${{ vars.VERSION || GITHUB.REF_NAME }}
     steps:
-      - name: "Set version to tag"
-        env:
-          DEFAULT_VERSION: ${{ github.ref_name }}
-        run: |
-          if [ -z "$VERSION" ]; then
-            echo "VERSION=$DEFAULT_VERSION" >> $GITHUB_ENV
-          fi
-
       - name: Check out the repo
         uses: actions/checkout@v3
 
