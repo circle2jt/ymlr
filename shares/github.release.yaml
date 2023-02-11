@@ -1,0 +1,73 @@
+title: Create a new release on github
+vars:
+  token: ""
+  owner: ""
+  repo: ""
+  changeDir: ""
+  tag: ""
+runs:
+- group:
+    runs:
+      - input'text: 
+          if: ${!vars.token}
+          title: Github token
+          vars: token
+      - input'text: 
+          if: ${!vars.owner}
+          title: Owner
+          vars: owner
+      - input'text: 
+          if: ${!vars.repo}
+          title: Github repository name
+          vars: repo
+      - input'text: 
+          if: ${!vars.changeDir}
+          title: Path of changelogs directory
+          vars: changeDir
+
+- exec'js: |
+    vars.changeDir = this.scene.getPath(vars.changeDir)
+    const { readdirSync, existsSync } = require('fs') 
+    const { join } = require('path')
+    const files = readdirSync(vars.changeDir)
+    files.sort().reverse()
+    let fileName
+    if (vars.tag) {
+      fileName = files.find(f => f.endsWith(`--${vars.tag}.md`))
+    } else {
+      fileName = files[0]
+      vars.tag = fileName?.split('--')[1].replace(/\.md$/, '')
+    }
+    vars.file = fileName && join(vars.changeDir, fileName)
+    if (vars.file && !existsSync(vars.file)) vars.file = undefined
+- exit:
+    if: ${!vars.file}
+    title: Could not found any file in "${vars.changeDir}"
+- file'read:
+    path: ${vars.file}
+    vars: description
+
+- exec'js: |
+    const cnt = vars.description.split('\n')
+    cnt.shift()
+    vars.description = cnt.map(l => l.trim()).filter(l => l).join('\n')
+
+- echo: |
+    tag_name: ${vars.tag}
+    name: ${vars.tag}
+    body: ${vars.description}
+    
+- http'post:
+    force: true
+    url: https://api.github.com/repos/${vars.owner}/${vars.repo}/releases
+    headers:
+      Accept: application/vnd.github+json
+      Authorization: Bearer ${vars.token}
+    body:
+      tag_name: ${vars.tag}
+      name: ${vars.tag}
+      body: ${vars.description}
+      draft: false
+      prerelease: false
+      generate_release_notes: false
+- echo: Done

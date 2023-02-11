@@ -49,7 +49,7 @@ runs:
       title: Get new version
       script: |
         mkdir -p "${this.scene.getPath(vars.changeDir)}"
-        npm version --no-commit-hooks --no-git-tag-version --preid=${vars.preid} ${vars.versionName}
+        npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${vars.preid} ${vars.versionName}
       vars:
         lastCommit: "chore: prerelease ${this.result}"
         version: ${this.result}
@@ -71,7 +71,7 @@ runs:
         - exec'sh: 
             title: Get git log
             script: |
-              git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%h)"
+              git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%H)"
             vars: 
               gitLog: ${this.result.split('\n').map(e => e.trim()).filter(e => e)}
         - exec'js: |
@@ -93,7 +93,8 @@ runs:
   - file'write:
       path: ${vars.changeDir}/${Date.now()}--${vars.version}.md
       content: |
-        ## ${vars.version}
+        ### ${vars.version}
+
         ${vars.gitLogs.join('\n')}
   
   - group:
@@ -121,8 +122,13 @@ runs:
             path: ${vars.changeFile}
             content: |
               # Changes logs
+              
+              ## History
+
               ${vars.changeMenu.join('\n')}
-              # Details
+
+              ## Details
+              
               ${vars.changeContent.join('  \n')}
 
   - group:
@@ -130,6 +136,7 @@ runs:
       runs:
         - exec'sh: |
             git add ${this.scene.getPath('../CHANGELOG.md')}
+            git add ${this.scene.getPath('../README.md')}
             git add ${this.scene.getPath('../package.json')}
             git add ${this.scene.getPath('../changelogs')}
             git commit -m "${vars.lastCommit}"
