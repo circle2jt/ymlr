@@ -1,6 +1,6 @@
 {
   "name": "ymlr",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.13",
   "description": "A platform helps to do everythings base on a yaml script file",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -36,21 +36,23 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "v:next": "pnpm start ./scripts/next.yaml",
-    "v:patch": "pnpm start ./scripts/patch.yaml",
+    "v:next": "pnpm doc && pnpm start ./scripts/next.yaml",
+    "v:patch": "pnpm doc && pnpm start ./scripts/patch.yaml",
     "clean": "rm -rf dist",
-    "build:pre": "pnpm clean",
-    "build": "pnpm build:pre && tsc --project tsconfig.build.json && pnpm build:post",
-    "build:post": "node bin/tsconfig && cp src/package.json ./dist/src/ && cp README.md ./dist/",
     "doc": "pnpm start ./scripts/doc.yaml",
     "start": "node --require ts-node/register src/index.ts",
-    "d:start": "nodemon --require ts-node/register --inspect-brk src/index.ts",
-    "d:test": "node --trace-warnings --expose-gc --inspect node_modules/jest/bin/jest --config=.jest/dev.config.js --runInBand",
-    "test:pre": "pnpm lint && pnpm build",
-    "test": "pnpm test:pre && pnpm jest --config=.jest/config.js && pnpm test:post",
-    "test:post": "pnpm clean",
-    "lint": "eslint --ext .ts ./src",
-    "publish:npm": "pnpm build && cd ./dist && pnpm publish --no-git-checks"
+    "dev": "nodemon --require ts-node/register --inspect-brk src/index.ts",
+    "test": "node --trace-warnings --expose-gc --inspect node_modules/jest/bin/jest --config=.jest/dev.config.js --runInBand",
+    "ci:prebuild": "pnpm clean",
+    "ci:build": "pnpm ci:prebuild && tsc --project tsconfig.build.json && node bin/tsconfig && pnpm ci:postbuild",
+    "ci:postbuild": "cp src/package.json ./dist/src/ && cp README.md ./dist/",
+    "ci:pretest": "pnpm ci:lint && pnpm ci:build",
+    "ci:test": "pnpm ci:pretest && pnpm jest --config=.jest/config.js && pnpm ci:posttest",
+    "ci:posttest": "pnpm clean",
+    "ci:tag": "pnpm start ./scripts/create-tag.yaml",
+    "ci:lint": "eslint --ext .ts ./src",
+    "ci:publish": "pnpm ci:build && cd ./dist && pnpm publish --no-git-checks && cd ../",
+    "ci:release": "pnpm start ./scripts/create-release.yaml"
   },
   "repository": {
     "type": "git",

@@ -21,7 +21,7 @@ program
   .option('--debug <level>', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
   .option('--tagDirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
-  .action(async (source: string, password?: string, opts = {}) => {
+  .action(async (source: string, password?: string, opts: any = {}) => {
     try { await fetch('') } catch { }
     let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
     const { debug, env, tagDirs } = opts

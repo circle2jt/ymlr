@@ -1,0 +1,81 @@
+title: Create a new tag on github
+vars:
+  token: ""
+  owner: ""
+  repo: ""
+  branch: ""
+  changeDir: ""
+runs:
+  - exec'js: |
+      vars.changeDir = this.scene.getPath(vars.changeDir)
+      const { readdirSync, existsSync } = require('fs') 
+      const { join } = require('path')
+      const files = readdirSync(vars.changeDir)
+      files.sort().reverse()
+      const fileName = files[0]
+      vars.file = fileName && join(vars.changeDir, fileName)
+      vars.tag = fileName.split('--')[1].replace(/\.md$/, '')
+      if (vars.file && !existsSync(vars.file)) vars.file = undefined
+  - exit:
+      if: ${!vars.file}
+      title: Could not found any file in "${vars.changeDir}"
+  - file'read:
+      path: ${vars.file}
+      vars: description
+
+  - http'get:
+      force: true
+      debug: all
+      baseURL: https://api.github.com
+      url: /repos/${vars.owner}/${vars.repo}/commits
+      query:
+        sha: ${vars.branch}
+      headers:
+        Accept: application/vnd.github+json"
+        Authorization: Bearer ${vars.token}
+      vars:
+        gitlogs: ${this.response.data}
+
+  - exec'js: |
+      const lastCommit = vars.gitlogs.find(l => l.commit.message.endsWith(` ${vars.tag}`))
+      vars.committer = lastCommit.commit.committer
+      vars.lastCommitHash = lastCommit.sha
+      vars.description = vars.description.replace(/^#*/, '')
+
+  - echo: |
+      tag: ${vars.tag}
+      message: ${vars.description}
+      object: ${vars.lastCommitHash}
+      type: 'commit'
+      tagger: ${vars.committer}
+      ref: refs/tags/${vars.tag}
+
+  - group:
+      title: Create a new tag
+      runs:
+        - http'post:
+            force: true
+            baseURL: https://api.github.com
+            url: /repos/${vars.owner}/${vars.repo}/git/tags
+            headers:
+              Accept: application/vnd.github+json"
+              Authorization: Bearer ${vars.token}
+            body:
+              tag: ${vars.tag}
+              message: ${vars.description}
+              object: ${vars.lastCommitHash}
+              type: 'commit'
+              tagger: ${vars.committer}
+            vars:
+              sha: ${this.response.data.sha}
+        - http'post:
+            force: true
+            baseURL: https://api.github.com
+            url: /repos/${vars.owner}/${vars.repo}/git/refs
+            headers:
+              Accept: application/vnd.github+json"
+              Authorization: Bearer ${vars.token}
+            body:
+              ref: refs/tags/${vars.tag}
+              sha: ${vars.sha}
+  - echo: Done

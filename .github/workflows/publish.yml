@@ -7,8 +7,9 @@ on:
 
 jobs:
   publish-npm:
-    name: Build & publish to npm registry ${{ github.ref_name }}
+    name: Publish to npm registry
     runs-on: ubuntu-latest
+    environment: ${{ vars.ENV_STAGE }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -17,35 +18,28 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          registry-url: https://registry.npmjs.org
+          registry-url: ${{ vars.NPM_REGISTRY }}
           node-version: current
           cache: pnpm
       - run: pnpm install --frozen-lockfile --prefer-offline --silent --reporter silent
-      - run: pnpm publish:npm
+      - name: Publish with prod config
+        run: pnpm ci:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Create a new release
+        run: pnpm ci:release
+        env:
+          TAG: ${{ github.ref_name }}
+          GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
 
   publish-docker:
     needs: publish-npm
-    name: Build & publish to docker hub
+    name: Publish to docker hub
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ vars.ENV_STAGE }}
     env:
-      IMAGE_NAME: ${{ github.repository }}
-      REGISTRY: ${{ vars.REGISTRY }}
-      PLATFORMS: ${{ vars.PLATFORMS }}
-      NODE_VERSION: ${{ vars.NODE_VERSION }}
-      ALPINE_VERSION: ${{ vars.ALPINE_VERSION }}
-      VERSION: ${{ vars.VERSION }}
+      IMAGE_NAME: ${{ GITHUB.repository }}
     steps:
-      - name: "Set version to tag"
-        env:
-          DEFAULT_VERSION: ${{ github.ref_name }}
-        run: |
-          if [ -z "$VERSION" ]; then
-            echo "VERSION=$DEFAULT_VERSION" >> $GITHUB_ENV
-          fi
-
       - name: Check out the repo
         uses: actions/checkout@v3
 
@@ -55,10 +49,10 @@ jobs:
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
 
-      - name: Log into registry ${{ env.REGISTRY }}
+      - name: Log into registry ${{ vars.REGISTRY }}
         uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ vars.REGISTRY }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -66,19 +60,19 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Publish to docker hub - node
         uses: docker/build-push-action@v3
         with:
           context: .
           file: Dockerfile
-          platforms: ${{ env.PLATFORMS }}
+          platforms: ${{ vars.PLATFORMS }}
           push: true
           build-args: |
-            VERSION=${{ env.VERSION }}
-            NODE_VERSION=${{ env.NODE_VERSION }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+            VERSION=${{ vars.VERSION || github.ref_name }}
+            NODE_VERSION=${{ vars.NODE_VERSION }}
+          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Publish to docker hub - alpine
@@ -86,11 +80,11 @@ jobs:
         with:
           context: .
           file: Dockerfile.alpine
-          platforms: ${{ env.PLATFORMS }}
+          platforms: ${{ vars.PLATFORMS }}
           push: true
           build-args: |
-            VERSION=${{ env.VERSION }}
-            NODE_VERSION=${{ env.NODE_VERSION }}
-            ALPINE_VERSION=${{ env.ALPINE_VERSION }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-alpine, ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            VERSION=${{ vars.VERSION || github.ref_name }}
+            NODE_VERSION=${{ vars.NODE_VERSION }}
+            ALPINE_VERSION=${{ vars.ALPINE_VERSION }}
+          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-alpine, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}

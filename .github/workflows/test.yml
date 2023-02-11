@@ -5,6 +5,8 @@ name: test
 
 on:
   push:
+    branches:    
+      - '**'
     paths:
       - src/**
       - package.json
@@ -12,6 +14,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: ${{ vars.ENV_STAGE }}
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
@@ -23,9 +26,10 @@ jobs:
           node-version: current
           cache: pnpm
       - run: pnpm install --frozen-lockfile --prefer-offline --silent --reporter silent
-      - run: pnpm test
+      - run: pnpm ci:test
 
       - name: Create a new tag
-        uses: Klemensas/action-autotag@stable
-        with:
-          GITHUB_TOKEN: "${{ secrets.GIT_TOKEN }}"
+        run: pnpm ci:tag
+        env:
+          BRANCH: ${{ github.ref_name }}
+          GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
