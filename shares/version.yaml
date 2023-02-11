@@ -51,7 +51,7 @@ runs:
         mkdir -p "${this.scene.getPath(vars.changeDir)}"
         npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${vars.preid} ${vars.versionName}
       vars:
-        lastCommit: "chore: prerelease ${this.result}"
+        lastCommit: "chore: ${vars.versionName} ${this.result}"
         version: ${this.result}
 
   - group:
