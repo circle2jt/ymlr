@@ -1,0 +1,16 @@
+title: Prerelease the version
+vars:
+  preid: alpha
+  versionName: prerelease
+runs:
+  - scene:
+      path: ../shares/version.yaml
+      vars:
+        force: true
+        preid: ${vars.preid}
+        versionName: ${vars.versionName}
+        changeDir: ../changelogs
+        changeFile: ../CHANGELOG.md
+        commitFiles: 
+          - ~~/README.md
+          - ~~/package.json

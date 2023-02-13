@@ -7,6 +7,7 @@ vars:
   commitFormat: ""
   changeDir: ../changelogs
   changeFile: ../CHANGELOG.md
+  commitFiles: []
   force: false
   version: ""
   lastCommit: ""
@@ -41,14 +42,14 @@ runs:
             if: ${!vars.preid && !vars.force}
             title: Preid
             var: preid
-  - exec'js:
-      if: ${!vars.commitFormat}
-      script: |
-        vars.commitFormat = `chore[^:]*: ${vars.versionName} ([^ ]+)`
+  - exec'js: |
+      if (!vars.commitFormat) vars.commitFormat = `chore[^:]*: ${vars.versionName} ([^ ]+)`
+      vars.changeDir = this.scene.getPath(vars.changeDir)
+      vars.changeFile = this.scene.getPath(vars.changeFile)
   - exec'sh:
       title: Get new version
       script: |
-        mkdir -p "${this.scene.getPath(vars.changeDir)}"
+        mkdir -p "${vars.changeDir}"
         npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${vars.preid} ${vars.versionName}
       vars:
         lastCommit: "chore: ${vars.versionName} ${this.result}"
@@ -71,7 +72,7 @@ runs:
         - exec'sh: 
             title: Get git log
             script: |
-              git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%H)"
+              git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%h)"
             vars: 
               gitLog: ${this.result.split('\n').map(e => e.trim()).filter(e => e)}
         - exec'js: |
@@ -103,7 +104,6 @@ runs:
         - exec'js: |
             const { readdirSync, readFileSync } = require('fs') 
             const { join, basename } = require('path')
-            vars.changeDir = this.scene.getPath(vars.changeDir)
             const files = readdirSync(vars.changeDir)
             files.sort().reverse()
             vars.changeContent = []
@@ -114,7 +114,9 @@ runs:
               const d = fname.substring(0, idx)
               const mn = fname.substring(idx+2)
               vars.changeMenu.push(`- [${mn}](#${d})  -  _${new Date(+d).toLocaleString()}_`)
-              vars.changeContent.push(`<a id="${d}"></a>\n${readFileSync(join(vars.changeDir, f)).toString()}`)
+              const content = readFileSync(join(vars.changeDir, f)).toString()
+              if (mn === `${vars.version}.md`) vars.lastCommitContent = content.substring(content.indexOf('\n'))
+              vars.changeContent.push(`<a id="${d}"></a>\n${content}`)
             })
             this.logger.debug(files)
         - file'write:
@@ -134,9 +136,12 @@ runs:
   - group:
       title: Add and commit changelog
       runs:
+        - exec'js: |
+            vars.gitCommitFiles = vars.commitFiles.map(file => {
+              return `git add ${this.scene.getPath(file)}`
+            }).join('\n')
         - exec'sh: |
-            git add ${this.scene.getPath('../CHANGELOG.md')}
-            git add ${this.scene.getPath('../README.md')}
-            git add ${this.scene.getPath('../package.json')}
-            git add ${this.scene.getPath('../changelogs')}
-            git commit -m "${vars.lastCommit}"
+            git add ${vars.changeFile}
+            git add ${vars.changeDir}
+            ${vars.gitCommitFiles}
+            git commit -m "${vars.lastCommit}${vars.lastCommitContent}"

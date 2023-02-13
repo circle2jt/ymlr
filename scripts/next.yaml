@@ -1,8 +1,0 @@
-title: Prerelease the version
-runs:
-- scene:
-    path: ../shares/version.yaml
-    vars:
-      force: true
-      preid: alpha
-      versionName: prerelease
