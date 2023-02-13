@@ -1,18 +1,20 @@
 title: Create a new release on github
 vars:
-  tag: ""
   githubToken: ""
-  owner: circle2jt
-  repo: ymlr
-  changeDir: ../changelogs
+  lastCommitSHA: ""
 runs:
   - scene:
       title: Create a new release
-      if: ${ vars.tag &&  /^\d+\.\d+\.\d+$/.test(vars.tag) }
       path: ../shares/github.release.yaml
       vars:
         token: ${vars.githubToken}
-        tag: ${vars.tag}
-        owner: ${vars.owner}
-        repo: ${vars.repo}
-        changeDir: ${vars.changeDir}
+        lastCommitSHA: ${vars.lastCommitSHA}
+        owner: circle2jt
+        repo: ymlr
+        tag: "%s"
+        packageJson: ~~/package.json
+        validTagRegex: "^\\d+\\.\\d+\\.\\d+$"
+        name: "Release %s"
+        draft: false
+        prerelease: false
+        makeLatest: "true"
