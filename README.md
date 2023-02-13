@@ -583,7 +583,11 @@ Stop then quit the program
 Example:  
 
 ```yaml
+  - exit: 0
+
   - exit:
+      title: Throw error
+      code: 1
 ```  
 
 

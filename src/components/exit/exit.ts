@@ -1,17 +1,27 @@
 import { ElementShadow } from '../element-shadow'
-import { ElementProps } from '../element.props'
+import { ExitProps } from './exit.props'
 
 /** |**  exit
   Stop then quit the program
   @example
   ```yaml
+    - exit: 0
+
     - exit:
+        title: Throw error
+        code: 1
   ```
 */
 export class Exit extends ElementShadow {
-  constructor(props: ElementProps) {
+  code?: number | string
+
+  constructor(props: ExitProps) {
     super()
-    Object.assign(this, props)
+    if (typeof props === 'object') {
+      Object.assign(this, props)
+    } else {
+      this.code = props as number | string
+    }
   }
 
   async exec() {
@@ -19,6 +29,7 @@ export class Exit extends ElementShadow {
   }
 
   exit() {
-    process.exit(1)
+    const code = this.code !== undefined ? +this.code : 0
+    process.exit(code || 0)
   }
 }
