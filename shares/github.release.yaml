@@ -17,37 +17,37 @@ runs:
       vars.tag = !vars.tag ? version : vars.tag.replace('%s', version)
       vars.name = vars.name.replace('%s', vars.tag)
 
-  - exit: 
-      if: ${ vars.validTagRegex && !new RegExp(vars.validTagRegex).test(vars.tag) }
+  - group: 
+      if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
+      runs:
+        - http'get:
+            force: true
+            debug: all
+            baseURL: https://api.github.com
+            url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
+            headers:
+              Accept: application/vnd.github+json"
+              Authorization: Bearer ${vars.token}
+            vars:
+              lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
 
-  - http'get:
-      force: true
-      debug: all
-      baseURL: https://api.github.com
-      url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
-      headers:
-        Accept: application/vnd.github+json"
-        Authorization: Bearer ${vars.token}
-      vars:
-        lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
-
-  - echo: |
-      tag_name: ${vars.tag}
-      name: ${vars.name}
-      body: ${vars.lastCommitDes}
-      
-  - http'post:
-      force: true
-      url: https://api.github.com/repos/${vars.owner}/${vars.repo}/releases
-      headers:
-        Accept: application/vnd.github+json
-        Authorization: Bearer ${vars.token}
-      body:
-        tag_name: ${vars.tag}
-        name: ${vars.name}
-        body: ${vars.lastCommitDes}
-        draft: ${vars.draft}
-        prerelease: ${vars.prerelease}
-        make_latest: ${vars.makeLatest}
-        generate_release_notes: false
-  - echo: Done
+        - echo: |
+            tag_name: ${vars.tag}
+            name: ${vars.name}
+            body: ${vars.lastCommitDes}
+            
+        - http'post:
+            force: true
+            url: https://api.github.com/repos/${vars.owner}/${vars.repo}/releases
+            headers:
+              Accept: application/vnd.github+json
+              Authorization: Bearer ${vars.token}
+            body:
+              tag_name: ${vars.tag}
+              name: ${vars.name}
+              body: ${vars.lastCommitDes}
+              draft: ${vars.draft}
+              prerelease: ${vars.prerelease}
+              make_latest: ${vars.makeLatest}
+              generate_release_notes: false
+        - echo: Done
