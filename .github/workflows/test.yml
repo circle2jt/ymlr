@@ -31,5 +31,5 @@ jobs:
       - name: Create a new tag
         run: pnpm ci:tag
         env:
-          BRANCH: ${{ github.ref_name }}
           GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
+          LASTCOMMITSHA: ${{ github.SHA }}
