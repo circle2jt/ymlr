@@ -35,17 +35,12 @@ test('send a "get" request then get json data', async () => {
     query: {
       rd: Math.random().toString()
     },
-    responseType: 'json',
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}'
-    }
+    responseType: 'json'
   })
   await request.exec()
-  expect(Testing.vars.status).toBe(200)
-  expect(Testing.vars.statusText).toBe('OK MEN')
-  expect(Testing.vars.data).toEqual(bodyData)
+  expect(request.response?.status).toBe(200)
+  expect(request.response?.statusText).toBe('OK MEN')
+  expect(request.response?.data).toEqual(bodyData)
 })
 
 test('send a "get" request then get blob data', async () => {
@@ -66,11 +61,10 @@ test('send a "get" request then get blob data', async () => {
     query: {
       rd: Math.random().toString()
     },
-    responseType: 'blob',
-    vars: 'data'
+    responseType: 'blob'
   })
   await request.exec()
-  expect(Testing.vars.data).toBeInstanceOf(Blob)
+  expect(request.response?.data).toBeInstanceOf(Blob)
 })
 
 test('send a "get" request then get arraybuffer data', async () => {
@@ -92,19 +86,13 @@ test('send a "get" request then get arraybuffer data', async () => {
     query: {
       rd: Math.random().toString()
     },
-    responseType: 'buffer',
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}',
-      custom: '${this.response.headers?.custom}'
-    }
+    responseType: 'buffer'
   })
   await request.exec()
-  expect(Testing.vars.status).toBe(200)
-  expect(Testing.vars.statusText).toBe('OK MEN')
-  expect(Testing.vars.custom).toBe('thanh')
-  expect(Testing.vars.data).toBeInstanceOf(ArrayBuffer)
+  expect(request.response?.status).toBe(200)
+  expect(request.response?.statusText).toBe('OK MEN')
+  expect(request.response?.headers?.custom).toBe('thanh')
+  expect(request.response?.data).toBeInstanceOf(ArrayBuffer)
 })
 
 test('send a "get" request then ignore response data', async () => {
@@ -120,11 +108,10 @@ test('send a "get" request then ignore response data', async () => {
     })
   request = await Testing.newElement(Get, {
     url: server.getURL().toString(),
-    responseType: 'none',
-    vars: 'data'
+    responseType: 'none'
   })
   await request.exec()
-  expect(Testing.vars.data).toBeUndefined()
+  expect(request.response?.data).toBeUndefined()
 })
 
 test('send a "get" request then get text data', async () => {
@@ -145,17 +132,12 @@ test('send a "get" request then get text data', async () => {
     query: {
       rd: Math.random().toString()
     },
-    responseType: 'text',
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}'
-    }
+    responseType: 'text'
   })
   await request.exec()
-  expect(Testing.vars.status).toBe(200)
-  expect(Testing.vars.statusText).toBe('OK MEN')
-  expect(typeof Testing.vars.data).toBe('string')
+  expect(request.response?.status).toBe(200)
+  expect(request.response?.statusText).toBe('OK MEN')
+  expect(typeof request.response?.data).toBe('string')
 })
 
 test('should download a file', async () => {

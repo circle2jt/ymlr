@@ -13,6 +13,7 @@ import { ElementShadow } from '../element-shadow'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
+import { VarsProps } from '../vars/vars.props'
 import { prefixPassword } from './constants'
 import { SceneProps } from './scene.props'
 
@@ -23,7 +24,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   @example
   ```yaml
     - scene:
-        title: A scene from remote server
+        name: A scene from remote server
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
         vars:                             # Set value to global environment
@@ -31,12 +32,14 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   ```
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
+  title?: string
   path?: string
   encryptedPath?: string
   content?: string
   password?: string
   curDir = ''
   localVars: Record<string, any> = {}
+  vars?: VarsProps
   protected isRoot = false
   protected get innerScene() {
     return this
@@ -46,23 +49,27 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return new ElementBuilder(this)
   }
 
-  constructor({ path, encryptPath, content, password, ...props }: SceneProps) {
+  constructor({ path, encryptPath, content, password, vars, ...props }: SceneProps) {
     super(props)
     this.$$ignoreEvalProps.push('content', 'curDir', 'localVars', 'elementBuilder')
-    Object.assign(this, { path, encryptPath, content, password })
+    Object.assign(this, { path, encryptPath, content, password, vars })
   }
 
   async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
+    this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
     if (Array.isArray(remoteFileProps)) {
-      this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
       this.lazyInit(remoteFileProps)
     } else {
       const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
       const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this)
-      if (debug) this.debug = debug
-      if (this.title === undefined) this.title = title
-      this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
+      if (this.title === undefined && title) {
+        this.title = title
+      }
+      if (this.$$baseProps) {
+        if (debug) this.$$baseProps.debug = debug
+        if (this.title) this.$$baseProps.name = ''
+      }
       if (password && !this.password) {
         await this.generateEncryptedFile(this.content, password)
       }
@@ -72,6 +79,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async exec() {
+    if (this.title) this.logger.info('%s', this.title)
     this.copyVarsToLocal()
     if (this.isRoot) this.logger.debug('')
     const results = await super.exec()
@@ -79,8 +87,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async dispose() {
-    this.copyVarsToGlobal()
-    await super.dispose()
   }
 
   getPath(p: string) {

@@ -77,7 +77,7 @@ Run a specific file
 
 1. Create a scene file at `test.yaml`
 ```yaml
-title: Test scene
+name: Test scene
 runs:
   - Hello world
 ```
@@ -105,7 +105,6 @@ runs:
 | [file'read](#file'read) | Read a file then load data into a variable |
 | [file'store](#file'store) | Store data to file |
 | [file'write](#file'write) | Write data to file |
-| [group](#group) | Group elements |
 | [http'del](#http'del) | Send a http request with DELETE method |
 | [http'get](#http'get) | Send a http request with GET method |
 | [http'head](#http'head) | Send a http request with HEAD method |
@@ -125,6 +124,7 @@ runs:
 | [npm'install](#npm'install) | Install librarries to use in the scene. |
 | [npm'uninstall](#npm'uninstall) | Uninstall librarries to use in the scene. |
 | [pause](#pause) | Pause the program then wait to user enter to continue |
+| [runs](#runs) | Group elements |
 | [scene](#scene) | Load another scene into the running program |
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
@@ -145,7 +145,7 @@ Root scene file includes all of steps to run
 Example:  
 
 ```yaml
-  title: Scene name                 # Scene name
+  name: Scene name                 # Scene name
   description: Scene description    # Scene description
   log: info                         # Show log when run. Default is info. [silent, error, warn, info, debug, trace, all]
   password:                         # Encrypted this file with the password. To run this file, need to provides a password in the command line
@@ -164,14 +164,12 @@ Expose item properties for others extends
 Example:  
 
 ```yaml
-  - echo:                     # Not run
-      ->: helloTemplate
-      skip: true
-      content: Hello
+  - ->: helloTemplate
+    skip: true
+    echo: Hello               # Not run
 
-  - echo:                     # => Hi
-      <-: helloTemplate
-      content: Hi
+  - <-: helloTemplate
+    echo: Hi                  # => Hi
 ```  
 
 
@@ -182,33 +180,31 @@ Copy properties from others (a item, or list items)
 Example:  
 
 ```yaml
-  - http'get:
-      skip: true
-      ->: baseRequest
+  - skip: true
+    ->: baseRequest
+    http'get:
       baseURL: http://localhost
-  - http'get:
-      skip: true
-      <-: baseRequest
-      ->: user1Request
+  - skip: true
+    <-: baseRequest
+    ->: user1Request
+    http'get:
       headers:
         authorization: Bearer user1_token
-  - http'get:
-      skip: true
-      ->: user2RequestWithoutBaseURL
+  - skip: true
+    ->: user2RequestWithoutBaseURL
+    http'get:
       headers:
         authorization: Bearer user2_token
 
-  - http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user1_token"
-      <-: user1Request
+  - <-: user1Request
+    http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user1_token"
       url: /posts
-      vars: user1Posts
+    vars: user1Posts
 
-  - http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user2_token"
-      <-:
-        - baseRequest
-        - user2RequestWithoutBaseURL
+  - <-: [baseRequest, user2RequestWithoutBaseURL]
+    http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user2_token"
       url: /posts
-      vars: user2Posts
+    vars: user2Posts
 ```  
 
 
@@ -219,16 +215,16 @@ Execute parallel tasks
 Example:  
 
 ```yaml
-  - http'get:
-      async: true
+  - async: true
+    http'get:
       url: /categories
-      vars: categories
-  - http'get:
-      async: true
+    vars: categories
+  - async: true
+    http'get:
       url: /product/1
-      vars: product
+    vars: product
 
-  - echo: The product ${product.name} is in the categories ${categories.map(c => c.name)}
+  - name: The product ${product.name} is in the categories ${categories.map(c => c.name)}
 ```  
 
 
@@ -240,16 +236,16 @@ Value must be in:
 - `all`: Print all of debug message
 - `trace`: Print all of debug message
 - `debug`: Print short of debug
-- `info`: Print title, not show debug details
+- `info`: Print name, description without log details
 - `warn`: Only show warning debug
 - `error`: Only show error debug  
 
 Example:  
 
 ```yaml
-  - http'get:
-      title: Get data from a API
-      debug: debug
+  - name: Get data from a API
+    debug: debug
+    http'get:
       url: http://...../data.json
 ```  
 
@@ -261,11 +257,10 @@ Try to execute and ignore error in the running
 Example:  
 
 ```yaml
-  - echo:                     # Not run
-      force: true
-      content: Got error "abc is not defined" but it should not stop here ${abc}
+  - force: true
+    name: Got error "abc is not defined" but it should not stop here ${abc}
 
-  - echo: Keep playing
+  - name: Keep playing
 ```  
 
 
@@ -278,12 +273,11 @@ Example:
 ```yaml
   - vars:
       number: 11
-  - echo:                               # => Value is greater than 10
-      if: ${vars.number > 10}
-      content: Value is greater than 10
-  - echo:                               # No print
-      if: ${vars.number < 10}
-      content: Value is lessthan than 10
+  - if: ${vars.number > 10}
+    echo: Value is greater than 10      # => Value is greater than 10
+
+  - if: ${vars.number < 10}
+    echo: Value is lessthan than 10     # No print
 ```  
 
 
@@ -297,9 +291,8 @@ Loop in array
 ```yaml
   - vars:
       arrs: [1,2,3,4]
-  - echo:
-      loop: ${vars.arrs}
-      content: Index is ${this.loopKey}, value is ${this.loopValue}
+  - loop: ${vars.arrs}
+    echo: Index is ${this.loopKey}, value is ${this.loopValue}
   # =>
   # Index is 0, value is 1
   # Index is 1, value is 2
@@ -314,9 +307,8 @@ Loop in object
         "name": "thanh",
         "sex": "male"
       }
-  - echo:
-      loop: ${vars.obj}
-      content: Key is ${this.loopKey}, value is ${this.loopValue}
+  - loop: ${vars.obj}
+    echo: Key is ${this.loopKey}, value is ${this.loopValue}
   # =>
   # Key is name, value is thanh
   # Key is sex, value is male
@@ -326,9 +318,8 @@ Dynamic loop in a condition
 ```yaml
   - vars:
       i: 0
-  - echo:
-      loop: ${vars.i < 3}
-      content: value is ${vars.i++}
+  - loop: ${vars.i < 3}
+    echo: value is ${vars.i++}
   # =>
   # value is 0
   # value is 1
@@ -339,14 +330,26 @@ Loop in nested items
 ```yaml
   - vars:
       arrs: [1,2,3]
-  - group:
-      loop: ${vars.arrs}
-      title: group ${this.loopValue}
-      items:
+  - loop: ${vars.arrs}
+    name: group ${this.loopValue}
+    group:
+      runs:
         - echo: item value is ${this.parent.loopValue}
   # =>
   # group 1
   # item value is 1
+```  
+
+
+## <a id="name"></a>name  
+`It's a property in a tag`  
+Step name  
+
+Example:  
+
+```yaml
+  - name: Sleep in 1s
+    sleep: 1000
 ```  
 
 
@@ -357,27 +360,29 @@ Only init but not execute
 Example:  
 
 ```yaml
-  - echo:                     # Not run
-      ->: helloTemplate
-      skip: true
-      content: Hello
+  - ->: helloTemplate
+    skip: true
+    echo: Hello                # Not run
 
-  - echo:                      # => Hi
-      <-: helloTemplate
-      content: Hi
+  - <-: helloTemplate
+    echo: Hi                   # => Hi
 ```  
 
 
-## <a id="title"></a>title  
+## <a id="template"></a>template  
 `It's a property in a tag`  
-Title  
+Declare a template to extends later  
 
 Example:  
 
 ```yaml
-  - sleep:
-      title: Sleep in 1s
-      duration: 1000
+  - ->: localhost           # Auto skip, not run it
+    template:
+      baseURL: http://localhost:3000
+
+  - <-: localhost           # => Auto inherits "baseURL" from localhost
+    http'get:
+      url: /items
 ```  
 
 
@@ -388,12 +393,9 @@ Set value in the item to global vars to reused later
 Example:  
 
 ```yaml
-  - echo:
-      content: Hello world
-      vars: helloText
-  - echo: ${vars.helloTexxt}
-  # =>
-  # Hello world
+  - echo: Hello world
+    vars: helloText
+  - echo: ${vars.helloText}     # => Hello world
 ```  
 
 
@@ -492,15 +494,15 @@ Ignore the next steps in the same parent
 Example:  
 
 ```yaml
-  - group:
-      title: group 1
+  - name: group 1
+    group:
       runs:
         - echo: 1             # => 1
         - continue:           # => Stop here then ignore the next steps in the same parent
         - echo: 2
         - echo: 3
-  - group:                    # Still run the next group
-      title: group 1
+  - name: group 1
+    group:                    # Still run the next group
       runs:
         - echo: 2             # => 2
 ```  
@@ -514,19 +516,16 @@ Example:
 
 Execute a bash script
 ```yaml
-  - exec:
-      title: Run a bash script
-      commands:
-        - /bin/sh
-        - /startup.sh
+  - name: Run a bash script
+    exec:
+      - /bin/sh
+      - /startup.sh
 ```
 Execute a python app
 ```yaml
   - exec:
-      title: Run a python app
-      commands:
-        - python
-        - app.py
+      - python
+      - app.py
 ```  
 
 
@@ -538,23 +537,22 @@ Example:
 
 Set value to a variable
 ```yaml
-  - exec'js:
-      title: Set value to a variable
-      script: |
-        vars.name = 'thanh'
-        logger.info(vars.name)
+  - name: Set value to a variable
+    exec'js: |
+      vars.name = 'thanh'
+      logger.info(vars.name)
 ```
 
 Write a file
 ```yaml
-  - exec'js:
-      title: Write a file
+  - name: Write a file
+    exec'js:
       path: /sayHello.sh              # Path of js file (Use only "path" OR "script")
       script: |                       # NodeJS content
         const { writeFileSync } = require('fs')
         writeFileSync('/tmp/hello.txt', 'Hello world')
         return "OK"
-      vars: result    # !optional
+    vars: result                      # !optional
 ```  
 
 
@@ -565,14 +563,14 @@ Execute a shell script
 Example:  
 
 ```yaml
-  - exec'sh:
-      title: Write a hello file
+  - name: Write a hello file
+    exec'sh:
       path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
       script: |                       # Shell script content
         touch hello.txt
         echo "Hello world" > /tmp/hello.txt
       bin: /bin/sh    # !optional. Default use /bin/sh to run sh script
-      vars: log       # !optional
+    vars: log       # !optional
 ```  
 
 
@@ -585,9 +583,8 @@ Example:
 ```yaml
   - exit: 0
 
-  - exit:
-      title: Throw error
-      code: 1
+  - name: Throw error
+    exit: 1
 ```  
 
 
@@ -682,25 +679,6 @@ Write a text file
 ```  
 
 
-## <a id="group"></a>group  
-  
-Group elements  
-
-Example:  
-
-```yaml
-  - group:
-      title: Print all of message
-      runs:
-        - echo: hello
-        - echo: world
-        - group:
-            title: Stop
-            runs:
-              - exit:
-```  
-
-
 ## <a id="http'del"></a>http'del  
   
 Send a http request with DELETE method  
@@ -709,8 +687,8 @@ Example:
 
 ```yaml
   # DELETE http://localhost:3000/posts/1?method=check_existed
-  - http'del:
-      title: Delete a post
+  - name: Delete a post
+    http'del:
       url: /posts/1
       baseURL: http://localhost:3000  # !optional - Request base url
       query:                          # !optional - Request query string
@@ -718,8 +696,8 @@ Example:
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
-      vars:                           # !optional - Global variable which store value after executed
-        status: ${this.response.status}
+    vars:                             # !optional - Global variable which store value after executed
+      status: ${this.response.status}
 ```  
 
 
@@ -732,8 +710,8 @@ Example:
 Get data from API then store value in `vars.posts`
 ```yaml
   # GET http://localhost:3000/posts?category=users
-  - http'get:
-      title: Get list posts
+  - name: Get list posts
+    http'get:
       url: /posts
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
       baseURL: http://localhost:3000  # !optional - Request base url
@@ -742,14 +720,14 @@ Get data from API then store value in `vars.posts`
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
-      vars: posts                     # !optional - Global variable which store value after executed
+    vars: posts                       # !optional - Global variable which store value after executed
 ```
 
 Download file from a API
 ```yaml
   # GET http://localhost:3000/posts?category=users
-  - http'get:
-      title: Download a file
+  - name: Download a file
+    http'get:
       baseURL: http://localhost:3000
       url: /posts
       query:
@@ -768,8 +746,8 @@ Example:
 
 ```yaml
   # HEAD http://localhost:3000/posts/1?method=check_existed
-  - http'head:
-      title: Check post is existed or not
+  - name: Check post is existed or not
+    http'head:
       baseURL: http://localhost:
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
                                       # supported: d h m s ~ day, hour, minute, seconds
@@ -779,8 +757,8 @@ Example:
         method: check_existed
       headers:
         authorization: Bearer TOKEN
-      vars:
-        status: ${this.response?.status}
+    vars:
+      status: ${this.response?.status}
 ```  
 
 
@@ -793,8 +771,8 @@ Example:
 Update apart of data to API then store value in `vars.posts`
 ```yaml
   # PATCH http://localhost:3000/posts/ID?category=users
-  - http'patch:
-      title: Update a post
+  - name: Update a post
+    http'patch:
       baseURL: http://localhost:3000
       url: /posts/ID
       query:
@@ -808,13 +786,13 @@ Update apart of data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-      vars: newPost
+    vars: newPost
 ```
 Upload file to server
 ```yaml
   # PATCH http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
-  - http'patch:
-      title: Upload and update data
+  - name: Upload and update data
+    http'patch:
       baseURL: http://localhost:3000
       url: /upload/ID_UPLOADER_TO_REPLACE
       headers:
@@ -826,8 +804,8 @@ Upload file to server
           "name": "thanh_avatar"
         }
       }
-      vars:
-        status: ${this.response.status}
+    vars:
+      status: ${this.response.status}
 ```  
 
 
@@ -840,8 +818,8 @@ Example:
 Post data to API then store value in `vars.posts`
 ```yaml
   # POST http://localhost:3000/posts?category=users
-  - http'post:
-      title: Create a new post
+  - name: Create a new post
+    http'post:
       baseURL: http://localhost:3000
       url: /posts
       query:
@@ -855,13 +833,13 @@ Post data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-      vars: newPost
+    vars: newPost
 ```
 Upload file to server
 ```yaml
   # POST http://localhost:3000/upload
-  - http'post:
-      title: Upload a new avatar
+  - name: Upload a new avatar
+    http'post:
       baseURL: http://localhost:3000
       url: /upload
       headers:
@@ -874,8 +852,8 @@ Upload file to server
           "name": "thanh_avatar"
         }
       }
-      vars:
-        status: ${this.response.status}
+    vars:
+      status: ${this.response.status}
 ```  
 
 
@@ -888,8 +866,8 @@ Example:
 Update data to API then store value in `vars.posts`
 ```yaml
   # PUT http://localhost:3000/posts/ID?category=users
-  - http'put:
-      title: Update a post
+  - name: Update a post
+    http'put:
       baseURL: http://localhost:3000
       url: /posts/ID
       query:
@@ -903,13 +881,13 @@ Update data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-      vars: newPost
+    vars: newPost
 ```
 Upload file to server
 ```yaml
   # PUT http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
-  - http'put:
-      title: Upload and update data
+  - name: Upload and update data
+    http'put:
       baseURL: http://localhost:3000
       url: /upload/ID_UPLOADER_TO_REPLACE
       headers:
@@ -922,8 +900,8 @@ Upload file to server
           "name": "thanh_avatar"
         }
       }
-      vars:
-        status: ${this.response.status}
+    vars:
+      status: ${this.response.status}
 ```  
 
 
@@ -1147,31 +1125,28 @@ Example:
       - module1
       - myapp: git+ssh:git@github.com:...
 
-  - npm'install:
-      packages:
-        - lodash
-        - ymlr-telegram@latest     // Always get latest ymlr-telegram librarry
+  - Always get latest ymlr-telegram librarry
+    npm'install: [lodash, ymlr-telegram@latest]
 
   # How to used
   - exec'js: |
       vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
       require('myapp')
 
-  - echo'pretty: ${vars.newObject}
+  - echo: ${vars.newObject}
 ```
 
 Install from github
 ```yaml
-  - npm'install:
-      title: Install from github
-      if: ${vars.useExternalPackage}
-      packages:
-        - myapp: git+ssh:git@github.com:...
-        - ymlr...
+  - name: Install from github
+    if: ${vars.useExternalPackage}
+    npm'install:
+      - myapp: git+ssh:git@github.com:...
+      - ymlr...
 
   # How to used
   - myapp:
-      title: This is my first application
+      name: This is my first application
 
 ```
   
@@ -1190,11 +1165,8 @@ Example:
       - module1
       - myapp
 
-  - npm'uninstall:
-      title: Uninstall librarry
-      packages:
-        - ymlr-telegram
-        - ymlr...
+  - name: Uninstall librarry
+    npm'uninstall: [ymlr-telegram, ymlr...]
 ```  
 
 
@@ -1207,8 +1179,25 @@ Example:
 ```yaml
   - pause:
 
-  - pause:
-      title: Pause here
+  - name: Pause here
+    pause:
+```  
+
+
+## <a id="runs"></a>runs  
+  
+Group elements  
+
+Example:  
+
+```yaml
+  - name: Print all of message
+    runs:
+      - echo: hello
+      - echo: world
+      - name: Stop
+        runs:
+          - exit:
 ```  
 
 
@@ -1220,7 +1209,7 @@ Example:
 
 ```yaml
   - scene:
-      title: A scene from remote server
+      name: A scene from remote server
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
       vars:                             # Set value to global environment
@@ -1248,9 +1237,8 @@ Sleep for a time
 
 Full props
 ```yaml
-  - sleep:
-      title: Sleep 10s
-      duration 10000          # Sleep 10s then keep continue
+  - name: Sleep 10s
+    sleep: 10000          # Sleep 10s then keep continue
 ```  
 
 
@@ -1388,8 +1376,8 @@ View data in a pretty format
 Example:  
 
 ```yaml
-  - view:
-      title: Pretty Viewer
+  - name: Pretty Viewer
+    view:
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
   - view: ${vars.TEST_DATA}
@@ -1403,8 +1391,8 @@ View data in a json format
 Example:  
 
 ```yaml
-  - view'json:
-      title: JSON Viewer
+  - name: JSON Viewer
+    view'json:
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
   - view'json: ${vars.TEST_DATA}
@@ -1418,8 +1406,8 @@ View data in a table format
 Example:  
 
 ```yaml
-  - view'table:
-      title: Table viewer
+  - name: Table viewer
+    view'table:
       headers:            # Pick some headers to show. Default is all
         - name
         - age
@@ -1437,7 +1425,7 @@ Example:
 
 ```yaml
   - view'yaml:
-      title: Yaml Viewer
+      name: Yaml Viewer
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
   - view'yaml: ${vars.TEST_DATA}

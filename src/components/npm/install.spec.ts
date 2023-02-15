@@ -21,10 +21,7 @@ test('should install librarries as an array input', async () => {
 
 test('should install librarries as an full object', async () => {
   const packsInstall = ['a', 'b', 'c']
-  install = await Testing.newElement(Install, {
-    title: 'Install lack packages',
-    packages: packsInstall
-  })
+  install = await Testing.newElement(Install, packsInstall)
   install.action = jest.fn().mockImplementationOnce((...packs) => {
     expect(packs).toEqual(packsInstall)
   })

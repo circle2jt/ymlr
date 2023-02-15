@@ -18,7 +18,6 @@ test('should create a new file', async () => {
   const path = `/tmp/${formatFileName('No Say Ben( Remix ) | Cover Bố Mẹ Gấu | VanhLeg')}.mp3`
   try {
     execSh = await Testing.newElement(ExecSh, {
-      title: 'Test function',
       script: `touch "${path}"`
     })
     await execSh.exec()
@@ -31,7 +30,6 @@ test('should create a new file', async () => {
 test('should be executed', async () => {
   const txt = 'hello world'
   execSh = await Testing.newElement(ExecSh, {
-    title: 'Test function',
     script: `echo "${txt}"`
   })
   const msg = await execSh.exec()
@@ -51,7 +49,6 @@ test('should run from external file', async () => {
   await tmpFile.create(`echo "${txt}"`)
   try {
     execSh = await Testing.newElement(ExecSh, {
-      title: 'Test function',
       path: tmpFile.file
     })
     const msg = await execSh.exec()

@@ -7,8 +7,8 @@ import { PutProps } from './put.props'
   Update data to API then store value in `vars.posts`
   ```yaml
     # PUT http://localhost:3000/posts/ID?category=users
-    - http'put:
-        title: Update a post
+    - name: Update a post
+      http'put:
         baseURL: http://localhost:3000
         url: /posts/ID
         query:
@@ -22,13 +22,13 @@ import { PutProps } from './put.props'
           "description": "My description"
         }
         responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-        vars: newPost
+      vars: newPost
   ```
   Upload file to server
   ```yaml
     # PUT http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
-    - http'put:
-        title: Upload and update data
+    - name: Upload and update data
+      http'put:
         baseURL: http://localhost:3000
         url: /upload/ID_UPLOADER_TO_REPLACE
         headers:
@@ -41,8 +41,8 @@ import { PutProps } from './put.props'
             "name": "thanh_avatar"
           }
         }
-        vars:
-          status: ${this.response.status}
+      vars:
+        status: ${this.response.status}
   ```
 */
 export class Put extends Post {

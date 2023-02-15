@@ -7,7 +7,7 @@ import { ViewYamlProps } from './view-yaml.props'
   @example
   ```yaml
     - view'yaml:
-        title: Yaml Viewer
+        name: Yaml Viewer
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
     - view'yaml: ${vars.TEST_DATA}

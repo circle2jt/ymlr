@@ -1,6 +1,8 @@
+import { LoggerLevel } from 'src/libs/logger'
 import { VarsProps } from './vars/vars.props'
 
-export type ElementBaseProps = Pick<ElementProps, 'if' | 'force' | 'debug' | 'vars' | 'async' | 'loop' | 'title'>
+export const ElementBaseKeys = ['->', '<-', 'template', 'if', 'force', 'debug', 'vars', 'async', 'loop', 'name', 'skip']
+export type ElementBaseProps = Pick<ElementProps, 'if' | 'force' | 'debug' | 'vars' | 'async' | 'loop' | 'name' | 'skip'>
 
 export interface ElementProps {
   [key: string]: any
@@ -10,14 +12,12 @@ export interface ElementProps {
     @tag It's a property in a tag
     @example
     ```yaml
-      - echo:                     # Not run
-          ->: helloTemplate
-          skip: true
-          content: Hello
+      - ->: helloTemplate
+        skip: true
+        echo: Hello               # Not run
 
-      - echo:                     # => Hi
-          <-: helloTemplate
-          content: Hi
+      - <-: helloTemplate
+        echo: Hi                  # => Hi
     ```
   */
   '->'?: string
@@ -27,50 +27,62 @@ export interface ElementProps {
     @tag It's a property in a tag
     @example
     ```yaml
-      - http'get:
-          skip: true
-          ->: baseRequest
+      - skip: true
+        ->: baseRequest
+        http'get:
           baseURL: http://localhost
-      - http'get:
-          skip: true
-          <-: baseRequest
-          ->: user1Request
+      - skip: true
+        <-: baseRequest
+        ->: user1Request
+        http'get:
           headers:
             authorization: Bearer user1_token
-      - http'get:
-          skip: true
-          ->: user2RequestWithoutBaseURL
+      - skip: true
+        ->: user2RequestWithoutBaseURL
+        http'get:
           headers:
             authorization: Bearer user2_token
 
-      - http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user1_token"
-          <-: user1Request
+      - <-: user1Request
+        http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user1_token"
           url: /posts
-          vars: user1Posts
+        vars: user1Posts
 
-      - http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user2_token"
-          <-:
-            - baseRequest
-            - user2RequestWithoutBaseURL
+      - <-: [baseRequest, user2RequestWithoutBaseURL]
+        http'get:                      # Send a get request with baseURL is "http://localhost" and headers.authorization is "Bearer user2_token"
           url: /posts
-          vars: user2Posts
+        vars: user2Posts
     ```
   */
   '<-'?: string | string[]
+  /** |**  template
+    Declare a template to extends later
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - ->: localhost           # Auto skip, not run it
+        template:
+          baseURL: http://localhost:3000
+
+      - <-: localhost           # => Auto inherits "baseURL" from localhost
+        http'get:
+          url: /items
+    ```
+  */
+  template?: any
   /** |**  skip
     Only init but not execute
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - echo:                     # Not run
-          ->: helloTemplate
-          skip: true
-          content: Hello
+      - ->: helloTemplate
+        skip: true
+        echo: Hello                # Not run
 
-      - echo:                      # => Hi
-          <-: helloTemplate
-          content: Hi
+      - <-: helloTemplate
+        echo: Hi                   # => Hi
     ```
   */
   skip?: boolean
@@ -80,26 +92,24 @@ export interface ElementProps {
     @tag It's a property in a tag
     @example
     ```yaml
-      - echo:                     # Not run
-          force: true
-          content: Got error "abc is not defined" but it should not stop here ${abc}
+      - force: true
+        name: Got error "abc is not defined" but it should not stop here ${abc}
 
-      - echo: Keep playing
+      - name: Keep playing
     ```
   */
   force?: boolean | string
-  /** |**  title
-    Title
+  /** |**  name
+    Step name
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - sleep:
-          title: Sleep in 1s
-          duration: 1000
+      - name: Sleep in 1s
+        sleep: 1000
     ```
   */
-  title?: string
+  name?: string
   /** |**  debug
     How to print log details for each of item.
     Default is `info`
@@ -107,32 +117,29 @@ export interface ElementProps {
       - `all`: Print all of debug message
       - `trace`: Print all of debug message
       - `debug`: Print short of debug
-      - `info`: Print title, not show debug details
+      - `info`: Print name, description without log details
       - `warn`: Only show warning debug
       - `error`: Only show error debug
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - http'get:
-          title: Get data from a API
-          debug: debug
+      - name: Get data from a API
+        debug: debug
+        http'get:
           url: http://...../data.json
     ```
   */
-  debug?: 'all' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal' | 'silent'
+  debug?: LoggerLevel
   /** |**  vars
     Set value in the item to global vars to reused later
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - echo:
-          content: Hello world
-          vars: helloText
-      - echo: ${vars.helloTexxt}
-      # =>
-      # Hello world
+      - echo: Hello world
+        vars: helloText
+      - echo: ${vars.helloText}     # => Hello world
     ```
   */
   vars?: VarsProps
@@ -145,9 +152,8 @@ export interface ElementProps {
     ```yaml
       - vars:
           arrs: [1,2,3,4]
-      - echo:
-          loop: ${vars.arrs}
-          content: Index is ${this.loopKey}, value is ${this.loopValue}
+      - loop: ${vars.arrs}
+        echo: Index is ${this.loopKey}, value is ${this.loopValue}
       # =>
       # Index is 0, value is 1
       # Index is 1, value is 2
@@ -162,9 +168,8 @@ export interface ElementProps {
             "name": "thanh",
             "sex": "male"
           }
-      - echo:
-          loop: ${vars.obj}
-          content: Key is ${this.loopKey}, value is ${this.loopValue}
+      - loop: ${vars.obj}
+        echo: Key is ${this.loopKey}, value is ${this.loopValue}
       # =>
       # Key is name, value is thanh
       # Key is sex, value is male
@@ -174,9 +179,8 @@ export interface ElementProps {
     ```yaml
       - vars:
           i: 0
-      - echo:
-          loop: ${vars.i < 3}
-          content: value is ${vars.i++}
+      - loop: ${vars.i < 3}
+        echo: value is ${vars.i++}
       # =>
       # value is 0
       # value is 1
@@ -187,10 +191,10 @@ export interface ElementProps {
     ```yaml
       - vars:
           arrs: [1,2,3]
-      - group:
-          loop: ${vars.arrs}
-          title: group ${this.loopValue}
-          items:
+      - loop: ${vars.arrs}
+        name: group ${this.loopValue}
+        group:
+          runs:
             - echo: item value is ${this.parent.loopValue}
       # =>
       # group 1
@@ -206,12 +210,11 @@ export interface ElementProps {
     ```yaml
       - vars:
           number: 11
-      - echo:                               # => Value is greater than 10
-          if: ${vars.number > 10}
-          content: Value is greater than 10
-      - echo:                               # No print
-          if: ${vars.number < 10}
-          content: Value is lessthan than 10
+      - if: ${vars.number > 10}
+        echo: Value is greater than 10      # => Value is greater than 10
+
+      - if: ${vars.number < 10}
+        echo: Value is lessthan than 10     # No print
     ```
   */
   if?: boolean | string
@@ -221,16 +224,16 @@ export interface ElementProps {
     @tag It's a property in a tag
     @example
     ```yaml
-      - http'get:
-          async: true
+      - async: true
+        http'get:
           url: /categories
-          vars: categories
-      - http'get:
-          async: true
+        vars: categories
+      - async: true
+        http'get:
           url: /product/1
-          vars: product
+        vars: product
 
-      - echo: The product ${product.name} is in the categories ${categories.map(c => c.name)}
+      - name: The product ${product.name} is in the categories ${categories.map(c => c.name)}
     ```
   */
   async?: boolean | string

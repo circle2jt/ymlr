@@ -2,20 +2,21 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Element } from './element.interface'
+import { ElementBaseProps } from './element.props'
 import { RootScene } from './root-scene'
 import { Scene } from './scene/scene'
-import { VarsProps } from './vars/vars.props'
+
+const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
+  'loop', 'if', 'vars', 'async'
+]
 
 const IGNORE_EVAL_ELEMENT_SHADOW_PROPS = [
+  '$$baseProps',
   '$$evalExps',
   '$$ignoreVarsBeforeExec',
-  'skip',
   'error',
-  'vars',
-  'loop',
   'loopKey',
   'loopValue',
-  'if',
   '$$tag',
   'parent',
   'parentState',
@@ -30,18 +31,10 @@ export type ElementClass = new (props?: any) => Element
 
 export abstract class ElementShadow implements Element {
   // [parent*: string]: any
+  $$baseProps: ElementBaseProps = {}
   $$ignoreEvalProps: string[] = []
-  title?: string
-  skip?: boolean
-  force?: boolean
-  error?: any
-  debug?: LoggerLevel
-  vars?: VarsProps
-  async?: boolean
-  loop?: string
   loopKey?: any
   loopValue?: any
-  if?: any
   // @ts-expect-error
   $$tag: string
   parentState?: Record<string, any> = {}
@@ -53,9 +46,10 @@ export abstract class ElementShadow implements Element {
   scene: Scene
   // @ts-expect-error
   rootScene: RootScene
+  error?: Error
 
   get $$loggerLevel(): LoggerLevel {
-    return this.debug || this.parent?.$$loggerLevel || this.rootScene?.logger.levelName || LoggerLevel.ALL
+    return this.$$baseProps?.debug || this.parent?.$$loggerLevel || this.rootScene?.logger.levelName || LoggerLevel.ALL
   }
 
   asyncConstructor(_props?: any) { }
@@ -72,8 +66,8 @@ export abstract class ElementShadow implements Element {
   }
 
   async setVarsAfterExec() {
-    if (this.vars) {
-      const keys = await this.scene.setVars(this.vars, this.result, this)
+    if (this.$$baseProps.vars) {
+      const keys = await this.scene.setVars(this.$$baseProps.vars, this.result, this)
       if (!keys?.length) return
       this.logger.trace('[vars] \t%j', keys.reduce<Record<string, any>>((sum, e) => {
         sum[e] = this.scene.localVars[e]
@@ -94,6 +88,16 @@ export abstract class ElementShadow implements Element {
         // @ts-expect-error
         this[key] = await this.scene.getVars(this[key], this)
       })
+    const baseProps = Object.keys(this.$$baseProps)
+    proms.push(...baseProps
+      .filter(key => {
+        return !IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
+          // @ts-expect-error
+          isGetEvalExp(this.$$baseProps[key])
+      }).map(async key => {
+        // @ts-expect-error
+        this.$$baseProps[key] = await this.scene.getVars(this.$$baseProps[key], this)
+      }))
     proms.length && await Promise.all(proms)
   }
 
@@ -114,11 +118,14 @@ export abstract class ElementShadow implements Element {
 
 const ownerProperties = Object.getOwnPropertyNames(ElementShadow.prototype).filter(k => !['constructor', 'exec', 'dispose'].includes(k))
 
-export function copyElementShadowPrototype(elem: any) {
-  if (elem.$$loggerLevel) return
-  if (!elem.$$ignoreEvalProps) elem.$$ignoreEvalProps = []
+export function createFromShadow(Clazz: any, props?: any): ElementShadow {
+  if (Clazz.prototype.$$loggerLevel) return new Clazz(props)
   ownerProperties.forEach(k => {
     // @ts-expect-error
-    if (!elem[k]) elem[k] = ElementShadow.prototype[k]
+    if (!Clazz.prototype[k]) Clazz.prototype[k] = ElementShadow.prototype[k]
   })
+  const elem = new Clazz(props)
+  if (!elem.$$ignoreEvalProps) elem.$$ignoreEvalProps = []
+  if (!elem.$$baseProps) elem.$$baseProps = {}
+  return elem
 }

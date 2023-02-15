@@ -18,15 +18,6 @@ afterAll(() => {
 })
 
 test('should be executed', async () => {
-  exec = await Testing.newElement(Exec, {
-    title: 'Execute a file',
-    commands: ['/bin/sh', `${tmpShFile.file}`]
-  })
-  const { code } = await exec.exec()
-  expect(code).toBe(0)
-})
-
-test('should be executed', async () => {
   exec = await Testing.newElement(Exec, ['/bin/sh', tmpShFile.file])
   const { signal } = await exec.exec()
   expect(signal).toBeNull()

@@ -16,8 +16,8 @@ import { ResponseType } from './types'
   Get data from API then store value in `vars.posts`
   ```yaml
     # GET http://localhost:3000/posts?category=users
-    - http'get:
-        title: Get list posts
+    - name: Get list posts
+      http'get:
         url: /posts
         timeout: 5000                   # !optional - Request timeout. Default is no timeout
         baseURL: http://localhost:3000  # !optional - Request base url
@@ -26,14 +26,14 @@ import { ResponseType } from './types'
         headers:                        # !optional - Request headers
           authorization: Bearer TOKEN
         responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
-        vars: posts                     # !optional - Global variable which store value after executed
+      vars: posts                       # !optional - Global variable which store value after executed
   ```
 
   Download file from a API
   ```yaml
     # GET http://localhost:3000/posts?category=users
-    - http'get:
-        title: Download a file
+    - name: Download a file
+      http'get:
         baseURL: http://localhost:3000
         url: /posts
         query:
@@ -134,7 +134,7 @@ export class Get extends Head {
         if (!this.saveTo) return undefined
         // eslint-disable-next-line no-case-declarations
         const bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
-        if (this.title) bar?.logger.addIndent()
+        if (this.$$baseProps.name) bar?.logger.addIndent()
         await bar?.start(chalk.gray.dim('Connecting to server...'))
         try {
           const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
@@ -149,7 +149,7 @@ export class Get extends Head {
           }
           await finished(body.pipe(stream))
         } finally {
-          if (this.title) bar?.logger.addIndent(-1)
+          if (this.$$baseProps.name) bar?.logger.addIndent(-1)
           await bar?.stop()
         }
         return new File(this.saveTo, this.scene)

@@ -6,8 +6,8 @@ import { Head } from './head'
   @example
   ```yaml
     # DELETE http://localhost:3000/posts/1?method=check_existed
-    - http'del:
-        title: Delete a post
+    - name: Delete a post
+      http'del:
         url: /posts/1
         baseURL: http://localhost:3000  # !optional - Request base url
         query:                          # !optional - Request query string
@@ -15,8 +15,8 @@ import { Head } from './head'
         headers:                        # !optional - Request headers
           authorization: Bearer TOKEN
         timeout: 5000                   # !optional - Request timeout. Default is no timeout
-        vars:                           # !optional - Global variable which store value after executed
-          status: ${this.response.status}
+      vars:                             # !optional - Global variable which store value after executed
+        status: ${this.response.status}
   ```
 */
 export class Del extends Head {

@@ -1,22 +1,20 @@
 import cloneDeep from 'lodash.clonedeep'
 import { Continue } from '../continue/continue'
 import { ElementClass, ElementShadow } from '../element-shadow'
-import { ElementBaseProps } from '../element.props'
+import { ElementBaseKeys, ElementBaseProps } from '../element.props'
 import { GroupItemProps, GroupProps } from './group.props'
 
-/** |**  group
+/** |**  runs
   Group elements
   @example
   ```yaml
-    - group:
-        title: Print all of message
-        runs:
-          - echo: hello
-          - echo: world
-          - group:
-              title: Stop
-              runs:
-                - exit:
+    - name: Print all of message
+      runs:
+        - echo: hello
+        - echo: world
+        - name: Stop
+          runs:
+            - exit:
   ```
 */
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends ElementShadow {
@@ -70,36 +68,67 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
     return await this.runEachOfElements(parentState)
   }
 
+  private getTagName(props: any) {
+    const keys = Object.keys(props)
+    return keys.find(key => !ElementBaseKeys.includes(key) && props[key] !== undefined)
+  }
+
   async runEachOfElements(parentState?: Record<string, any>) {
     const asyncJobs = new Array<Promise<any>>()
     const runs = new Array<ElementShadow>()
     const newRuns = cloneDeep(this.runs)
-    for (const _e of newRuns) {
+    for (const allProps of newRuns) {
       // Init props
-      const e: GroupItemProps = typeof _e === 'string' ? { echo: { content: _e } } : _e
-      const name = Object.keys(e)[0]
-      let props = e[name]
-      let baseProps: ElementBaseProps = {}
-      if (props && typeof props === 'object' && !Array.isArray(props)) {
-        const { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
-        if (inheritKeys) this.rootScene.extend(eProps, inheritKeys)
-        if (exposeKey) this.rootScene.export(exposeKey, eProps)
-        const { if: condition, force, debug, vars, async, loop, ...customProps } = eProps
-        baseProps = {
-          if: condition,
-          force,
-          debug,
-          vars,
-          async,
-          loop
+      const props: GroupItemProps = allProps || {}
+      if (props.runs) {
+        const runs = props.runs
+        props.group = {
+          runs
         }
-        props = customProps
-        if (skip) continue
+        props.runs = undefined
+      }
+      let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
+      let tagName = this.getTagName(eProps)
+
+      // Only support template or tag name. Prefer tag name
+      if (tagName && eProps.template) eProps.template = undefined
+
+      if (inheritKeys) eProps = this.rootScene.extend(tagName, eProps, inheritKeys)
+      if (exposeKey) this.rootScene.export(tagName, eProps, exposeKey)
+
+      // Retry to get tagName which is override by keys
+      if (!tagName) tagName = this.getTagName(eProps)
+
+      // Skip when skip=true or it's a template
+      if (skip || eProps.template) continue
+
+      let { if: condition, force, debug, vars, async, loop, name } = eProps
+      let elemProps: any
+      if (tagName) {
+        // This is a tag
+        elemProps = eProps[tagName]
+      } else if (vars) {
+        // This is "vars" tag
+        tagName = 'vars'
+        elemProps = vars
+        vars = undefined
+      } else {
+        // This is a empty tag
+        tagName = 'base'
+        elemProps = undefined
+      }
+      const baseProps: ElementBaseProps = {
+        name,
+        if: condition,
+        force,
+        debug,
+        vars,
+        async,
+        loop
       }
       // Execute
-      const loop = baseProps.loop
       if (loop === undefined) {
-        const elem = await this.createAndExecuteElement(asyncJobs, name, parentState, baseProps, props)
+        const elem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elem) {
           runs.push(elem)
           if (elem instanceof Continue) break
@@ -109,8 +138,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
         if (loopCondition) {
           if (Array.isArray(loopCondition)) {
             for (let i = 0; i < loopCondition.length; i++) {
-              const newProps = props && cloneDeep(props)
-              const newElem = await this.createAndExecuteElement(asyncJobs, name, parentState, baseProps, newProps, {
+              const newProps = elemProps && cloneDeep(elemProps)
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: i,
                 loopValue: loopCondition[i]
               })
@@ -121,8 +150,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
             }
           } else if (typeof loopCondition === 'object') {
             for (const key in loopCondition) {
-              const newProps = props && cloneDeep(props)
-              const newElem = await this.createAndExecuteElement(asyncJobs, name, parentState, baseProps, newProps, {
+              const newProps = elemProps && cloneDeep(elemProps)
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: key,
                 loopValue: loopCondition[key]
               })
@@ -133,8 +162,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
             }
           } else if (loopCondition === true) {
             while (loopCondition) {
-              const newProps = props && cloneDeep(props)
-              const newElem = await this.createAndExecuteElement(asyncJobs, name, parentState, baseProps, newProps, {
+              const newProps = elemProps && cloneDeep(elemProps)
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopValue: loopCondition
               })
               if (newElem) {
@@ -157,17 +186,20 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
     const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this, parentState, ...loopObj }, { parentState })
     if (!isContinue) return undefined
 
-    if (asyncJobs.length && !baseProps?.async) {
+    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this, parentState, ...loopObj }, { parentState })
+
+    if (asyncJobs.length && !async) {
       await Promise.all(asyncJobs)
       asyncJobs.splice(0, asyncJobs.length)
     }
 
     const elem = await this.newElement(name, props)
     // Init props
-    Object.assign(elem, loopObj, baseProps)
+    Object.assign(elem, loopObj)
+    elem.$$baseProps = baseProps
     // Execute
     const p = elem.exec(parentState).finally(() => elem.dispose())
-    if (!elem.async) {
+    if (!async) {
       await p
     } else {
       asyncJobs.push(p)

@@ -1,7 +1,6 @@
 import chalk from 'chalk'
 import { InputConfirm } from 'src/components/input/questions/input-confirm'
 import { ElementShadow } from '../element-shadow'
-import { PauseProps } from './pause.props'
 
 /** |**  pause
   Pause the program then wait to user enter to continue
@@ -9,28 +8,17 @@ import { PauseProps } from './pause.props'
   ```yaml
     - pause:
 
-    - pause:
-        title: Pause here
+    - name: Pause here
+      pause:
   ```
 */
 export class Pause extends ElementShadow {
   $$ignoreEvalProps = ['confirm']
 
-  label?: string
-
   private confirm?: InputConfirm
 
-  constructor(props?: PauseProps) {
-    super()
-    if (props && typeof props === 'object') {
-      props.label = props.title
-      props.title = undefined
-    }
-    Object.assign(this, props)
-  }
-
   private getInputOptions() {
-    return { label: '⏸ ' + (this.label || 'Continue ?'), yes: 'Continue', no: chalk.red('Stop now') }
+    return { label: '⏸ Continue ?', yes: 'Continue', no: chalk.red('Stop now') }
   }
 
   async exec() {

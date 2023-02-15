@@ -12,42 +12,42 @@ vars:
   prerelease: false
   makeLatest: "true"
 runs:
+  - ->: git-http
+    force: true
+    skip: true
+    template:
+      baseURL: https://api.github.com
+      headers:
+        Accept: application/vnd.github+json"
+        Authorization: Bearer ${vars.token}
+
   - exec'js: |
       const version = require(this.scene.getPath(vars.packageJson)).version
       vars.tag = !vars.tag ? version : vars.tag.replace('%s', version)
       vars.name = vars.name.replace('%s', vars.tag)
 
-  - group: 
-      if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
-      runs:
-        - http'get:
-            force: true
-            debug: all
-            baseURL: https://api.github.com
-            url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
-            headers:
-              Accept: application/vnd.github+json"
-              Authorization: Bearer ${vars.token}
-            vars:
-              lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
+  - if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
+    runs:
+      - <-: git-http
+        http'get:
+          url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
+          vars:
+            lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
 
-        - echo: |
+      - echo: |
+          tag_name: ${vars.tag}
+          name: ${vars.name}
+          body: ${vars.lastCommitDes}
+
+      - <-: git-http
+        http'post:
+          url: /repos/${vars.owner}/${vars.repo}/releases
+          body:
             tag_name: ${vars.tag}
             name: ${vars.name}
             body: ${vars.lastCommitDes}
-            
-        - http'post:
-            force: true
-            url: https://api.github.com/repos/${vars.owner}/${vars.repo}/releases
-            headers:
-              Accept: application/vnd.github+json
-              Authorization: Bearer ${vars.token}
-            body:
-              tag_name: ${vars.tag}
-              name: ${vars.name}
-              body: ${vars.lastCommitDes}
-              draft: ${vars.draft}
-              prerelease: ${vars.prerelease}
-              make_latest: ${vars.makeLatest}
-              generate_release_notes: false
-        - echo: Done
+            draft: ${vars.draft}
+            prerelease: ${vars.prerelease}
+            make_latest: ${vars.makeLatest}
+            generate_release_notes: false
+      - echo: Done

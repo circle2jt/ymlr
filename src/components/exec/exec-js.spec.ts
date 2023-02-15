@@ -15,7 +15,6 @@ afterAll(async () => {
 test('should be executed', async () => {
   const txt = 'hello world'
   execJs = await Testing.newElement(ExecJs, {
-    title: 'Test function',
     script: `return '${txt}'`
   })
   const msg = await execJs.exec()

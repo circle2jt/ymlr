@@ -25,7 +25,7 @@ test('test script without title', async () => {
   })
   const rs = await testElem.exec()
   expect(rs).toBe(false)
-  expect(testElem.error.message).toBe('')
+  expect(testElem.error?.message).toBe('')
 })
 
 test('quick test', async () => {
@@ -56,7 +56,7 @@ test('quick test failed', async () => {
   })
   const rs = await testElem.exec()
   expect(rs).toBe(false)
-  expect(testElem.error.message).toBe('')
+  expect(testElem.error?.message).toBe('')
 })
 
 test('test with a script failed then print error detail', async () => {
@@ -68,5 +68,5 @@ test('test with a script failed then print error detail', async () => {
   })
   const rs = await testElem.exec()
   expect(rs).toBe(false)
-  expect(testElem.error.message).toBe(mes)
+  expect(testElem.error?.message).toBe(mes)
 })

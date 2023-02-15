@@ -10,14 +10,14 @@ import { ExecShProps } from './exec-sh.props'
   Execute a shell script
   @example
   ```yaml
-    - exec'sh:
-        title: Write a hello file
+    - name: Write a hello file
+      exec'sh:
         path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
         script: |                       # Shell script content
           touch hello.txt
           echo "Hello world" > /tmp/hello.txt
         bin: /bin/sh    # !optional. Default use /bin/sh to run sh script
-        vars: log       # !optional
+      vars: log       # !optional
   ```
 */
 export class ExecSh extends ElementShadow {

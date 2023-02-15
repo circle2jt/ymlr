@@ -105,7 +105,7 @@ test('Should load vars from yaml file', async () => {
       content: `
 vars_file: ${tmp.file}
 runs:
-  - Test env
+  - name: Test env
 `
     }, Testing.logger)
     await scene.exec()
@@ -139,7 +139,7 @@ test('Should load vars from json file', async () => {
       content: `
 vars_file: ${tmp.file}
 runs:
-  - Test env
+  - name: Test env
 `
     }, Testing.logger)
     await scene.exec()
@@ -174,7 +174,7 @@ vars:
     num: 1
     married: true
 runs:
-  - Test env
+  - name: Test env
 `
   }, Testing.logger)
   await scene.exec()
@@ -197,7 +197,7 @@ test('Should load successfully from text content with only list items', async ()
 test('Should load successfully from text content with full props', async () => {
   scene = await Testing.newElement(Scene, {
     content: `
-title: test
+name: test
 runs: 
   - echo: Hello
 `
@@ -210,10 +210,10 @@ test('Should load successfully from file', async () => {
   const tmp = new FileTemp()
   try {
     await tmp.create(`
-title: Test here
+name: Test here
 runs:
-  - Hello
-  - World
+  - echo: Hello
+  - echo: World
 `)
     scene = await Testing.newElement(Scene, { path: tmp.file })
     await scene.exec()
@@ -227,11 +227,11 @@ test('Should generate a generated scene file when set password', async () => {
   const tmp = new FileTemp('.yaml')
   try {
     await tmp.create(`
-title: Test here
+name: Test here
 password: ${password}
 runs:
-  - Hello
-  - World
+  - name: Hello
+  - echo: World
 `)
     scene = await Testing.newElement(Scene, { path: tmp.file })
     await scene.exec()
@@ -246,11 +246,11 @@ test('Load a encrypted scene file', async () => {
   const tmp = new FileTemp('.yaml')
   try {
     await tmp.create(`
-title: Test here
+name: Test here
 password: ${password}
 runs:
-  - Hello
-  - World
+  - name: Hello
+  - name: World
 `)
     scene = await Testing.newElement(Scene, { path: tmp.file })
     await scene.exec()
@@ -269,8 +269,7 @@ runs:
 test('Should run echo element', async () => {
   scene = await Testing.newElement(Scene, {
     content: `
-- echo:
-    content: 'ok'
+- echo: 'ok'
 `
   })
   const [echo] = await scene.exec() as Echo[]

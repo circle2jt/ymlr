@@ -10,15 +10,11 @@ export abstract class InstallAbstract extends ElementShadow {
 
   constructor(eprops: InstallProps) {
     super()
-    let _packages: any[]
+    let _packages: undefined | any[]
     if (Array.isArray(eprops)) {
       _packages = eprops
     } else if (typeof eprops === 'string') {
       _packages = eprops.split(',').map(e => e.trim().split(' ').map(e => e.trim())).flat().filter(e => e)
-    } else {
-      const { packages, ...props } = eprops
-      _packages = packages
-      Object.assign(this, props)
     }
     _packages?.forEach((pack: any) => {
       if (typeof pack === 'string') {
@@ -45,11 +41,11 @@ export abstract class InstallAbstract extends ElementShadow {
     }, [])
     if (!packsInstall.length) return false
     const logger = this.logger.clone()
-    if (this.title) logger.addIndent()
+    if (this.$$baseProps.name) logger.addIndent()
     try {
       await this.action(...packsInstall)
     } finally {
-      if (this.title) logger.removeIndent()
+      if (this.$$baseProps.name) logger.removeIndent()
     }
     return true
   }

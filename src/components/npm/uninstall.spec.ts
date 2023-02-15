@@ -21,10 +21,7 @@ test('should uninstall librarries as an array input', async () => {
 
 test('should uninstall librarries as an full object', async () => {
   const packsUninstall = ['a', 'b', 'c']
-  uninstall = await Testing.newElement(Uninstall, {
-    title: 'Uninstall lack packages',
-    packages: packsUninstall
-  })
+  uninstall = await Testing.newElement(Uninstall, packsUninstall)
   uninstall.action = jest.fn().mockImplementationOnce((...packs) => {
     expect(packs).toEqual(packsUninstall)
   })

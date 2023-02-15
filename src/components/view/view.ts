@@ -8,8 +8,8 @@ import { ViewProps } from './view.props'
   View data in a pretty format
   @example
   ```yaml
-    - view:
-        title: Pretty Viewer
+    - name: Pretty Viewer
+      view:
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
     - view: ${vars.TEST_DATA}

@@ -12,31 +12,28 @@ import { InstallProps } from './install.props'
         - module1
         - myapp: git+ssh:git@github.com:...
 
-    - npm'install:
-        packages:
-          - lodash
-          - ymlr-telegram@latest     // Always get latest ymlr-telegram librarry
+    - Always get latest ymlr-telegram librarry
+      npm'install: [lodash, ymlr-telegram@latest]
 
     # How to used
     - exec'js: |
         vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
         require('myapp')
 
-    - echo'pretty: ${vars.newObject}
+    - echo: ${vars.newObject}
   ```
 
   Install from github
   ```yaml
-    - npm'install:
-        title: Install from github
-        if: ${vars.useExternalPackage}
-        packages:
-          - myapp: git+ssh:git@github.com:...
-          - ymlr...
+    - name: Install from github
+      if: ${vars.useExternalPackage}
+      npm'install:
+        - myapp: git+ssh:git@github.com:...
+        - ymlr...
 
     # How to used
     - myapp:
-        title: This is my first application
+        name: This is my first application
 
   ```
 

@@ -7,8 +7,8 @@ import { Post } from './post'
   Update apart of data to API then store value in `vars.posts`
   ```yaml
     # PATCH http://localhost:3000/posts/ID?category=users
-    - http'patch:
-        title: Update a post
+    - name: Update a post
+      http'patch:
         baseURL: http://localhost:3000
         url: /posts/ID
         query:
@@ -22,13 +22,13 @@ import { Post } from './post'
           "description": "My description"
         }
         responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-        vars: newPost
+      vars: newPost
   ```
   Upload file to server
   ```yaml
     # PATCH http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
-    - http'patch:
-        title: Upload and update data
+    - name: Upload and update data
+      http'patch:
         baseURL: http://localhost:3000
         url: /upload/ID_UPLOADER_TO_REPLACE
         headers:
@@ -40,8 +40,8 @@ import { Post } from './post'
             "name": "thanh_avatar"
           }
         }
-        vars:
-          status: ${this.response.status}
+      vars:
+        status: ${this.response.status}
   ```
 */
 export class Patch extends Post {

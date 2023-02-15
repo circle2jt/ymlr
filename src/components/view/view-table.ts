@@ -5,8 +5,8 @@ import { ViewTableProps } from './view-table.props'
   View data in a table format
   @example
   ```yaml
-    - view'table:
-        title: Table viewer
+    - name: Table viewer
+      view'table:
         headers:            # Pick some headers to show. Default is all
           - name
           - age
