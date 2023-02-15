@@ -44,17 +44,12 @@ test('post a json request ok', async () => {
     },
     responseType: 'json',
     type: 'json',
-    body: bodyData,
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}'
-    }
+    body: bodyData
   })
   await request.exec()
-  expect(Testing.vars.status).toBe(200)
-  expect(Testing.vars.statusText).toBe('OK MEN')
-  expect(Testing.vars.data).toEqual(bodyData)
+  expect(request.response?.status).toBe(200)
+  expect(request.response?.statusText).toBe('OK MEN')
+  expect(request.response?.data).toEqual(bodyData)
 })
 
 test('post a form request ok', async () => {
@@ -72,17 +67,12 @@ test('post a form request ok', async () => {
     url: server.getURL().toString(),
     responseType: 'json',
     type: 'form',
-    body: bodyData,
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}'
-    }
+    body: bodyData
   })
   await request.exec()
-  expect(Testing.vars.status).toBe(200)
-  expect(Testing.vars.statusText).toBe('OK MEN')
-  expect(Testing.vars.data).toEqual(bodyData)
+  expect(request.response?.status).toBe(200)
+  expect(request.response?.statusText).toBe('OK MEN')
+  expect(request.response?.data).toEqual(bodyData)
 })
 
 test('post a text request ok', async () => {
@@ -110,12 +100,7 @@ test('post a raw request ok', async () => {
     url: server.getURL().toString(),
     responseType: 'none',
     type: 'raw',
-    body: bodyData,
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}',
-      data: '${this.response.data}'
-    }
+    body: bodyData
   })
   await request.exec()
 })

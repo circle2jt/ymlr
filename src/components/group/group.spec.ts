@@ -16,37 +16,37 @@ afterEach(async () => {
 test('if - condition', async () => {
   group = await Testing.newElement(Group, [
     {
-      echo: {
-        loop: '${[1,2,3]}',
-        if: '${this.loopValue %2 === 0}',
-        content: '${this.loopValue}'
+      loop: '${[1,2,3]}',
+      if: '${this.loopValue %2 === 0}',
+      echo: '${this.loopValue}'
+    },
+    {
+      vars: {
+        name: 'name 01'
       }
     }
   ])
   const [echo] = await group.exec() as Echo[]
   expect(echo.result).toBe(2)
+  expect(Testing.vars.name).toBe('name 01')
 })
 
 test('loop', async () => {
   group = await Testing.newElement(Group, [
     {
-      echo: {
-        loop: '${[1,2,3]}',
-        content: '${this.loopValue}'
-      }
+      loop: '${[1,2,3]}',
+      name: '${this.loopValue}'
     }
   ])
-  const echo = await group.exec()
-  expect(echo).toHaveLength(3)
+  const steps = await group.exec()
+  expect(steps).toHaveLength(3)
 })
 
 test('pass a config into item in group', async () => {
   group = await Testing.newElement(Group, [
     {
-      "exec'js": {
-        script: 'return "OK"',
-        vars: 'result'
-      }
+      "exec'js": 'return "OK"',
+      vars: 'result'
     }
   ])
   await group.exec()
@@ -56,13 +56,11 @@ test('pass a config into item in group', async () => {
 
 test('pass full group information', async () => {
   group = await Testing.newElement(Group, {
-    title: 'Test group',
+    name: 'Test group',
     runs: [
       {
-        "exec'js": {
-          script: 'return "OK"',
-          vars: 'result'
-        }
+        "exec'js": 'return "OK"',
+        vars: 'result'
       }
     ]
   })
@@ -73,14 +71,12 @@ test('pass full group information', async () => {
 
 test('run with false condition', async () => {
   group = await Testing.newElement(Group, {
-    title: 'Test group',
+    name: 'Test group',
     runs: [
       {
-        "exec'js": {
-          if: '${false}',
-          script: 'return "OK"',
-          vars: 'result'
-        }
+        if: '${false}',
+        "exec'js": 'return "OK"',
+        vars: 'result'
       }
     ]
   })

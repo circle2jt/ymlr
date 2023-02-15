@@ -31,7 +31,7 @@ export type TestProps = string | ({
 export class Test extends ElementShadow {
   $$ignoreEvalProps = ['script', 'defaultTestTitle']
 
-  label?: string
+  title?: string
   check?: string
   script?: string
 
@@ -43,12 +43,9 @@ export class Test extends ElementShadow {
       props = {
         check: props
       }
-    } else {
-      props.label = props.title
-      props.title = undefined
     }
     Object.assign(this, props)
-    if (!this.label) this.defaultTestTitle = this.check || this.script
+    if (!this.title) this.defaultTestTitle = this.check || this.script
   }
 
   failed(description = ''): never {
@@ -69,10 +66,10 @@ export class Test extends ElementShadow {
           this.failed(err?.message)
         }
       }
-      this.label && this.logger.info(this.label)
+      this.title && this.logger.info(this.title)
     } catch (err: any) {
       if (err !== this.error) throw err
-      this.logger.error('%s\t%s', this.label || this.defaultTestTitle, chalk.gray(this.error.message))
+      this.logger.error('%s\t%s', this.title || this.defaultTestTitle, chalk.gray(this.error?.message))
     }
     return !this.error
   }

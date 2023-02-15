@@ -27,16 +27,12 @@ test('should send request ok', async () => {
     url: server.getURL().toString() + '?time=' + Date.now().toString(),
     query: {
       rd: Math.random().toString()
-    },
-    vars: {
-      status: '${this.response.status}',
-      statusText: '${this.response.statusText}'
     }
   })
   await request.exec()
   expect(request.error).toBeUndefined()
-  expect(Testing.vars.status).toBe(201)
-  expect(Testing.vars.statusText).toBe('OK MEN')
+  expect(request.response?.status).toBe(201)
+  expect(request.response?.statusText).toBe('OK MEN')
 })
 
 test('should send request error', async () => {

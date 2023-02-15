@@ -77,7 +77,7 @@ Run a specific file
 
 1. Create a scene file at `test.yaml`
 ```yaml
-title: Test scene
+name: Test scene
 runs:
   - Hello world
 ```

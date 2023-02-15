@@ -1,6 +1,7 @@
+import assert from 'assert'
+import { formatTextToMs } from 'src/libs/format'
 import { sleep } from 'src/libs/time'
 import { ElementShadow } from '../element-shadow'
-import { SleepProps } from './sleep.props'
 
 /** |**  sleep
   Sleep the program then wait to user enter to continue
@@ -19,26 +20,19 @@ import { SleepProps } from './sleep.props'
 
   Full props
   ```yaml
-    - sleep:
-        title: Sleep 10s
-        duration 10000          # Sleep 10s then keep continue
+    - name: Sleep 10s
+      sleep: 10000          # Sleep 10s then keep continue
   ```
 */
 export class Sleep extends ElementShadow {
-  duration?: number
-
-  constructor(props: SleepProps) {
+  constructor(public duration: number | string) {
     super()
-    if (typeof props !== 'object') {
-      props = {
-        duration: props
-      }
-    }
-    Object.assign(this, props)
   }
 
   async exec() {
-    if (!this.duration) return
+    this.duration = formatTextToMs(this.duration)
+    assert(this.duration)
     await sleep(this.duration)
+    return this.duration
   }
 }

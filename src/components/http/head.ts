@@ -11,8 +11,8 @@ import { Response } from './types'
   @example
   ```yaml
     # HEAD http://localhost:3000/posts/1?method=check_existed
-    - http'head:
-        title: Check post is existed or not
+    - name: Check post is existed or not
+      http'head:
         baseURL: http://localhost:
         timeout: 5000                   # !optional - Request timeout. Default is no timeout
                                         # supported: d h m s ~ day, hour, minute, seconds
@@ -22,8 +22,8 @@ import { Response } from './types'
           method: check_existed
         headers:
           authorization: Bearer TOKEN
-        vars:
-          status: ${this.response?.status}
+      vars:
+        status: ${this.response?.status}
   ```
 */
 export class Head extends ElementShadow {
@@ -99,12 +99,13 @@ export class Head extends ElementShadow {
     } catch (err: any) {
       this.error = err instanceof HttpError ? err : new HttpError(0, err?.message)
     } finally {
-      this.vars && this.applyVar()
+      this.$$baseProps.vars && this.applyVar()
       this.logger.debugBlock(false)
     }
     if (this.error) {
-      if (this.error.status >= 500 || !this.error.status || this.error.status === 408) throw this.error
-      this.logger.error(this.error)
+      const error = this.error as HttpError
+      if (!error.status || error.status >= 500 || error.status === 408) throw error
+      this.logger.error(error)
     }
     return this.response?.data
   }
@@ -128,12 +129,12 @@ export class Head extends ElementShadow {
   }
 
   protected applyVar() {
-    if (!this.vars) return
+    if (!this.$$baseProps.vars) return
     let varNames: string
-    if (typeof this.vars === 'string') {
-      varNames = this.vars
+    if (typeof this.$$baseProps.vars === 'string') {
+      varNames = this.$$baseProps.vars
     } else {
-      varNames = Object.keys(this.vars).map(v => `${v}`).join(', ')
+      varNames = Object.keys(this.$$baseProps.vars).map(v => `${v}`).join(', ')
     }
     this.logger.debug('%s   \t%s', chalk.gray('‣ Vars'), varNames)
   }

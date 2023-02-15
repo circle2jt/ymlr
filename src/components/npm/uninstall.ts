@@ -12,11 +12,8 @@ import { UninstallProps } from './uninstall.props'
         - module1
         - myapp
 
-    - npm'uninstall:
-        title: Uninstall librarry
-        packages:
-          - ymlr-telegram
-          - ymlr...
+    - name: Uninstall librarry
+      npm'uninstall: [ymlr-telegram, ymlr...]
   ```
 */
 export class Uninstall extends InstallAbstract {

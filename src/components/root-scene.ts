@@ -16,7 +16,7 @@ Root scene file includes all of steps to run
 @tag It's a scene file
 @example
 ```yaml
-  title: Scene name                 # Scene name
+  name: Scene name                 # Scene name
   description: Scene description    # Scene description
   log: info                         # Show log when run. Default is info. [silent, error, warn, info, debug, trace, all]
   password:                         # Encrypted this file with the password. To run this file, need to provides a password in the command line
@@ -71,7 +71,7 @@ export class RootScene extends Scene {
     }
   }
 
-  extend(baseProps: any, ids: string[] | string) {
+  extend(tagName: string | undefined, baseProps: any, ids: string[] | string) {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
     ids.forEach(id => {
@@ -82,13 +82,24 @@ export class RootScene extends Scene {
           skip: true
         }
       }
-      merge(baseProps, cloneDeep(cached))
+      cached = cloneDeep(cached)
+      if (tagName && cached.template) {
+        cached[tagName] = cached.template
+        cached.template = undefined
+      }
+      baseProps = merge(cached, baseProps)
     })
+    return baseProps
   }
 
-  export(id: string, props: any) {
+  export(tagName: string | undefined, props: any, id: string) {
     if (!id) return
-    this.templatesManager.pushToCached(id, cloneDeep(props))
+    const cached = cloneDeep(props)
+    if (tagName && props.template) {
+      props[tagName] = props.template
+      props.template = undefined
+    }
+    this.templatesManager.pushToCached(id, cached)
     this.logger.trace('->    \t%s', id)
   }
 

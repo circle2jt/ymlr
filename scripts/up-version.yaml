@@ -11,6 +11,6 @@ runs:
         versionName: ${vars.versionName}
         changeDir: ../changelogs
         changeFile: ../CHANGELOG.md
-        commitFiles: 
+        commitFiles:
           - ~~/README.md
           - ~~/package.json

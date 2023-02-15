@@ -8,59 +8,53 @@ vars:
   packageJson: ""
   validTagRegex: ""
 runs:
+  - ->: git-http
+    force: true
+    skip: true
+    template:
+      baseURL: https://api.github.com
+      headers:
+        Accept: application/vnd.github+json"
+        Authorization: Bearer ${vars.token}
+
   - exec'js: |
       const version = require(this.scene.getPath(vars.packageJson)).version
       vars.tag = !vars.tag ? version : vars.tag.replace('%s', version)
 
-  - group: 
-      if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
-      runs:
-        - http'get:
-            force: true
-            debug: all
-            baseURL: https://api.github.com
-            url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
-            headers:
-              Accept: application/vnd.github+json"
-              Authorization: Bearer ${vars.token}
-            vars:
-              lastCommitter: ${this.response.data.commit.committer}
-              lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, vars.tag)}
-        
-        - echo: |
-            tag: ${vars.tag}
-            message: ${vars.lastCommitDes}
-            object: ${vars.lastCommitSHA}
-            type: 'commit'
-            tagger: ${JSON.stringify(vars.lastCommitter || {})}
-            ref: refs/tags/${vars.tag}
+  - if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
+    runs:
+      - <-: git-http
+        http'get:
+          url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
+        vars:
+          lastCommitter: ${this.response.data.commit.committer}
+          lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, vars.tag)}
 
-        - group:
-            title: Create a new tag
-            runs:
-              - http'post:
-                  force: true
-                  baseURL: https://api.github.com
-                  url: /repos/${vars.owner}/${vars.repo}/git/tags
-                  headers:
-                    Accept: application/vnd.github+json"
-                    Authorization: Bearer ${vars.token}
-                  body:
-                    tag: ${vars.tag}
-                    message: ${vars.lastCommitDes}
-                    object: ${vars.lastCommitSHA}
-                    type: 'commit'
-                    tagger: ${vars.lastCommitter}
-                  vars:
-                    sha: ${this.response.data.sha}
-              - http'post:
-                  force: true
-                  baseURL: https://api.github.com
-                  url: /repos/${vars.owner}/${vars.repo}/git/refs
-                  headers:
-                    Accept: application/vnd.github+json"
-                    Authorization: Bearer ${vars.token}
-                  body:
-                    ref: refs/tags/${vars.tag}
-                    sha: ${vars.sha}
-        - echo: Done
+      - echo: |
+          tag: ${vars.tag}
+          message: ${vars.lastCommitDes}
+          object: ${vars.lastCommitSHA}
+          type: 'commit'
+          tagger: ${JSON.stringify(vars.lastCommitter || {})}
+          ref: refs/tags/${vars.tag}
+
+      - name: Create a new tag
+        runs:
+          - <-: git-http
+            http'post:
+              url: /repos/${vars.owner}/${vars.repo}/git/tags
+              body:
+                tag: ${vars.tag}
+                message: ${vars.lastCommitDes}
+                object: ${vars.lastCommitSHA}
+                type: commit
+                tagger: ${vars.lastCommitter}
+            vars:
+              sha: ${this.response.data.sha}
+          - <-: git-http
+            http'post:
+              url: /repos/${vars.owner}/${vars.repo}/git/refs
+              body:
+                ref: refs/tags/${vars.tag}
+                sha: ${vars.sha}
+      - echo: Done

@@ -8,10 +8,8 @@ beforeEach(async () => {
 
 test('element.force', async () => {
   const group = await Testing.newElement(Group, [{
-    echo: {
-      force: true,
-      content: '${abc}'
-    }
+    force: true,
+    echo: '${abc}'
   }])
   const [echo] = await group.exec()
   expect(echo.error.message).toBeDefined()
@@ -19,11 +17,9 @@ test('element.force', async () => {
 
 test('element reference', async () => {
   const group = await Testing.newElement(Group, [{
-    echo: {
-      content: 'Echo 1',
-      vars: {
-        echo1: '${this}'
-      }
+    echo: 'Echo 1',
+    vars: {
+      echo1: '${this}'
     }
   }])
   const [echo] = await group.exec()
@@ -34,20 +30,18 @@ test('element reference', async () => {
 test('get parent in loop', async () => {
   const group = await Testing.newElement(Group, [
     {
+      loop: '${[1,2]}',
       group: {
-        loop: '${[1,2]}',
         runs: [
           {
-            echo: {
-              content: '${this.parent.loopValue}'
-            }
+            echo: '${this.parent.loopValue}'
           }
         ]
       }
     }
   ])
-  const rs = await group.exec()
-  expect(rs).toHaveLength(2)
-  expect(rs[0].result[0].result).toBe(1)
-  expect(rs[1].result[0].result).toBe(2)
+  const steps = await group.exec()
+  expect(steps).toHaveLength(2)
+  expect(steps[0].result[0].result).toBe(1)
+  expect(steps[1].result[0].result).toBe(2)
 })

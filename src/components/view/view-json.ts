@@ -5,8 +5,8 @@ import { ViewJsonProps } from './view-json.props'
   View data in a json format
   @example
   ```yaml
-    - view'json:
-        title: JSON Viewer
+    - name: JSON Viewer
+      view'json:
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
     - view'json: ${vars.TEST_DATA}

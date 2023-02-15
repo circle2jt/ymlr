@@ -2,39 +2,32 @@ import chalk from 'chalk'
 import { spawn } from 'child_process'
 import { LoggerLevel } from 'src/libs/logger'
 import { ElementShadow } from '../element-shadow'
-import { ExecProps } from './exec.props'
 
 /** |**  exec
   Execute a program
   @example
   Execute a bash script
   ```yaml
-    - exec:
-        title: Run a bash script
-        commands:
-          - /bin/sh
-          - /startup.sh
+    - name: Run a bash script
+      exec:
+        - /bin/sh
+        - /startup.sh
   ```
   Execute a python app
   ```yaml
     - exec:
-        title: Run a python app
-        commands:
-          - python
-          - app.py
+        - python
+        - app.py
   ```
 */
 export class Exec extends ElementShadow {
   commands: string[] = []
 
-  constructor(props: ExecProps) {
+  constructor(props: string[]) {
     super()
-    if (Array.isArray(props)) {
-      props = {
-        commands: props
-      }
-    }
-    Object.assign(this, props)
+    Object.assign(this, {
+      commands: props
+    })
   }
 
   async exec() {

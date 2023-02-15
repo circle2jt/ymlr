@@ -9,8 +9,8 @@ import { RequestType, UploadFile } from './types'
   Post data to API then store value in `vars.posts`
   ```yaml
     # POST http://localhost:3000/posts?category=users
-    - http'post:
-        title: Create a new post
+    - name: Create a new post
+      http'post:
         baseURL: http://localhost:3000
         url: /posts
         query:
@@ -24,13 +24,13 @@ import { RequestType, UploadFile } from './types'
           "description": "My description"
         }
         responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
-        vars: newPost
+      vars: newPost
   ```
   Upload file to server
   ```yaml
     # POST http://localhost:3000/upload
-    - http'post:
-        title: Upload a new avatar
+    - name: Upload a new avatar
+      http'post:
         baseURL: http://localhost:3000
         url: /upload
         headers:
@@ -43,8 +43,8 @@ import { RequestType, UploadFile } from './types'
             "name": "thanh_avatar"
           }
         }
-        vars:
-          status: ${this.response.status}
+      vars:
+        status: ${this.response.status}
   ```
 */
 export class Post extends Get {

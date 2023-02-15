@@ -5,15 +5,15 @@ import { ElementProps } from '../element.props'
   Ignore the next steps in the same parent
   @example
   ```yaml
-    - group:
-        title: group 1
+    - name: group 1
+      group:
         runs:
           - echo: 1             # => 1
           - continue:           # => Stop here then ignore the next steps in the same parent
           - echo: 2
           - echo: 3
-    - group:                    # Still run the next group
-        title: group 1
+    - name: group 1
+      group:                    # Still run the next group
         runs:
           - echo: 2             # => 2
   ```

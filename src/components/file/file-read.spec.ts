@@ -18,13 +18,10 @@ test('Read text file', async () => {
   await tmp.create('Hello world')
   try {
     reader = await Testing.newElement(FileRead, {
-      path: tmp.file,
-      vars: {
-        msg: '${this.result}'
-      }
+      path: tmp.file
     })
     await reader.exec()
-    expect(Testing.vars.msg).toBe('Hello world')
+    expect(reader.result).toBe('Hello world')
   } finally {
     tmp.remove()
   }
@@ -36,13 +33,10 @@ test('Read json file', async () => {
   try {
     reader = await Testing.newElement(FileRead, {
       path: tmp.file,
-      format: 'json',
-      vars: {
-        msg: '${this.result.msg}'
-      }
+      format: 'json'
     })
     await reader.exec()
-    expect(Testing.vars.msg).toBe('Hello world')
+    expect(reader.result.msg).toBe('Hello world')
   } finally {
     tmp.remove()
   }
@@ -54,11 +48,10 @@ test('Read yaml file', async () => {
   try {
     reader = await Testing.newElement(FileRead, {
       path: tmp.file,
-      format: 'yaml',
-      vars: 'data'
+      format: 'yaml'
     })
     await reader.exec()
-    expect(Testing.vars.data.msg).toBe('Hello world')
+    expect(reader.result.msg).toBe('Hello world')
   } finally {
     tmp.remove()
   }

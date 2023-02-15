@@ -2,7 +2,7 @@ import assert from 'assert'
 import chalk from 'chalk'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { GlobalEvent } from 'src/managers/events-manager'
-import { copyElementShadowPrototype, ElementClass, ElementShadow } from './element-shadow'
+import { createFromShadow, ElementClass, ElementShadow } from './element-shadow'
 import { Element } from './element.interface'
 import { RootScene } from './root-scene'
 import { Scene } from './scene/scene'
@@ -39,8 +39,7 @@ export class ElementBuilder {
   }
 
   element(ElementClazz: ElementClass, props?: any) {
-    copyElementShadowPrototype(ElementClazz.prototype)
-    this.elem = new ElementClazz(props) as unknown as ElementShadow
+    this.elem = createFromShadow(ElementClazz, props)
     Object.defineProperties(this.elem, {
       scene: {
         value: this.scene,
@@ -65,15 +64,15 @@ export class ElementBuilder {
       try {
         await this.evalPropsBeforeExec()
 
-        isAddIndent = this.logger.is(LoggerLevel.INFO) && !!this.parent?.title
+        isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parent?.$$baseProps.name !== undefined
         if (isAddIndent) this.logger.addIndent()
 
-        this.title && this.logger.info('%s', this.title)
+        this.$$baseProps.name && this.logger.info('%s', this.$$baseProps.name)
         this.result = await exec.call(this, this.parentState)
       } catch (err: any) {
         this.error = err
-        if (!this.force) throw this.error
-        this.logger.debug(chalk.yellow(`⚠️ ${this.error?.message}`))
+        if (!this.$$baseProps.force) throw err
+        this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
       } finally {
         if (isAddIndent) this.logger.removeIndent()
       }

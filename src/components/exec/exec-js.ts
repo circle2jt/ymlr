@@ -8,23 +8,22 @@ import { ExecJsProps } from './exec-js.props'
   @example
   Set value to a variable
   ```yaml
-    - exec'js:
-        title: Set value to a variable
-        script: |
-          vars.name = 'thanh'
-          logger.info(vars.name)
+    - name: Set value to a variable
+      exec'js: |
+        vars.name = 'thanh'
+        logger.info(vars.name)
   ```
 
   Write a file
   ```yaml
-    - exec'js:
-        title: Write a file
+    - name: Write a file
+      exec'js:
         path: /sayHello.sh              # Path of js file (Use only "path" OR "script")
         script: |                       # NodeJS content
           const { writeFileSync } = require('fs')
           writeFileSync('/tmp/hello.txt', 'Hello world')
           return "OK"
-        vars: result    # !optional
+      vars: result                      # !optional
   ```
 */
 export class ExecJs extends ElementShadow {

@@ -5,4 +5,4 @@ export type GroupProps = {
   runs?: GroupItemProps[]
 } & ElementProps
 
-export type GroupItemProps = Record<string, ElementProps | null | undefined>
+export type GroupItemProps = ElementProps

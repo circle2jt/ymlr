@@ -31,6 +31,7 @@ import { MDFileParser } from './parser/md-file-parser'
   [Example](https://github.com/circle2jt/ymlr/blob/main/src/components/doc/md.ts)
  */
 export class MDDoc extends ElementShadow {
+  title?: string
   saveTo?: string
   includeDirs?: string[]
   excludeDirs?: string[]
