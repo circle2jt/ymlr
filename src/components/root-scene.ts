@@ -1,12 +1,11 @@
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
-import { Scene } from 'src/components/scene/scene'
-import { Logger } from 'src/libs/logger'
 import { GlobalEvent } from 'src/managers/events-manager'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { Element } from './element.interface'
+import { Scene } from './scene/scene'
 import { SceneProps } from './scene/scene.props'
 
 /** |** Root scene
@@ -36,15 +35,15 @@ export class RootScene extends Scene {
   readonly runDir = process.cwd()
   rootDir = ''
 
-  constructor(props: SceneProps, public logger: Logger) {
-    super(props)
-    this.$$ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
+  init(props: SceneProps) {
+    super.init(props)
+    this.proxy.$$ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
     this.isRoot = true
     this.scene = this.rootScene = this
   }
 
   async exec() {
-    await this.asyncConstructor()
+    await this.lazyInit()
     GlobalEvent.emit('scene/exec:before')
     try {
       const rs = await super.exec()
@@ -57,14 +56,6 @@ export class RootScene extends Scene {
   async dispose() {
     GlobalEvent.emit('scene/dispose:before')
     try {
-      const proms = this.disposeApps.map(async elem => {
-        if (elem.disposeApp !== undefined) {
-          await elem.disposeApp()
-        }
-      })
-      if (proms.length) {
-        await Promise.all(proms)
-      }
       await super.dispose()
     } finally {
       GlobalEvent.emit('scene/dispose:end')

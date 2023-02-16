@@ -3,7 +3,11 @@ import chalk from 'chalk'
 import { execFile } from 'child_process'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
-import { ElementShadow } from '../element-shadow'
+import { Logger } from 'src/libs/logger'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 import { ExecShProps } from './exec-sh.props'
 
 /** |**  exec'sh
@@ -20,13 +24,18 @@ import { ExecShProps } from './exec-sh.props'
       vars: log       # !optional
   ```
 */
-export class ExecSh extends ElementShadow {
+export class ExecSh implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
+
   script?: string
   path?: string
   bin = '/bin/sh'
 
-  constructor(props: ExecShProps) {
-    super()
+  init(props: ExecShProps) {
     if (typeof props === 'string') {
       props = {
         script: props
@@ -34,6 +43,7 @@ export class ExecSh extends ElementShadow {
     }
     Object.assign(this, props)
   }
+
 
   async exec() {
     if (this.path) {
@@ -57,4 +67,7 @@ export class ExecSh extends ElementShadow {
       tmpFile.remove()
     }
   }
+
+  dispose() { }
+
 }

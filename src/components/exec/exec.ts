@@ -1,7 +1,11 @@
+import assert from 'assert'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
-import { LoggerLevel } from 'src/libs/logger'
-import { ElementShadow } from '../element-shadow'
+import { Logger, LoggerLevel } from 'src/libs/logger'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 
 /** |**  exec
   Execute a program
@@ -20,17 +24,22 @@ import { ElementShadow } from '../element-shadow'
         - app.py
   ```
 */
-export class Exec extends ElementShadow {
-  commands: string[] = []
+export class Exec implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
 
-  constructor(props: string[]) {
-    super()
-    Object.assign(this, {
-      commands: props
-    })
+  commands: string[]
+
+  init(commands: string[]) {
+    this.commands = commands
   }
 
   async exec() {
+    assert(this.commands?.length)
+
     const rs = await new Promise<{ code: number, signal: NodeJS.Signals }>((resolve, reject) => {
       this.logger.debug('› %s', this.commands.join(' '))
       const [bin, ...args] = this.commands
@@ -51,4 +60,7 @@ export class Exec extends ElementShadow {
     })
     return rs
   }
+
+  dispose() { }
+
 }

@@ -1,6 +1,10 @@
 import assert from 'assert'
 import { FileRemote } from 'src/libs/file-remote'
-import { ElementShadow } from '../element-shadow'
+import { Logger } from 'src/libs/logger'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 import { ExecJsProps } from './exec-js.props'
 
 /** |**  exec'js
@@ -26,14 +30,19 @@ import { ExecJsProps } from './exec-js.props'
       vars: result                      # !optional
   ```
 */
-export class ExecJs extends ElementShadow {
-  $$ignoreEvalProps = ['script']
+export class ExecJs implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
 
   script?: string
   path?: string
 
-  constructor(props: ExecJsProps) {
-    super()
+  init(props: ExecJsProps) {
+    this.proxy.$$ignoreEvalProps.push('script')
+
     if (typeof props === 'string') {
       props = {
         script: props
@@ -48,7 +57,9 @@ export class ExecJs extends ElementShadow {
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script)
-    const rs = await this.callFunctionScript(this.script)
+    const rs = await this.proxy.callFunctionScript(this.script)
     return rs
   }
+
+  dispose() { }
 }

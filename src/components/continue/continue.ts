@@ -1,5 +1,8 @@
-import { ElementShadow } from '../element-shadow'
-import { ElementProps } from '../element.props'
+import { Logger } from 'src/libs/logger'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 
 /** |**  continue
   Ignore the next steps in the same parent
@@ -18,11 +21,17 @@ import { ElementProps } from '../element.props'
           - echo: 2             # => 2
   ```
 */
-export class Continue extends ElementShadow {
-  constructor(props: ElementProps) {
-    super()
-    Object.assign(this, props)
-  }
+export class Continue implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
 
-  async exec() { }
+  init() { }
+
+  exec() { }
+
+  dispose() { }
+
 }

@@ -92,11 +92,7 @@ export class PackagesManager {
     const msg = `tags ${packages.map(e => `"${e}"`).join(', ')}`
     const bar = !this.logger.is(LoggerLevel.SILENT) ? new ProgressBar(this.logger) : undefined
     await bar?.start(`${des} ${msg}`)
-    const exec = await this.scene.elementBuilder
-      .element(Exec, cmd)
-      .tag(PackagesManager.name)
-      .logger(this.logger)
-      .build<Exec>()
+    const exec = await this.scene.newElementProxy(Exec, cmd)
     try {
       await exec.exec()
       await bar?.stop()

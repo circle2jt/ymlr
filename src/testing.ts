@@ -1,6 +1,7 @@
 import { RootScene } from 'src/components/root-scene'
 import 'src/managers/modules-manager'
-import { ElementClass, ElementShadow } from './components/element-shadow'
+import { ElementProxy } from './components/element-proxy'
+import { ElementClass } from './components/element.props'
 import { Logger, LoggerLevel } from './libs/logger'
 
 export class Testing {
@@ -20,8 +21,8 @@ export class Testing {
     await Testing.rootScene.exec()
   }
 
-  static async newElement<T extends ElementShadow>(ElementClazz: ElementClass, props?: any): Promise<T> {
-    const elem = await this.rootScene.newElement(ElementClazz, props)
+  static async newElement<T extends ElementProxy>(ElementClazz: ElementClass, props = {}, baseProps = {}): Promise<T> {
+    const elem = await this.rootScene.newElementProxy(ElementClazz, props, baseProps)
     return elem as T
   }
 }

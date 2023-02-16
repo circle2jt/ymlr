@@ -1,6 +1,10 @@
 import chalk from 'chalk'
+import { Logger } from 'src/libs/logger'
 import { format } from 'util'
-import { ElementShadow } from '../element-shadow'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 import { EchoProps } from './echo.props'
 
 /** |**  echo
@@ -51,12 +55,17 @@ import { EchoProps } from './echo.props'
         content: Content is red and bold
   ```
 */
-export class Echo extends ElementShadow {
+export class Echo implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
+
   content: any
   style?: string
 
-  constructor(props: EchoProps) {
-    super()
+  init(props: EchoProps) {
     if (typeof props !== 'object') {
       props = {
         content: props
@@ -78,4 +87,6 @@ export class Echo extends ElementShadow {
     }
     return style(this.content?.toString())
   }
+
+  dispose() { }
 }

@@ -1,4 +1,8 @@
-import { ElementShadow } from '../element-shadow'
+import { Logger } from 'src/libs/logger'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import { RootScene } from '../root-scene'
+import { Scene } from '../scene/scene'
 import { VarsProps } from './vars.props'
 
 /** |**  vars
@@ -32,22 +36,28 @@ import { VarsProps } from './vars.props'
     - echo: ${vars.Name}          # => global name here
   ```
 */
-export class Vars extends ElementShadow {
-  $$ignoreEvalProps = ['props']
+export class Vars implements Element {
+  proxy!: ElementProxy<this>
+  scene!: Scene
+  rootScene!: RootScene
+  parent!: Element
+  logger!: Logger
 
-  props?: object
+  props: any
 
-  constructor(props: VarsProps) {
-    super()
-    Object.assign(this, { props })
+  init(props: VarsProps) {
+    this.proxy.$$ignoreEvalProps.push('props')
+    this.props = props
   }
 
   async exec() {
     const props = await this.scene.getVars(this.props, this)
-    this.logger.trace('[%s] \t%j', this.$$tag, props)
+    this.logger.trace('[%s] \t%j', this.proxy.$$tag, props)
     if (!props || Array.isArray(props) || typeof props !== 'object') return
     this.scene.mergeVars(props)
 
     return props
   }
+
+  dispose() { }
 }

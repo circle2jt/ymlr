@@ -8,8 +8,7 @@ import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
 import { getVars, setVars } from 'src/libs/variable'
 import { parse } from 'yaml'
-import { ElementBuilder } from '../element-builder'
-import { ElementShadow } from '../element-shadow'
+import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
@@ -45,35 +44,29 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return this
   }
 
-  get elementBuilder() {
-    return new ElementBuilder(this)
-  }
-
-  constructor({ path, encryptPath, content, password, vars, ...props }: SceneProps) {
-    super(props)
-    this.$$ignoreEvalProps.push('content', 'curDir', 'localVars', 'elementBuilder')
+  init({ path, encryptPath, content, password, vars, ...props }: SceneProps) {
+    super.init(props)
+    this.proxy.$$ignoreEvalProps.push('content', 'curDir', 'localVars', 'elementBuilder')
     Object.assign(this, { path, encryptPath, content, password, vars })
   }
 
-  async asyncConstructor() {
+  async lazyInit() {
     const remoteFileProps = await this.getRemoteFileProps()
     this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
     if (Array.isArray(remoteFileProps)) {
-      this.lazyInit(remoteFileProps)
+      this.lazyInitRuns(remoteFileProps)
     } else {
       const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
       const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this)
       if (this.title === undefined && title) {
         this.title = title
       }
-      if (this.$$baseProps) {
-        if (debug) this.$$baseProps.debug = debug
-        if (this.title) this.$$baseProps.name = ''
-      }
+      if (debug) this.proxy.debug = debug
+      if (this.title) this.proxy.name = ''
       if (password && !this.password) {
         await this.generateEncryptedFile(this.content, password)
       }
-      this.lazyInit(groupProps)
+      this.lazyInitRuns(groupProps)
       await this.loadVars(vars, varsFile)
     }
   }
@@ -97,8 +90,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return join(this.curDir || '', p)
   }
 
-  async getVars(str: any, ctx?: Element | ElementShadow | any, others: any = {}) {
-    if ((ctx as ElementShadow)?.$$loggerLevel) {
+  async getVars(str: any, ctx?: ElementProxy<Element> | any, others: any = {}) {
+    if (ctx?.$$loggerLevel) {
       others.parentState = ctx.parentState
     }
     return await getVars(str, ctx, {
