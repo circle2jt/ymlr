@@ -1,8 +1,7 @@
 
 export interface Element {
   // new(props?: any): any
-  asyncConstructor?: (props?: any) => any
-  exec: (input?: any) => any
+  asyncConstructor?: (props?: any) => void | Promise<void>
+  exec: () => any
   dispose: () => any
-  disposeApp?: () => any
 }

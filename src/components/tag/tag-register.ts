@@ -29,9 +29,6 @@ import { TagRegisterProps } from './tag-register.props'
             },
             dispose() {
               // Dispose after finished this
-            },
-            disposeApp() {
-              // Dispose when exit app
             }
           }
 
@@ -55,9 +52,6 @@ import { TagRegisterProps } from './tag-register.props'
             }
             dispose() {
               // Dispose after finished this
-            }
-            disposeApp() {
-              // Dispose when exit app
             }
           }
 

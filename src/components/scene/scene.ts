@@ -40,13 +40,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   curDir = ''
   localVars: Record<string, any> = {}
   vars?: VarsProps
+  get elementBuilder() {
+    return new ElementBuilder(this)
+  }
+
   protected isRoot = false
   protected get innerScene() {
     return this
-  }
-
-  get elementBuilder() {
-    return new ElementBuilder(this)
   }
 
   constructor({ path, encryptPath, content, password, vars, ...props }: SceneProps) {
@@ -101,17 +101,23 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if ((ctx as ElementShadow)?.$$loggerLevel) {
       others.parentState = ctx.parentState
     }
+    const rootScene = this.rootScene
     return await getVars(str, ctx, {
       vars: this.localVars,
-      utils: this.rootScene.globalUtils,
+      get utils() {
+        return rootScene.globalUtils
+      },
       ...others
     })
   }
 
   async setVars(varObj: any, vl: any, ctx?: any) {
+    const rootScene = this.rootScene
     return await setVars(varObj, vl, ctx, {
       vars: this.localVars,
-      utils: this.rootScene.globalUtils
+      get utils() {
+        return rootScene.globalUtils
+      }
     })
   }
 

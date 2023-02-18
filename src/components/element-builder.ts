@@ -1,46 +1,46 @@
-import assert from 'assert'
 import chalk from 'chalk'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { GlobalEvent } from 'src/managers/events-manager'
 import { createFromShadow, ElementClass, ElementShadow } from './element-shadow'
-import { Element } from './element.interface'
 import { RootScene } from './root-scene'
 import { Scene } from './scene/scene'
 
 export class ElementBuilder {
-  private elem?: ElementShadow
+  private _ElementClazz!: ElementClass
+  private _props?: any
+  private _logger!: Logger
+  private _tag?: string
+  private _parent!: ElementShadow
 
   constructor(private readonly scene: Scene) { }
 
   logger(logger: Logger) {
-    assert(this.elem)
-    let thatLogger: Logger | undefined
-    Object.defineProperty(this.elem, 'logger', {
-      get() {
-        return thatLogger || (thatLogger = logger.clone(this.tag, this.$$loggerLevel))
-      }
-    })
+    this._logger = logger
     return this
   }
 
   tag(name: string) {
-    assert(this.elem)
-    this.elem.$$tag = name
+    this._tag = name
     return this
   }
 
-  parent(g?: ElementShadow) {
-    assert(this.elem)
-    Object.defineProperty(this.elem, 'parent', {
-      value: g,
-      writable: false
-    })
+  parent(g: ElementShadow) {
+    this._parent = g
     return this
   }
 
   element(ElementClazz: ElementClass, props?: any) {
-    this.elem = createFromShadow(ElementClazz, props)
-    Object.defineProperties(this.elem, {
+    this._ElementClazz = ElementClazz
+    this._props = props
+    return this
+  }
+
+  async build<T = Element>() {
+    const elem = createFromShadow(this._ElementClazz, this._props)
+    if (this._tag) elem.$$tag = this._tag
+    let thatLogger: Logger | undefined
+    const logger = this._logger
+    Object.defineProperties(elem, {
       scene: {
         value: this.scene,
         writable: false
@@ -48,30 +48,35 @@ export class ElementBuilder {
       rootScene: {
         value: this.scene instanceof RootScene ? this.scene : this.scene.rootScene,
         writable: false
+      },
+      logger: {
+        get() {
+          return thatLogger || (thatLogger = logger.clone(this.$$tag, this.$$loggerLevel))
+        }
+      },
+      parent: {
+        value: this._parent,
+        writable: false
       }
     })
-    const exec = this.elem.exec
-    this.elem.exec = async function (parentState?: Record<string, any>) {
-      Object.defineProperty(this, 'parentState', {
-        value: parentState,
-        writable: false
-      })
-      if (this.asyncConstructor) await this.asyncConstructor(props)
 
+    const exec = elem.exec
+    elem.exec = async function () {
       GlobalEvent.emit('element/exec')
 
       let isAddIndent: boolean | undefined
+      const { name, force } = this.$$baseProps
       try {
         await this.evalPropsBeforeExec()
 
         isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parent?.$$baseProps.name !== undefined
         if (isAddIndent) this.logger.addIndent()
 
-        this.$$baseProps.name && this.logger.info('%s', this.$$baseProps.name)
-        this.result = await exec.call(this, this.parentState)
+        name && this.logger.info('%s', name)
+        this.result = await exec.call(this)
       } catch (err: any) {
         this.error = err
-        if (!this.$$baseProps.force) throw err
+        if (!force) throw err
         this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
       } finally {
         if (isAddIndent) this.logger.removeIndent()
@@ -80,20 +85,13 @@ export class ElementBuilder {
       return this.result
     }
 
-    const dispose = this.elem.dispose
-    this.elem.dispose = async function () {
+    const dispose = elem.dispose
+    elem.dispose = async function () {
       GlobalEvent.emit('element/dispose')
       await dispose?.call(this)
     }
+    if (elem?.asyncConstructor) await elem.asyncConstructor(this._props)
 
-    if (this.elem.disposeApp !== undefined) {
-      this.elem.rootScene.disposeApps.push(this.elem)
-    }
-    return this
-  }
-
-  build<T = Element>() {
-    if (!this.elem) throw new Error('')
-    return this.elem as T
+    return elem as T
   }
 }

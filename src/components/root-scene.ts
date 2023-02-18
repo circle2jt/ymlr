@@ -6,7 +6,6 @@ import { GlobalEvent } from 'src/managers/events-manager'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
-import { Element } from './element.interface'
 import { SceneProps } from './scene/scene.props'
 
 /** |** Root scene
@@ -28,13 +27,21 @@ Root scene file includes all of steps to run
 ```
 */
 export class RootScene extends Scene {
+  private _templates?: TemplatesManager
+  private _globalUtils?: UtilityFunctionManager
+
   readonly tagsManager = new TagsManager(this)
-  readonly templatesManager = new TemplatesManager()
-  readonly globalUtils = new UtilityFunctionManager()
   readonly globalVars: Record<string, any> = {}
-  readonly disposeApps = new Array<Element>()
   readonly runDir = process.cwd()
   rootDir = ''
+
+  get templatesManager() {
+    return this._templates || (this._templates = new TemplatesManager())
+  }
+
+  get globalUtils() {
+    return this._globalUtils || (this._globalUtils = new UtilityFunctionManager())
+  }
 
   constructor(props: SceneProps, public logger: Logger) {
     super(props)
@@ -57,14 +64,6 @@ export class RootScene extends Scene {
   async dispose() {
     GlobalEvent.emit('scene/dispose:before')
     try {
-      const proms = this.disposeApps.map(async elem => {
-        if (elem.disposeApp !== undefined) {
-          await elem.disposeApp()
-        }
-      })
-      if (proms.length) {
-        await Promise.all(proms)
-      }
       await super.dispose()
     } finally {
       GlobalEvent.emit('scene/dispose:end')

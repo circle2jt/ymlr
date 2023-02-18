@@ -13,9 +13,7 @@ export class TagsManager {
   private lockInstall: boolean = false
   private readonly packages = new Set<string>()
 
-  constructor(private readonly scene: Scene) {
-
-  }
+  constructor(private readonly scene: Scene) { }
 
   register(name: string, pathOfModule: string) {
     this.modules[name] = this.scene.getPath(pathOfModule)

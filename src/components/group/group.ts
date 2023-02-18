@@ -45,7 +45,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
     if (typeof nameOrClass === 'string') {
       const name = nameOrClass
       const ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
-      elem = this.innerScene.elementBuilder
+      elem = await this.innerScene.elementBuilder
         .element(ElemClass, props)
         .tag(name)
         .parent(this)
@@ -128,7 +128,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
       }
       // Execute
       if (loop === undefined) {
-        const elem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
+        const elem = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps, { parentState })
         if (elem) {
           runs.push(elem)
           if (elem instanceof Continue) break
@@ -139,7 +139,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
           if (Array.isArray(loopCondition)) {
             for (let i = 0; i < loopCondition.length; i++) {
               const newProps = elemProps && cloneDeep(elemProps)
-              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
+                parentState,
                 loopKey: i,
                 loopValue: loopCondition[i]
               })
@@ -151,7 +152,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
           } else if (typeof loopCondition === 'object') {
             for (const key in loopCondition) {
               const newProps = elemProps && cloneDeep(elemProps)
-              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
+                parentState,
                 loopKey: key,
                 loopValue: loopCondition[key]
               })
@@ -163,7 +165,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
           } else if (loopCondition === true) {
             while (loopCondition) {
               const newProps = elemProps && cloneDeep(elemProps)
-              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              const newElem = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
+                parentState,
                 loopValue: loopCondition
               })
               if (newElem) {
@@ -182,11 +185,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
     return runs
   }
 
-  private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj: { loopKey?: any, loopValue?: any } = {}) {
-    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this, parentState, ...loopObj }, { parentState })
+  private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps, props: any, injectProps: { parentState: any, loopKey?: any, loopValue?: any }) {
+    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this, ...injectProps }, { parentState: injectProps.parentState })
     if (!isContinue) return undefined
 
-    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this, parentState, ...loopObj }, { parentState })
+    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this, ...injectProps }, { parentState: injectProps.parentState })
 
     if (asyncJobs.length && !async) {
       await Promise.all(asyncJobs)
@@ -195,10 +198,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> extends El
 
     const elem = await this.newElement(name, props)
     // Init props
-    Object.assign(elem, loopObj)
+    Object.assign(elem, injectProps)
     elem.$$baseProps = baseProps
     // Execute
-    const p = elem.exec(parentState).finally(() => elem.dispose())
+    const p = elem.exec().finally(() => elem.dispose())
     if (!async) {
       await p
     } else {

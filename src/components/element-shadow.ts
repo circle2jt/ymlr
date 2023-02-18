@@ -30,29 +30,27 @@ export type ElementShadowClass = new (props?: any) => ElementShadow
 export type ElementClass = new (props?: any) => Element
 
 export abstract class ElementShadow implements Element {
-  // [parent*: string]: any
+  // [parent: string]: any
   $$baseProps: ElementBaseProps = {}
   $$ignoreEvalProps: string[] = []
+  $$tag!: string
   loopKey?: any
   loopValue?: any
-  // @ts-expect-error
-  $$tag: string
   parentState?: Record<string, any> = {}
   parent?: ElementShadow
+
   result?: any
-  // @ts-expect-error
-  logger: Logger
-  // @ts-expect-error
-  scene: Scene
-  // @ts-expect-error
-  rootScene: RootScene
   error?: Error
+
+  logger!: Logger
+  scene!: Scene
+  rootScene!: RootScene
+
+  asyncConstructor(_props?: any) { }
 
   get $$loggerLevel(): LoggerLevel {
     return this.$$baseProps?.debug || this.parent?.$$loggerLevel || this.rootScene?.logger.levelName || LoggerLevel.ALL
   }
-
-  asyncConstructor(_props?: any) { }
 
   getParentByClassName<T extends ElementShadow>(...ClazzTypes: Array<new (...args: any[]) => ElementShadow>): T {
     let parent = this.parent
@@ -102,18 +100,20 @@ export abstract class ElementShadow implements Element {
   }
 
   async callFunctionScript(script: string, ctx: ElementShadow = this, others: Record<string, any> = {}) {
+    const rootScene = this.rootScene
     const rs = await callFunctionScript(script, ctx, {
       logger: this.logger,
       vars: this.scene.localVars,
-      utils: this.rootScene.globalUtils,
+      get utils() {
+        return rootScene.globalUtils
+      },
       ...others
     })
     return rs
   }
 
-  abstract exec(input?: Record<string, any>): Promise<any>
+  abstract exec(): Promise<any>
   dispose(): any { }
-  disposeApp?: () => any
 }
 
 const ownerProperties = Object.getOwnPropertyNames(ElementShadow.prototype).filter(k => !['constructor', 'exec', 'dispose'].includes(k))
