@@ -1,31 +1,15 @@
-import chalk from "chalk";
-import { callFunctionScript } from "src/libs/async-function";
-import { Logger, LoggerLevel } from "src/libs/logger";
-import { isGetEvalExp } from "src/libs/variable";
-import { GlobalEvent } from "src/managers/events-manager";
-import { Element } from "./element.interface";
-import { RootScene } from "./root-scene";
-import { Scene } from './scene/scene';
-import { VarsProps } from "./vars/vars.props";
+import chalk from 'chalk'
+import { RootScene } from 'src/components/root-scene'
+import { Scene } from 'src/components/scene/scene'
+import { callFunctionScript } from 'src/libs/async-function'
+import { Logger, LoggerLevel } from 'src/libs/logger'
+import { isGetEvalExp } from 'src/libs/variable'
+import { GlobalEvent } from 'src/managers/events-manager'
+import { Element } from './element.interface'
+import { VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
   'name', 'skip', 'force', 'debug'
-]
-
-const IGNORE_EVAL_ELEMENT_SHADOW_PROPS = [
-  '$$baseProps',
-  '$$evalExps',
-  '$$ignoreVarsBeforeExec',
-  'error',
-  'loopKey',
-  'loopValue',
-  '$$tag',
-  'parent',
-  'parentState',
-  'result',
-  'logger',
-  'scene',
-  'rootScene'
 ]
 
 export class ElementProxy<T extends Element> {
@@ -261,34 +245,43 @@ export class ElementProxy<T extends Element> {
   */
   async?: boolean | string
 
-  $$ignoreEvalProps: string[] = []
+  tag!: string
+  logger!: Logger
   loopKey?: any
   loopValue?: any
-  $$tag!: string
-  parentState?: Record<string, any> = {}
   parent?: ElementProxy<Element>
-  result?: any
-  logger!: Logger
+  parentState?: Record<string, any>
   scene!: Scene
   rootScene!: RootScene
+  result?: any
   error?: Error
 
-  elementAsyncProps?: any
-
-  get $$loggerLevel(): LoggerLevel {
-    return this?.debug || this.parent?.$$loggerLevel || this.rootScene?.logger.levelName || LoggerLevel.ALL
+  private get ignoreEvalPropsKeys() {
+    return this.element.ignoreEvalProps
   }
 
-  constructor(public element: T, props?: any) {
+  private readonly elementAsyncProps?: any
+
+  get loggerLevel(): LoggerLevel {
+    return this?.debug || this.parent?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
+  }
+
+  constructor(public element: T, props = {}) {
     Object.assign(this, props)
-    element.proxy = this
+
+    if (this.element.asyncConstructor) this.elementAsyncProps = props
+
+    Object.defineProperty(this.element, 'proxy', {
+      value: this,
+      writable: false
+    })
   }
 
-  getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): T | undefined {
+  getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
     let parent = this.parent
     do {
       if (ClazzTypes.some(ClazzType => parent?.element instanceof ClazzType)) {
-        return parent?.element as T
+        return parent as ElementProxy<T>
       }
       parent = parent?.parent
     } while (parent)
@@ -311,13 +304,12 @@ export class ElementProxy<T extends Element> {
     const props = Object.keys(elem)
     const proms = props
       .filter(key => {
-        return !IGNORE_EVAL_ELEMENT_SHADOW_PROPS.includes(key) &&
-          !this.$$ignoreEvalProps?.includes(key) &&
+        return !this.ignoreEvalPropsKeys?.includes(key) &&
           // @ts-expect-error
           isGetEvalExp(elem[key])
       }).map(async key => {
         // @ts-expect-error
-        elem[key] = await this.scene.getVars(elem[key], elem)
+        elem[key] = await this.scene.getVars(elem[key], this)
       })
     const baseProps = Object.keys(this)
     proms.push(...baseProps
@@ -342,45 +334,14 @@ export class ElementProxy<T extends Element> {
     return rs
   }
 
-  buildElement() {
-    Object.defineProperties(this.element, {
-      logger: {
-        value: this.logger,
-        writable: false
-      },
-      paremt: {
-        value: this.parent?.element,
-        writable: false
-      },
-      scene: {
-        value: this.scene,
-        writable: false
-      },
-      rootScene: {
-        value: this.rootScene,
-        writable: false
-      },
-      loopKey: {
-        value: this.loopKey,
-        writable: false
-      },
-      loopValue: {
-        value: this.loopValue,
-        writable: false
-      },
-    })
-  }
-
-  async init(props?: any) {
-    return this.element.init(props)
-  }
-
   async exec(parentState?: any) {
-    Object.defineProperty(this, 'parentState', {
-      value: parentState,
-      writable: false
-    })
-    this.elementAsyncProps && this.element.lazyInit && this.element.lazyInit(this.elementAsyncProps)
+    this.parentState = parentState
+    // Object.defineProperty(this, 'parentState', {
+    //   get() {
+    //     return parentState
+    //   }
+    // })
+    if (this.elementAsyncProps && this.element.asyncConstructor) await this.element.asyncConstructor(this.elementAsyncProps)
 
     GlobalEvent.emit('element/exec')
 
@@ -392,11 +353,12 @@ export class ElementProxy<T extends Element> {
       if (isAddIndent) this.logger.addIndent()
 
       this.name && this.logger.info('%s', this.name)
-      this.result = await this.element.exec(this.parentState)
+      this.result = await this.element.exec(parentState)
     } catch (err: any) {
       this.error = err
       if (!this.force) throw err
       this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
+      return err
     } finally {
       if (isAddIndent) this.logger.removeIndent()
     }
@@ -407,5 +369,4 @@ export class ElementProxy<T extends Element> {
   dispose() {
     return this.element.dispose()
   }
-
 }

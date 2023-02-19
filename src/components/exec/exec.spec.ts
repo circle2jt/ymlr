@@ -1,8 +1,9 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
+import { ElementProxy } from '../element-proxy'
 import { Exec } from './exec'
 
-let exec: Exec
+let exec: ElementProxy<Exec>
 const tmpShFile = new FileTemp()
 
 beforeEach(async () => {
@@ -18,7 +19,7 @@ afterAll(() => {
 })
 
 test('should be executed', async () => {
-  exec = await Testing.newElement(Exec, ['/bin/sh', tmpShFile.file])
+  exec = await Testing.createElementProxy(Exec, ['/bin/sh', tmpShFile.file])
   const { signal } = await exec.exec()
   expect(signal).toBeNull()
 })

@@ -1,13 +1,15 @@
-import { Testing } from 'src/testing'
+import { Logger, LoggerLevel } from '../logger'
 import { sleep } from '../time'
 import { Job } from './job'
 import { JobsManager } from './jobs-manager'
+
+const logger = new Logger(LoggerLevel.SILENT)
 
 class MyJob implements Job {
   constructor(public name: string, private readonly time: number) { }
 
   async jobExecute() {
-    Testing.logger.info('Exec ' + this.name)
+    logger.info('Exec ' + this.name)
     await sleep(this.time)
   }
 }
@@ -16,7 +18,7 @@ class MyFailedJob implements Job {
   constructor(public name: string, private readonly time: number) { }
 
   async jobExecute() {
-    Testing.logger.info('Exec ' + this.name)
+    logger.info('Exec ' + this.name)
     await sleep(this.time)
     throw new Error(this.name + ' is failed')
   }
@@ -26,7 +28,7 @@ test('Test jobs run successfully', async () => {
   let countRunningJob = 0
   let countDoneJob = 0
   let countSuccessJob = 0
-  const jm = new JobsManager(Testing.logger, {
+  const jm = new JobsManager(logger, {
     concurrent: 2,
     jobHandler: {
       onJobSuccess() {
@@ -57,7 +59,7 @@ test('Test jobs run failed', async () => {
   let countDoneJob = 0
   let countSuccessJob = 0
   let failName = ''
-  const jm = new JobsManager(Testing.logger, {
+  const jm = new JobsManager(logger, {
     concurrent: 2,
     jobHandler: {
       onJobFailure(_error, job: Job) {
@@ -89,7 +91,7 @@ test('Test jobs run failed', async () => {
 })
 
 test('Test jobs run failed then stop', async () => {
-  const jm = new JobsManager(Testing.logger, {
+  const jm = new JobsManager(logger, {
     concurrent: 2,
     jobHandler: {
       onJobFailure() {

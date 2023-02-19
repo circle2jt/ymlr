@@ -3,6 +3,10 @@ import { Testing } from 'src/testing'
 import { FileRemote } from './file-remote'
 import { FileTemp } from './file-temp'
 
+beforeEach(async () => {
+  await Testing.reset()
+})
+
 test('should get content if input is a file', async () => {
   const tempFile = new FileTemp()
   try {
@@ -21,7 +25,7 @@ test('should get content if input is a url', async () => {
   const server = new MockServer()
   server.get('/')
     .mockImplementation((ctx) => {
-      ctx.status = 201
+      ctx.status = 200
       ctx.body = 'ok'
     })
   try {

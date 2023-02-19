@@ -1,12 +1,13 @@
 import { existsSync, unlinkSync } from 'fs'
-import { Echo } from 'src/components/echo/echo'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { stringify } from 'yaml'
+import { Echo } from '../echo/echo'
+import { ElementProxy } from '../element-proxy'
 import { RootScene } from '../root-scene'
 import { Scene } from './scene'
 
-let scene: Scene
+let scene: ElementProxy<Scene>
 let encryptedFile: string
 const password = 'example'
 
@@ -48,7 +49,7 @@ test('Check localVars and globalVars', async () => {
 - echo: \${vars.GlobalVars2}
 `)
   try {
-    scene = await Testing.newElement(Scene, {
+    scene = await Testing.createElementProxy(Scene, {
       content: `
 - vars:
     rootLocalVars: my local vars in root
@@ -101,18 +102,19 @@ test('Should load vars from yaml file', async () => {
         married: false
       }
     }))
-    scene = new RootScene({
+    scene = new ElementProxy(new RootScene({
       content: `
 vars_file: ${tmp.file}
 runs:
   - name: Test env
 `
-    }, Testing.logger)
+    }))
+    scene.logger = Testing.logger
     await scene.exec()
-    expect(scene.localVars.name).toBe('name 1')
-    expect(scene.localVars.age).toBe(1)
-    expect(scene.localVars.male).toBe(true)
-    expect(scene.localVars.more).toEqual({
+    expect(scene.element.localVars.name).toBe('name 1')
+    expect(scene.element.localVars.age).toBe(1)
+    expect(scene.element.localVars.male).toBe(true)
+    expect(scene.element.localVars.more).toEqual({
       address: '1',
       num: 2,
       married: false
@@ -135,18 +137,19 @@ test('Should load vars from json file', async () => {
         married: false
       }
     }))
-    scene = new RootScene({
+    scene = new ElementProxy(new RootScene({
       content: `
 vars_file: ${tmp.file}
 runs:
   - name: Test env
 `
-    }, Testing.logger)
+    }))
+    scene.logger = Testing.logger
     await scene.exec()
-    expect(scene.localVars.name).toBe('name 1')
-    expect(scene.localVars.age).toBe(1)
-    expect(scene.localVars.male).toBe(true)
-    expect(scene.localVars.more).toEqual({
+    expect(scene.element.localVars.name).toBe('name 1')
+    expect(scene.element.localVars.age).toBe(1)
+    expect(scene.element.localVars.male).toBe(true)
+    expect(scene.element.localVars.more).toEqual({
       address: '1',
       num: 2,
       married: false
@@ -163,7 +166,7 @@ test('Should override env when load scene', async () => {
   process.env.more_address = '1'
   process.env.MORE_NUM = '2'
   process.env.MORE_MARRied = 'no'
-  scene = new RootScene({
+  scene = new ElementProxy(new RootScene({
     content: `
 vars:
   name: name 0
@@ -176,12 +179,14 @@ vars:
 runs:
   - name: Test env
 `
-  }, Testing.logger)
+  }))
+  scene.logger = Testing.logger
+
   await scene.exec()
-  expect(scene.localVars.name).toBe('name 1')
-  expect(scene.localVars.age).toBe(1)
-  expect(scene.localVars.male).toBe(true)
-  expect(scene.localVars.more).toEqual({
+  expect(scene.element.localVars.name).toBe('name 1')
+  expect(scene.element.localVars.age).toBe(1)
+  expect(scene.element.localVars.male).toBe(true)
+  expect(scene.element.localVars.more).toEqual({
     address: '1',
     num: 2,
     married: false
@@ -189,13 +194,13 @@ runs:
 })
 
 test('Should load successfully from text content with only list items', async () => {
-  scene = await Testing.newElement(Scene, { content: '- echo: Hello' })
+  scene = await Testing.createElementProxy(Scene, { content: '- echo: Hello' })
   await scene.exec()
   expect(scene.result).toHaveLength(1)
 })
 
 test('Should load successfully from text content with full props', async () => {
-  scene = await Testing.newElement(Scene, {
+  scene = await Testing.createElementProxy(Scene, {
     content: `
 name: test
 runs: 
@@ -215,7 +220,7 @@ runs:
   - echo: Hello
   - echo: World
 `)
-    scene = await Testing.newElement(Scene, { path: tmp.file })
+    scene = await Testing.createElementProxy(Scene, { path: tmp.file })
     await scene.exec()
     expect(scene.result).toHaveLength(2)
   } finally {
@@ -233,10 +238,10 @@ runs:
   - name: Hello
   - echo: World
 `)
-    scene = await Testing.newElement(Scene, { path: tmp.file })
+    scene = await Testing.createElementProxy(Scene, { path: tmp.file })
     await scene.exec()
-    expect(scene.encryptedPath && existsSync(scene.encryptedPath)).toBe(true)
-    encryptedFile = scene.encryptedPath || ''
+    expect(scene.element.encryptedPath && existsSync(scene.element.encryptedPath)).toBe(true)
+    encryptedFile = scene.element.encryptedPath || ''
   } finally {
     tmp.remove()
   }
@@ -252,13 +257,13 @@ runs:
   - name: Hello
   - name: World
 `)
-    scene = await Testing.newElement(Scene, { path: tmp.file })
+    scene = await Testing.createElementProxy(Scene, { path: tmp.file })
     await scene.exec()
-    expect(scene.encryptedPath && existsSync(scene.encryptedPath)).toBe(true)
-    encryptedFile = scene.encryptedPath || ''
+    expect(scene.element.encryptedPath && existsSync(scene.element.encryptedPath)).toBe(true)
+    encryptedFile = scene.element.encryptedPath || ''
     await scene.dispose()
 
-    scene = await Testing.newElement(Scene, { path: encryptedFile, password })
+    scene = await Testing.createElementProxy(Scene, { path: encryptedFile, password })
     await scene.exec()
     expect(scene.result).toHaveLength(2)
   } finally {
@@ -267,11 +272,11 @@ runs:
 })
 
 test('Should run echo element', async () => {
-  scene = await Testing.newElement(Scene, {
+  scene = await Testing.createElementProxy(Scene, {
     content: `
 - echo: 'ok'
 `
   })
-  const [echo] = await scene.exec() as Echo[]
+  const [echo] = await scene.exec() as Array<ElementProxy<Echo>>
   expect(echo.result).toBe('ok')
 })

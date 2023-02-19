@@ -34,23 +34,23 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   title?: string
   path?: string
   encryptedPath?: string
-  content?: string
   password?: string
+  vars?: VarsProps
+  content?: string
   curDir = ''
   localVars: Record<string, any> = {}
-  vars?: VarsProps
-  protected isRoot = false
+  isRoot = false
   protected get innerScene() {
     return this
   }
 
-  init({ path, encryptPath, content, password, vars, ...props }: SceneProps) {
-    super.init(props)
-    this.proxy.$$ignoreEvalProps.push('content', 'curDir', 'localVars', 'elementBuilder')
-    Object.assign(this, { path, encryptPath, content, password, vars })
+  constructor({ path, content, password, vars, ...props }: SceneProps) {
+    super(props)
+    Object.assign(this, { path, content, password, vars })
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot')
   }
 
-  async lazyInit() {
+  async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
     this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
     if (Array.isArray(remoteFileProps)) {
@@ -91,7 +91,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async getVars(str: any, ctx?: ElementProxy<Element> | any, others: any = {}) {
-    if (ctx?.$$loggerLevel) {
+    if (ctx?.loggerLevel) {
       others.parentState = ctx.parentState
     }
     return await getVars(str, ctx, {

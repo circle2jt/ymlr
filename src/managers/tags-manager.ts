@@ -1,5 +1,7 @@
 import assert from 'assert'
 import { join } from 'path'
+import { ElementProxy } from 'src/components/element-proxy'
+import { Element } from 'src/components/element.interface'
 import { Scene } from 'src/components/scene/scene'
 import { sleep } from 'src/libs/time'
 import { PackagesManager } from './packages-manager'
@@ -12,6 +14,9 @@ export class TagsManager {
   tagDirs: string[] = []
   private lockInstall: boolean = false
   private readonly packages = new Set<string>()
+  private get logger() {
+    return this.scene.proxy.logger
+  }
 
   constructor(private readonly scene: Scene) {
 
@@ -54,8 +59,8 @@ export class TagsManager {
     this.lockInstall = true
     try {
       packages.forEach(pack => this.packages.add(pack))
-      this.scene.logger.debug('Preparing to install the lack packages...')
-      const packagesManager = new PackagesManager(this.scene)
+      this.logger.debug('Preparing to install the lack packages...')
+      const packagesManager = new PackagesManager(this.logger)
       await packagesManager.install(...Array.from(this.packages))
       this.packages.clear()
     } finally {
@@ -64,11 +69,13 @@ export class TagsManager {
   }
 
   async loadElementClass(name: string, scene: Scene) {
+    const logger = scene.proxy.logger
     let ElementModule: any
     const [path, className = 'default'] = name.split(ClassInFileCharacter)
     // let classNameKebab = kebabToCamelCase(className)
     // if (className === classNameKebab) classNameKebab = undefined
     let triedToInstall: true | undefined
+    let tagName: string | undefined
     do {
       try {
         try {
@@ -76,7 +83,7 @@ export class TagsManager {
         } catch (err) {
           for (const dir of this.tagDirs) {
             try {
-              ElementModule = await import(this.scene.getPath(join(dir, path)))
+              ElementModule = await import(scene.getPath(join(dir, path)))
             } catch { }
           }
           if (!ElementModule) throw err
@@ -84,21 +91,22 @@ export class TagsManager {
       } catch (err1: any) {
         try {
           ElementModule = await this.getTag(path)
+          tagName = path
         } catch (err2: any) {
           if (err2.$$exit) throw err2
           try {
             ElementModule = await import(path)
           } catch (err3: any) {
             if (triedToInstall) {
-              scene.logger.error(1, err1?.message)
-              scene.logger.error(2, err2?.message)
-              scene.logger.error(3, err3?.message)
+              logger.error(1, err1?.message)
+              logger.error(2, err2?.message)
+              logger.error(3, err3?.message)
               throw new Error(`Could not found class "${className}" in "${path}"`)
             }
             triedToInstall = true
-            scene.logger.warn(1, err1?.message)
-            scene.logger.warn(2, err2?.message)
-            scene.logger.warn(3, err3?.message)
+            logger.warn(1, err1?.message)
+            logger.warn(2, err2?.message)
+            logger.warn(3, err3?.message)
             await this.install(path)
           }
         }
@@ -117,17 +125,23 @@ export class TagsManager {
       } else {
         // Instance type
         const { constructor, ...objProps } = ElementClazz
-        ElementClazz = class UnknownTag {
-          $$tag = name
+        tagName = name
+        ElementClazz = class UnknownTag implements Element {
+          readonly proxy!: ElementProxy<this>
+
           constructor(props?: any) {
             constructor?.call(this, props)
           }
+
+          exec() { }
+          dispose() { }
         }
         Object.assign(ElementClazz.prototype, objProps)
       }
     }
     assert(ElementClazz?.prototype, `Could not found the tag "${path}.${className}"`)
     // Class type
+    if (tagName) ElementClazz.tag = tagName
     return ElementClazz
   }
 }

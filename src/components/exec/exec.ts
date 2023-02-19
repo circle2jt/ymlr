@@ -1,11 +1,9 @@
 import assert from 'assert'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
-import { Logger, LoggerLevel } from 'src/libs/logger'
+import { LoggerLevel } from 'src/libs/logger'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { RootScene } from '../root-scene'
-import { Scene } from '../scene/scene'
 
 /** |**  exec
   Execute a program
@@ -25,17 +23,12 @@ import { Scene } from '../scene/scene'
   ```
 */
 export class Exec implements Element {
-  proxy!: ElementProxy<this>
-  scene!: Scene
-  rootScene!: RootScene
-  parent!: Element
-  logger!: Logger
+  readonly proxy!: ElementProxy<this>
 
-  commands: string[]
+  private get scene() { return this.proxy.scene }
+  private get logger() { return this.proxy.logger }
 
-  init(commands: string[]) {
-    this.commands = commands
-  }
+  constructor(public commands: string[]) { }
 
   async exec() {
     assert(this.commands?.length)
@@ -43,7 +36,7 @@ export class Exec implements Element {
     const rs = await new Promise<{ code: number, signal: NodeJS.Signals }>((resolve, reject) => {
       this.logger.debug('› %s', this.commands.join(' '))
       const [bin, ...args] = this.commands
-      const c = spawn(bin, args, { env: process.env, cwd: this.scene.curDir, stdio: this.logger.is(LoggerLevel.TRACE) ? 'pipe' : 'ignore' })
+      const c = spawn(bin, args, { env: process.env, cwd: this.scene?.curDir, stdio: this.logger.is(LoggerLevel.TRACE) ? 'pipe' : 'ignore' })
       c.stdout?.on('data', msg => {
         msg = msg.toString().replace(/\n$/, '')
         this.logger.trace(msg)
@@ -62,5 +55,4 @@ export class Exec implements Element {
   }
 
   dispose() { }
-
 }

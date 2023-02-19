@@ -1,8 +1,9 @@
-import { ElementProps } from '../element.props'
+import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
 
-export type GroupProps = {
+export interface GroupProps {
   description?: string
   runs?: GroupItemProps[]
-} & ElementProps
+}
 
-export type GroupItemProps = ElementProps
+export type GroupItemProps = ElementProxy<Element>

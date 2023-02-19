@@ -1,7 +1,8 @@
 import { Testing } from 'src/testing'
+import { ElementProxy } from './element-proxy'
 import { Scene } from './scene/scene'
 
-let scene: Scene
+let scene: ElementProxy<Scene>
 
 beforeEach(async () => {
   await Testing.reset()
@@ -12,7 +13,7 @@ afterEach(async () => {
 })
 
 test('Should run echo element', async () => {
-  scene = await Testing.newElement(Scene, {
+  scene = await Testing.createElementProxy(Scene, {
     content: `
 - ->: school
   template:
@@ -29,16 +30,16 @@ test('Should run echo element', async () => {
 
 - <-: [class, school, student]
   echo:
-    content: \${this.schoolName}/\${this.className}/\${this.name}
+    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
 
 - <-: [class, school]
   echo:
-    content: \${this.schoolName}/\${this.className}/\${this.name}
+    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
     name: Person 1
 
 - <-: student
   echo:
-    content: \${this.schoolName}/\${this.className}/\${this.name}
+    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
 `
   })
   const rs = await scene.exec()

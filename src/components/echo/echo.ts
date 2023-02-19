@@ -1,10 +1,7 @@
 import chalk from 'chalk'
-import { Logger } from 'src/libs/logger'
 import { format } from 'util'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { RootScene } from '../root-scene'
-import { Scene } from '../scene/scene'
 import { EchoProps } from './echo.props'
 
 /** |**  echo
@@ -56,16 +53,14 @@ import { EchoProps } from './echo.props'
   ```
 */
 export class Echo implements Element {
-  proxy!: ElementProxy<this>
-  scene!: Scene
-  rootScene!: RootScene
-  parent!: Element
-  logger!: Logger
+  readonly proxy!: ElementProxy<this>
+
+  private get logger() { return this.proxy.logger }
 
   content: any
   style?: string
 
-  init(props: EchoProps) {
+  constructor(props: EchoProps) {
     if (typeof props !== 'object') {
       props = {
         content: props

@@ -1,6 +1,8 @@
 import { FileTemp } from 'src/libs/file-temp'
-import { Testing } from 'src/testing'
 import { Env } from './env'
+import { Logger, LoggerLevel } from './logger'
+
+const logger = new Logger(LoggerLevel.SILENT)
 
 test('Should load env from files and objects', async () => {
   const tmpFile = new FileTemp('.env')
@@ -15,7 +17,7 @@ user1_age=36
 USER1_MALE=false
 `)
 
-    const env = new Env(Testing.logger)
+    const env = new Env(logger)
     const vars = await env.loadEnvToBase({
       name: 'string',
       age: 123,

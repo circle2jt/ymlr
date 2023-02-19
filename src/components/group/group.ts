@@ -1,11 +1,8 @@
 import cloneDeep from 'lodash.clonedeep'
-import { Logger } from 'src/libs/logger'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.props'
+import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
 import { RootScene } from '../root-scene'
-import scene from '../scene'
 import { GroupItemProps, GroupProps } from './group.props'
 
 /** |**  runs
@@ -22,21 +19,18 @@ import { GroupItemProps, GroupProps } from './group.props'
   ```
 */
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
-  proxy!: ElementProxy<this>
-  scene!: scene
-  rootScene!: RootScene
-  parent!: Element
-  logger!: Logger
-  loopKey?: any
-  loopValue?: any
+  readonly ignoreEvalProps = ['runs']
+  readonly proxy!: ElementProxy<this>
 
   protected runs: GIP[] = []
+  protected get scene() { return this.proxy.scene }
+  protected get rootScene() { return this.proxy.rootScene }
+  protected get logger() { return this.proxy.logger }
   protected get innerScene() {
     return this.scene
   }
 
-  init(props: GP | GIP[]) {
-    this.proxy.$$ignoreEvalProps.push('runs')
+  constructor(props: GP | GIP[]) {
     this.lazyInitRuns(props)
   }
 
@@ -52,33 +46,28 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.runs = this.runs?.filter(e => e) || []
   }
 
-  async newElement(nameOrClass: string | ElementClass) {
+  async newElement(nameOrClass: string | ElementClass, props: any) {
     if (typeof nameOrClass === 'string') {
       const name = nameOrClass
       const ElemClass: ElementClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
-      return new ElemClass()
+      return new ElemClass(props)
     }
     const ElemClass = nameOrClass
-    return new ElemClass()
+    return new ElemClass(props)
   }
 
-  async newElementProxy(nameOrClass: string | ElementClass, props: any = {}, baseProps: any = {}, loopObj: any = {}) {
-    const elem = await this.newElement(nameOrClass)
-    if (elem.lazyInit) {
-      baseProps.elementAsyncProps = props
-    }
+  async newElementProxy(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
+    const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps)
-    elemProxy.$$tag = nameOrClass?.toString()
-    elemProxy.logger = this.logger.clone(this.proxy.$$tag, this.proxy.$$loggerLevel)
+    elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
+    elemProxy.logger = this.logger.clone(this.proxy.tag, this.proxy.loggerLevel)
     elemProxy.parent = this.proxy
-    elemProxy.scene = this.scene
-    elemProxy.rootScene = this.scene instanceof RootScene ? this.scene : this.scene.rootScene
+    elemProxy.scene = this.innerScene
+    elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene
     if (loopObj) {
       elemProxy.loopKey = loopObj.loopKey
       elemProxy.loopValue = loopObj.loopValue
     }
-    elemProxy.buildElement()
-    await elem.init(props)
     return elemProxy
   }
 
@@ -93,11 +82,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   async runEachOfElements(parentState?: Record<string, any>) {
     const asyncJobs = new Array<Promise<any>>()
-    const runs = new Array<ElementProxy<Element>>()
+    const result = new Array<ElementProxy<Element>>()
     const newRuns = cloneDeep(this.runs)
     for (const allProps of newRuns) {
       // Init props
-      const props: GroupItemProps = allProps || {}
+      const props: any = allProps || {}
       if (props.runs) {
         const runs = props.runs
         props.group = {
@@ -148,11 +137,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
-          runs.push(elemProxy)
-          if (elemProxy instanceof Continue) break
+          result.push(elemProxy)
+          if (elemProxy.element instanceof Continue) break
         }
       } else {
-        let loopCondition = await this.innerScene.getVars(loop, this)
+        let loopCondition = await this.innerScene.getVars(loop, this.proxy)
         if (loopCondition) {
           if (Array.isArray(loopCondition)) {
             for (let i = 0; i < loopCondition.length; i++) {
@@ -162,8 +151,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition[i]
               })
               if (elemProxy) {
-                runs.push(elemProxy)
-                if (elemProxy instanceof Continue) break
+                result.push(elemProxy)
+                if (elemProxy.element instanceof Continue) break
               }
             }
           } else if (typeof loopCondition === 'object') {
@@ -174,8 +163,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition[key]
               })
               if (elemProxy) {
-                runs.push(elemProxy)
-                if (elemProxy instanceof Continue) break
+                result.push(elemProxy)
+                if (elemProxy.element instanceof Continue) break
               }
             }
           } else if (loopCondition === true) {
@@ -185,10 +174,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition
               })
               if (elemProxy) {
-                runs.push(elemProxy)
-                if (elemProxy instanceof Continue) break
+                result.push(elemProxy)
+                if (elemProxy.element instanceof Continue) break
               }
-              loopCondition = await this.innerScene.getVars(loop, this)
+              loopCondition = await this.innerScene.getVars(loop, this.proxy)
             }
           }
         }
@@ -197,14 +186,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (asyncJobs.length) {
       await Promise.all(asyncJobs)
     }
-    return runs
+    return result
   }
 
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj: { loopKey?: any, loopValue?: any } = {}) {
-    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this, parentState, ...loopObj }, { parentState })
+    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this.proxy, parentState, ...loopObj }, { parentState })
     if (!isContinue) return undefined
 
-    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this, parentState, ...loopObj }, { parentState })
+    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this.proxy, parentState, ...loopObj }, { parentState })
 
     if (asyncJobs.length && !async) {
       await Promise.all(asyncJobs)

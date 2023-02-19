@@ -1,8 +1,8 @@
 import { Testing } from 'src/testing'
-import { RootScene } from '../root-scene'
+import { ElementProxy } from '../element-proxy'
 import { Scene } from '../scene/scene'
 
-let scene!: Scene
+let scene: ElementProxy<Scene>
 
 beforeEach(async () => {
   await Testing.reset()
@@ -13,7 +13,7 @@ afterEach(async () => {
 })
 
 test('continue should stop the next steps', async () => {
-  scene = new RootScene({
+  scene = await Testing.createElementProxy(Scene, {
     content: `
 vars:
   step: 0
@@ -24,7 +24,7 @@ runs:
   - exec'js: |
       vars.step = 2
 `
-  }, Testing.logger)
+  })
   await scene.exec()
-  expect(scene.localVars.step).toBe(1)
+  expect(scene.element.localVars.step).toBe(1)
 })

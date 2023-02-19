@@ -1,30 +1,30 @@
-import { RootScene } from 'src/components/root-scene'
 import 'src/managers/modules-manager'
+
+import { RootScene } from 'src/components/root-scene'
 import { ElementProxy } from './components/element-proxy'
-import { ElementClass } from './components/element.props'
+import { Element, ElementClass } from './components/element.interface'
 import { Logger, LoggerLevel } from './libs/logger'
 
 export class Testing {
   static rootScene: RootScene
 
   static get vars() {
-    return this.rootScene.localVars
+    return Testing.rootScene.localVars
   }
 
   static get logger() {
-    return this.rootScene.logger
+    return Testing.rootScene.proxy.logger
   }
 
   static async reset() {
-    await Testing.rootScene?.dispose()
-    Testing.rootScene = new RootScene({ content: '[]' }, new Logger(LoggerLevel.SILENT))
-    await Testing.rootScene.exec()
+    const proxy = new ElementProxy(new RootScene({ content: '[]' }))
+    proxy.logger = new Logger(LoggerLevel.SILENT)
+    Testing.rootScene = proxy.scene = proxy.rootScene = proxy.element
+    await proxy.exec()
   }
 
-  static async newElement<T extends ElementProxy>(ElementClazz: ElementClass, props = {}, baseProps = {}): Promise<T> {
-    const elem = await this.rootScene.newElementProxy(ElementClazz, props, baseProps)
-    return elem as T
+  static async createElementProxy<T extends Element>(ElementClazz: ElementClass, props?: any, baseProps?: any) {
+    const proxy = await this.rootScene.newElementProxy(ElementClazz, props, baseProps)
+    return proxy as ElementProxy<T>
   }
 }
-
-void Testing.reset()

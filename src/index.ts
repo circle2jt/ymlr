@@ -4,7 +4,6 @@ import { program } from 'commander'
 import 'src/managers/modules-manager'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
-import { RootScene } from './components/root-scene'
 import { Logger, LoggerLevel } from './libs/logger'
 import { PackagesManager } from './managers/packages-manager'
 
@@ -51,7 +50,7 @@ program
     .argument('[package_name...]', 'packages in npm registry')
     .action(async (packages: string[]) => {
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(new RootScene({}, appLogger)).install(...packages)
+      await new PackagesManager(appLogger).install(...packages)
       process.exit(0)
     })
   )
@@ -62,7 +61,7 @@ program
     .argument('[package_name...]', 'packages in npm registry')
     .action(async (packages: string[]) => {
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(new RootScene({}, appLogger)).upgrade(...packages)
+      await new PackagesManager(appLogger).upgrade(...packages)
       process.exit(0)
     })
   )
@@ -74,7 +73,7 @@ program
     .action(async (packages: string[]) => {
       assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(new RootScene({}, appLogger)).uninstall(...packages)
+      await new PackagesManager(appLogger).uninstall(...packages)
       process.exit(0)
     })
   )

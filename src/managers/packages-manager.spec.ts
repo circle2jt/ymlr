@@ -3,13 +3,10 @@ import { PackagesManager } from './packages-manager'
 
 let packageManager: PackagesManager
 
-beforeEach(async () => {
+beforeAll(async () => {
   await Testing.reset()
+  packageManager = new PackagesManager(Testing.logger)
   jest.resetModules()
-})
-
-beforeAll(() => {
-  packageManager = new PackagesManager(Testing.rootScene)
 })
 
 afterAll(async () => {

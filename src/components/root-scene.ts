@@ -4,7 +4,6 @@ import { GlobalEvent } from 'src/managers/events-manager'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
-import { Element } from './element.interface'
 import { Scene } from './scene/scene'
 import { SceneProps } from './scene/scene.props'
 
@@ -31,19 +30,21 @@ export class RootScene extends Scene {
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
   readonly globalVars: Record<string, any> = {}
-  readonly disposeApps = new Array<Element>()
   readonly runDir = process.cwd()
   rootDir = ''
 
-  init(props: SceneProps) {
-    super.init(props)
-    this.proxy.$$ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
+  constructor(props: SceneProps) {
+    super(props)
     this.isRoot = true
-    this.scene = this.rootScene = this
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
+  }
+
+  async asyncConstructor() {
+    this.proxy.scene = this.proxy.rootScene = this
+    return await super.asyncConstructor()
   }
 
   async exec() {
-    await this.lazyInit()
     GlobalEvent.emit('scene/exec:before')
     try {
       const rs = await super.exec()

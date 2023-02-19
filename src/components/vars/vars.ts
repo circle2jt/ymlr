@@ -1,8 +1,5 @@
-import { Logger } from 'src/libs/logger'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { RootScene } from '../root-scene'
-import { Scene } from '../scene/scene'
 import { VarsProps } from './vars.props'
 
 /** |**  vars
@@ -37,22 +34,17 @@ import { VarsProps } from './vars.props'
   ```
 */
 export class Vars implements Element {
-  proxy!: ElementProxy<this>
-  scene!: Scene
-  rootScene!: RootScene
-  parent!: Element
-  logger!: Logger
+  readonly ignoreEvalProps = ['props']
+  readonly proxy!: ElementProxy<this>
 
-  props: any
+  private get scene() { return this.proxy.scene }
+  private get logger() { return this.proxy.logger }
 
-  init(props: VarsProps) {
-    this.proxy.$$ignoreEvalProps.push('props')
-    this.props = props
-  }
+  constructor(public props: VarsProps) { }
 
   async exec() {
-    const props = await this.scene.getVars(this.props, this)
-    this.logger.trace('[%s] \t%j', this.proxy.$$tag, props)
+    const props = await this.scene.getVars(this.props, this.proxy)
+    this.logger.trace('[%s] \t%j', this.proxy.tag, props)
     if (!props || Array.isArray(props) || typeof props !== 'object') return
     this.scene.mergeVars(props)
 

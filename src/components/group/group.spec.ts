@@ -1,9 +1,10 @@
 import { Testing } from 'src/testing'
 import { Echo } from '../echo/echo'
+import { ElementProxy } from '../element-proxy'
 import { Group } from './group'
 import { GroupItemProps, GroupProps } from './group.props'
 
-let group: Group<GroupProps, GroupItemProps>
+let group: ElementProxy<Group<GroupProps, GroupItemProps>>
 
 beforeEach(async () => {
   await Testing.reset()
@@ -14,7 +15,7 @@ afterEach(async () => {
 })
 
 test('if - condition', async () => {
-  group = await Testing.newElement(Group, [
+  group = await Testing.createElementProxy(Group, [
     {
       loop: '${[1,2,3]}',
       if: '${this.loopValue %2 === 0}',
@@ -26,13 +27,13 @@ test('if - condition', async () => {
       }
     }
   ])
-  const [echo] = await group.exec() as Echo[]
+  const [echo] = await group.exec() as Array<ElementProxy<Echo>>
   expect(echo.result).toBe(2)
   expect(Testing.vars.name).toBe('name 01')
 })
 
 test('loop', async () => {
-  group = await Testing.newElement(Group, [
+  group = await Testing.createElementProxy(Group, [
     {
       loop: '${[1,2,3]}',
       name: '${this.loopValue}'
@@ -43,7 +44,7 @@ test('loop', async () => {
 })
 
 test('pass a config into item in group', async () => {
-  group = await Testing.newElement(Group, [
+  group = await Testing.createElementProxy(Group, [
     {
       "exec'js": 'return "OK"',
       vars: 'result'
@@ -55,7 +56,7 @@ test('pass a config into item in group', async () => {
 })
 
 test('pass full group information', async () => {
-  group = await Testing.newElement(Group, {
+  group = await Testing.createElementProxy(Group, {
     name: 'Test group',
     runs: [
       {
@@ -70,7 +71,7 @@ test('pass full group information', async () => {
 })
 
 test('run with false condition', async () => {
-  group = await Testing.newElement(Group, {
+  group = await Testing.createElementProxy(Group, {
     name: 'Test group',
     runs: [
       {

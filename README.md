@@ -79,7 +79,14 @@ Run a specific file
 ```yaml
 name: Test scene
 runs:
-  - Hello world
+  - echo: Hello world
+
+  - name: Get post data
+    http'get:
+      url: http://localhost:3000/posts
+    vars: postData
+
+  - echo: ${vars.postData}
 ```
 
 2. Run
@@ -1273,9 +1280,6 @@ Register custom tags from an object
           },
           dispose() {
             // Dispose after finished this
-          },
-          disposeApp() {
-            // Dispose when exit app
           }
         }
 
@@ -1299,9 +1303,6 @@ Register custom tags from a class
           }
           dispose() {
             // Dispose after finished this
-          }
-          disposeApp() {
-            // Dispose when exit app
           }
         }
 

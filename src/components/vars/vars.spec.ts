@@ -1,7 +1,8 @@
 import { Testing } from 'src/testing'
+import { ElementProxy } from '../element-proxy'
 import { Vars } from './vars'
 
-let vars: Vars
+let vars: ElementProxy<Vars>
 
 beforeEach(async () => {
   await Testing.reset()
@@ -12,7 +13,7 @@ afterEach(async () => {
 
 test('should set to local vars which is used in the scene', async () => {
   try {
-    vars = await Testing.newElement(Vars, {
+    vars = await Testing.createElementProxy(Vars, {
       string: 'foo',
       number: 1,
       boolean: true,
@@ -70,7 +71,7 @@ test('should set to local vars which is used in the scene', async () => {
 
 test('should set to global vars', async () => {
   try {
-    vars = await Testing.newElement(Vars, {
+    vars = await Testing.createElementProxy(Vars, {
       String: 'foo',
       Number: 1,
       Boolean: true,
@@ -127,13 +128,13 @@ test('should set to global vars', async () => {
 })
 
 test('should eval value into vars', async () => {
-  vars = await Testing.newElement(Vars, {
+  vars = await Testing.createElementProxy(Vars, {
     name: 'scene name',
     Name: 'global name'
   })
   await vars.exec()
 
-  const test = await Testing.newElement(Vars, {
+  const test = await Testing.createElementProxy(Vars, {
     Hello: 'Hello ${vars.Name}',
     hello: 'hello ${vars.name}'
   })

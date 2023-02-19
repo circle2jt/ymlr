@@ -14,7 +14,8 @@ export class App {
     this.logger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
     this.logger.log('')
     assert(this.file, 'Scene file is required')
-    this.rootScene = new ElementProxy(new RootScene())
+    this.rootScene = new ElementProxy(new RootScene({ path: this.file, password: this.password }))
+    this.rootScene.scene = this.rootScene.rootScene = this.rootScene.element
     this.rootScene.logger = this.logger.clone('root-scene')
     this.summary = new Summary(this.rootScene.logger)
   }
@@ -26,7 +27,6 @@ export class App {
 
   async exec() {
     try {
-      await this.rootScene.init({ path: this.file, password: this.password })
       await this.rootScene.exec()
     } finally {
       await this.rootScene.dispose()

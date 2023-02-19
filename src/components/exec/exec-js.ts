@@ -1,10 +1,7 @@
 import assert from 'assert'
 import { FileRemote } from 'src/libs/file-remote'
-import { Logger } from 'src/libs/logger'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { RootScene } from '../root-scene'
-import { Scene } from '../scene/scene'
 import { ExecJsProps } from './exec-js.props'
 
 /** |**  exec'js
@@ -31,18 +28,15 @@ import { ExecJsProps } from './exec-js.props'
   ```
 */
 export class ExecJs implements Element {
-  proxy!: ElementProxy<this>
-  scene!: Scene
-  rootScene!: RootScene
-  parent!: Element
-  logger!: Logger
+  readonly ignoreEvalProps = ['script']
+  readonly proxy!: ElementProxy<this>
+
+  private get scene() { return this.proxy.scene }
 
   script?: string
   path?: string
 
-  init(props: ExecJsProps) {
-    this.proxy.$$ignoreEvalProps.push('script')
-
+  constructor(props: ExecJsProps) {
     if (typeof props === 'string') {
       props = {
         script: props

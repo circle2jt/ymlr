@@ -12,7 +12,7 @@ afterEach(async () => {
 
 test('auto install external tags', async () => {
   const tagsManager = Testing.rootScene.tagsManager
-  const packagesManager = new PackagesManager(Testing.rootScene)
+  const packagesManager = new PackagesManager(Testing.logger)
   try {
     const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene)
     expect(newClass).toBeDefined()
@@ -42,7 +42,7 @@ test('load a new tag from a class in a external file', async () => {
     Testing.rootScene.tagsManager.register('test1', tmpFile.file)
 
     const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene)
-    const test = await Testing.newElement(TestClass, data)
+    const test = await Testing.createElementProxy(TestClass, data)
     const rs = await test.exec()
     expect(rs).toEqual(data)
   } finally {
@@ -67,7 +67,7 @@ test('load a new tag from a object in a external file', async () => {
     Testing.rootScene.tagsManager.register('test1', tmpFile.file)
 
     const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene)
-    const test = await Testing.newElement(TestClass, data)
+    const test = await Testing.createElementProxy(TestClass, data)
     const rs = await test.exec()
     expect(rs).toEqual(data)
   } finally {
