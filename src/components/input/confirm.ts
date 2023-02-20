@@ -9,9 +9,9 @@ import { InputConfirm } from './questions/input-confirm'
   # - input'conf:
     - input'confirm:
         title: Are you sure to delete it ?
-        vars: userWantToDelete
         default: false  # !optional
         required: true  # !optional
+      vars: userWantToDelete
   ```
 */
 export class Confirm extends Input<InputConfirmProps> {

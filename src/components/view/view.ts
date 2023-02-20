@@ -13,7 +13,7 @@ import { ViewProps } from './view.props'
       view:
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-    - view: ${vars.TEST_DATA}
+    - view: ${$vars.TEST_DATA}
   ```
 */
 export class View implements Element {

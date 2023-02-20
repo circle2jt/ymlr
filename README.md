@@ -86,7 +86,7 @@ runs:
       url: http://localhost:3000/posts
     vars: postData
 
-  - echo: ${vars.postData}
+  - echo: ${ $vars.postData }
 ```
 
 2. Run
@@ -170,13 +170,23 @@ Expose item properties for others extends
 
 Example:  
 
+Use `skip`
 ```yaml
   - ->: helloTemplate
     skip: true
     echo: Hello               # Not run
 
-  - <-: helloTemplate
-    echo: Hi                  # => Hi
+  - <-: helloTemplate         # => Hello
+
+```
+
+Use `template`
+```yaml
+  - ->: hiTemplate
+    template: Hi              # Not run
+
+  - <-: hiTemplate            # => Hi
+    echo:
 ```  
 
 
@@ -187,19 +197,16 @@ Copy properties from others (a item, or list items)
 Example:  
 
 ```yaml
-  - skip: true
-    ->: baseRequest
-    http'get:
+  - ->: baseRequest
+    template:
       baseURL: http://localhost
-  - skip: true
-    <-: baseRequest
+  - <-: baseRequest
     ->: user1Request
-    http'get:
+    template:
       headers:
         authorization: Bearer user1_token
-  - skip: true
-    ->: user2RequestWithoutBaseURL
-    http'get:
+  - ->: user2RequestWithoutBaseURL
+    template:
       headers:
         authorization: Bearer user2_token
 
@@ -231,7 +238,7 @@ Example:
       url: /product/1
     vars: product
 
-  - name: The product ${product.name} is in the categories ${categories.map(c => c.name)}
+  - name: The product ${$vars.product.name} is in the categories ${$vars.categories.map(c => c.name)}
 ```  
 
 
@@ -280,10 +287,10 @@ Example:
 ```yaml
   - vars:
       number: 11
-  - if: ${vars.number > 10}
+  - if: ${$vars.number > 10}
     echo: Value is greater than 10      # => Value is greater than 10
 
-  - if: ${vars.number < 10}
+  - if: ${$vars.number < 10}
     echo: Value is lessthan than 10     # No print
 ```  
 
@@ -298,8 +305,8 @@ Loop in array
 ```yaml
   - vars:
       arrs: [1,2,3,4]
-  - loop: ${vars.arrs}
-    echo: Index is ${this.loopKey}, value is ${this.loopValue}
+  - loop: ${$vars.arrs}
+    echo: Index is ${$loopKey}, value is ${$loopValue}    # $loopKey ~ this.loopKey AND $loopValue ~ this.loopValue
   # =>
   # Index is 0, value is 1
   # Index is 1, value is 2
@@ -314,8 +321,8 @@ Loop in object
         "name": "thanh",
         "sex": "male"
       }
-  - loop: ${vars.obj}
-    echo: Key is ${this.loopKey}, value is ${this.loopValue}
+  - loop: ${$vars.obj}
+    echo: Key is ${$loopKey}, value is ${$loopValue}
   # =>
   # Key is name, value is thanh
   # Key is sex, value is male
@@ -325,8 +332,8 @@ Dynamic loop in a condition
 ```yaml
   - vars:
       i: 0
-  - loop: ${vars.i < 3}
-    echo: value is ${vars.i++}
+  - loop: ${$vars.i < 3}
+    echo: value is ${$vars.i++}
   # =>
   # value is 0
   # value is 1
@@ -337,11 +344,10 @@ Loop in nested items
 ```yaml
   - vars:
       arrs: [1,2,3]
-  - loop: ${vars.arrs}
-    name: group ${this.loopValue}
-    group:
-      runs:
-        - echo: item value is ${this.parent.loopValue}
+  - loop: ${$vars.arrs}
+    name: group ${$loopValue}
+    runs:
+      - echo: item value is ${this.parent.loopValue}
   # =>
   # group 1
   # item value is 1
@@ -402,7 +408,7 @@ Example:
 ```yaml
   - echo: Hello world
     vars: helloText
-  - echo: ${vars.helloText}     # => Hello world
+  - echo: ${$vars.helloText}     # => Hello world
 ```  
 
 
@@ -421,7 +427,7 @@ Example:
       excludeDirs:
         - node_modules
       prependMDs:                                     # Prepend content in the document (Optional)
-        - path: ${utils.curDir}/../INSTALLATION.md    # |- {path}: Read file content then copy it into document
+        - path: ${$utils.curDir}/../INSTALLATION.md    # |- {path}: Read file content then copy it into document
         - ---                                         # |- string: Markdown content
       appendMDs:                                      # Append content in the document
         - ---
@@ -451,16 +457,7 @@ Print a variable
 ```yaml
   - vars:
       name: thanh
-  - echo: ${vars.name}
-```
-
-Quick print
-```yaml
-  - Hello world
-
-  - vars:
-      name: thanh
-  - ${vars.name}
+  - echo: ${$vars.name}
 ```
 
 Print text with custom type. (Follow "chalk")
@@ -502,16 +499,14 @@ Example:
 
 ```yaml
   - name: group 1
-    group:
-      runs:
-        - echo: 1             # => 1
-        - continue:           # => Stop here then ignore the next steps in the same parent
-        - echo: 2
-        - echo: 3
+    runs:
+      - echo: 1             # => 1
+      - continue:           # => Stop here then ignore the next steps in the same parent
+      - echo: 2
+      - echo: 3
   - name: group 1
-    group:                    # Still run the next group
-      runs:
-        - echo: 2             # => 2
+    runs:                    # Still run the next group
+      - echo: 2             # => 2
 ```  
 
 
@@ -569,10 +564,18 @@ Execute a shell script
 
 Example:  
 
+Execute a sh file
 ```yaml
   - name: Write a hello file
     exec'sh:
       path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
+    vars: log       # !optional
+```
+
+Execute a bash script
+```yaml
+  - name: Write a hello file
+    exec'sh:
       script: |                       # Shell script content
         touch hello.txt
         echo "Hello world" > /tmp/hello.txt
@@ -651,7 +654,7 @@ Use in global by reference
       // Save data to file
       fileDB.save()
 
-  - echo: ${vars.fileDB.data}   # => ['item 1', 'item 2']
+  - echo: ${$vars.fileDB.data}   # => ['item 1', 'item 2']
 ```  
 
 
@@ -675,7 +678,7 @@ Write a yaml file
 ```yaml
   - file'write:
       path: /tmp/data.yaml
-      content: ${vars.fileData}
+      content: ${$vars.fileData}
       format: yaml  # !optional
 ```
 Write a text file
@@ -929,14 +932,14 @@ Example:
       address: 0.0.0.0:8811           # Address to listen to add a new job to
       queue:                          # Wait to finish a job before keep doing the next. If not set, it's will run ASAP when received requests
         concurrent: 1                 # Num of jobs can be run parallel
-        storage: ${vars.fileStorage}  # Set a storage to queue
+        storage: ${$vars.fileStorage}  # Set a storage to queue
       runs:                           # Steps to do a job
-        - ${parentState.jobData}      # {parentState.jobData} is job data in the queue which is included both querystring and request body
-        - ${parentState.jobInfo}      # {parentState.jobInfo} is job information
-                                      # {parentState.jobInfo.path} request path
-                                      # {parentState.jobInfo.method} request method
-                                      # {parentState.jobInfo.query} request query string
-                                      # {parentState.jobInfo.headers} request headers
+        - ${$parentState.jobData}      # {$parentState.jobData} is job data in the queue which is included both querystring and request body
+        - ${$parentState.jobInfo}      # {$parentState.jobInfo} is job information
+                                      # {$parentState.jobInfo.path} request path
+                                      # {$parentState.jobInfo.method} request method
+                                      # {$parentState.jobInfo.query} request query string
+                                      # {$parentState.jobInfo.headers} request headers
 ```  
 
 
@@ -995,9 +998,9 @@ Example:
 # - input'conf:
   - input'confirm:
       title: Are you sure to delete it ?
-      vars: userWantToDelete
       default: false  # !optional
       required: true  # !optional
+    vars: userWantToDelete
 ```  
 
 
@@ -1011,7 +1014,6 @@ Example:
 # - input'msel:
   - input'multiselect:
       title: Please select your hobbies ?
-      vars: hobbies
       choices:
         - title: Tennis
           value: tn
@@ -1021,6 +1023,7 @@ Example:
           value: bb
       default: [tn, fb]   # !optional
       required: true      # !optional
+    vars: hobbies
 ```  
 
 
@@ -1034,9 +1037,9 @@ Example:
 # - input'num:
   - input'number:
       title: Enter your age ?
-      vars: age
       default: 18     # !optional
       required: true  # !optional
+    vars: age
 ```  
 
 
@@ -1050,8 +1053,8 @@ Example:
 # - input'pwd:
   - input'password:
       title: Enter your password ?
-      vars: password
       required: true  # !optional
+    vars: password
 ```  
 
 
@@ -1065,7 +1068,6 @@ Example:
 # - input'sel:
   - input'select:
       title: Your sex ?
-      vars: sex
       choices:
         - title: male
           value: m
@@ -1073,6 +1075,7 @@ Example:
           value: f
       default: m      # !optional
       required: true  # !optional
+    vars: sex
 ```  
 
 
@@ -1086,7 +1089,6 @@ Example:
 # - input'sug:
   - input'suggest:
       title: Your hobby
-      vars: hobby
       choices:
         - title: Football
           value: football
@@ -1099,7 +1101,7 @@ Example:
                                                 # - "INCLUDE_AND_ALLOW_NEW": Same "INCLUDE" and allow to create a new one if not in the list suggestions
                                                 # - "STARTSWITH": Only find in the start of text
                                                 # - "STARTSWITH_AND_ALLOW_NEW": Same "STARTSWITH" and allow to create a new one if not in the list suggestions
-
+    vars: hobby
 ```  
 
 
@@ -1113,9 +1115,9 @@ Example:
 # - input:
   - input'text:
       title: Enter your name
-      vars: name
       default: Noname # !optional
       required: true  # !optional
+    vars: name
 ```  
 
 
@@ -1140,13 +1142,13 @@ Example:
       vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
       require('myapp')
 
-  - echo: ${vars.newObject}
+  - echo: ${$vars.newObject}
 ```
 
 Install from github
 ```yaml
   - name: Install from github
-    if: ${vars.useExternalPackage}
+    if: ${$vars.useExternalPackage}
     npm'install:
       - myapp: git+ssh:git@github.com:...
       - ymlr...
@@ -1321,9 +1323,9 @@ Quick test
 ```yaml
   - test:
       title: Number must be greater than 10
-      check: ${vars.age > 10}
+      check: ${$vars.age > 10}
 
-  - test: ${vars.age < 10}
+  - test: ${$vars.age < 10}
 ```
 
 Test with nodejs script
@@ -1331,7 +1333,7 @@ Test with nodejs script
   - test:
       title: Number must be greater than 10
       script: |
-        if (vars.age > 10) this.failed('Age is not valid')
+        if (vars.age > 10) this.$.failed('Age is not valid')
 ```  
 
 
@@ -1352,10 +1354,10 @@ A main scene file
   - scene:
       path: ./child.scene.yaml
 
-  - echo: ${vars.MainName}      # => global var
-  - echo: ${vars.mainName}      # => local var
-  - echo: ${vars.name}          # => undefined
-  - echo: ${vars.Name}          # => global name here
+  - echo: ${$vars.MainName}      # => global var
+  - echo: ${$vars.mainName}      # => local var
+  - echo: ${$vars.name}          # => undefined
+  - echo: ${$vars.Name}          # => global name here
 ```
 A scene file `child.scene.yaml` is:
 ```yaml
@@ -1363,10 +1365,10 @@ A scene file `child.scene.yaml` is:
       Name: global name here
       name: scene name here     # Only used in this scene
 
-  - echo: ${vars.MainName}      # => global var
-  - echo: ${vars.mainName}      # => undefined
-  - echo: ${vars.name}          # => scene name here
-  - echo: ${vars.Name}          # => global name here
+  - echo: ${$vars.MainName}      # => global var
+  - echo: ${$vars.mainName}      # => undefined
+  - echo: ${$vars.name}          # => scene name here
+  - echo: ${$vars.Name}          # => global name here
 ```  
 
 
@@ -1381,7 +1383,7 @@ Example:
     view:
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-  - view: ${vars.TEST_DATA}
+  - view: ${$vars.TEST_DATA}
 ```  
 
 
@@ -1396,7 +1398,7 @@ Example:
     view'json:
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-  - view'json: ${vars.TEST_DATA}
+  - view'json: ${$vars.TEST_DATA}
 ```  
 
 
@@ -1414,7 +1416,7 @@ Example:
         - age
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-  - view'table: ${vars.TEST_DATA}
+  - view'table: ${$vars.TEST_DATA}
 ```  
 
 
@@ -1429,9 +1431,60 @@ Example:
       name: Yaml Viewer
       data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-  - view'yaml: ${vars.TEST_DATA}
+  - view'yaml: ${$vars.TEST_DATA}
 ```  
 
+
+
+## <a id="$utils.base64"></a>$utils.base64  
+`Utility function`  
+Base64 encrypt/decrypt a string  
+
+Example:  
+
+```yaml
+  - echo: ${ $utils.base64.encrypt('hello world') }
+
+  - echo: ${ $utils.base64.decrypt('$ENCRYPTED_STRING') }
+```  
+
+
+## <a id="$utils.base64"></a>$utils.base64  
+`Utility function`  
+AES encrypt/decrypt a string  
+
+Example:  
+
+```yaml
+  - echo: ${ $utils.aes.encrypt('hello world') }
+
+  - echo: ${ $utils.aes.decrypt('$ENCRYPTED_STRING') }
+```  
+
+
+## <a id="$utils.format"></a>$utils.format  
+`Utility function`  
+Formater  
+
+Example:  
+
+```yaml
+  # Format file name
+  - echo: ${ $utils.format.fileName('a@(*&#.jpg') }
+
+  - echo: ${ $utils.format.number(1000000) }
+```  
+
+
+## <a id="$utils.md5"></a>$utils.md5  
+`Utility function`  
+Encrypt a string to md5  
+
+Example:  
+
+```yaml
+  - echo: ${ $utils.md5.encrypt('hello world') }
+```  
 
 <br/>
 

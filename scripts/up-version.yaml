@@ -7,8 +7,8 @@ runs:
       path: ../shares/version.yaml
       vars:
         force: true
-        preid: ${vars.preid}
-        versionName: ${vars.versionName}
+        preid: ${ $vars.preid }
+        versionName: ${ $vars.versionName }
         changeDir: ../changelogs
         changeFile: ../CHANGELOG.md
         commitFiles:

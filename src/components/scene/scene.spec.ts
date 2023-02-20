@@ -32,21 +32,21 @@ test('Check localVars and globalVars', async () => {
     GlobalVars1: My Global Vars 1 in scene
 - scene:
     path: ${tmp1.file}
-- echo: \${vars.localVars}
-- echo: \${vars.GlobalVars1}
-- echo: \${vars.rootLocalVars}
-- echo: \${vars.GlobalVars2}
+- echo: \${$vars.localVars}
+- echo: \${$vars.GlobalVars1}
+- echo: \${$vars.rootLocalVars}
+- echo: \${$vars.GlobalVars2}
 `)
   await tmp1.create(`
 - vars:
     localVars1: my local vars 1 in scene 1
     GlobalVars1: My Global Vars 1 in scene 1
 
-- echo: \${vars.localVars}
-- echo: \${vars.localVars1}
-- echo: \${vars.GlobalVars1}
-- echo: \${vars.rootLocalVars}
-- echo: \${vars.GlobalVars2}
+- echo: \${$vars.localVars}
+- echo: \${$vars.localVars1}
+- echo: \${$vars.GlobalVars1}
+- echo: \${$vars.rootLocalVars}
+- echo: \${$vars.GlobalVars2}
 `)
   try {
     scene = await Testing.createElementProxy(Scene, {
@@ -59,10 +59,10 @@ test('Check localVars and globalVars', async () => {
 - scene:
     path: ${tmp.file}
 
-- echo: \${vars.rootLocalVars}
-- echo: \${vars.localVars}
-- echo: \${vars.GlobalVars1}
-- echo: \${vars.GlobalVars2}
+- echo: \${$vars.rootLocalVars}
+- echo: \${$vars.localVars}
+- echo: \${$vars.GlobalVars1}
+- echo: \${$vars.GlobalVars2}
 `
     })
     const [, _scene1, echo1, echo2, echo3, echo4] = await scene.exec() || []

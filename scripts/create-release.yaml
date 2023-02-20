@@ -7,8 +7,8 @@ runs:
       title: Create a new release
       path: ../shares/github.release.yaml
       vars:
-        token: ${vars.githubToken}
-        lastCommitSHA: ${vars.lastCommitSHA}
+        token: ${ $vars.githubToken }
+        lastCommitSHA: ${ $vars.lastCommitSHA }
         owner: circle2jt
         repo: ymlr
         tag: "%s"

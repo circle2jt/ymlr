@@ -9,7 +9,6 @@ import { InputSuggestProps } from './suggest.props'
   # - input'sug:
     - input'suggest:
         title: Your hobby
-        vars: hobby
         choices:
           - title: Football
             value: football
@@ -22,7 +21,7 @@ import { InputSuggestProps } from './suggest.props'
                                                   # - "INCLUDE_AND_ALLOW_NEW": Same "INCLUDE" and allow to create a new one if not in the list suggestions
                                                   # - "STARTSWITH": Only find in the start of text
                                                   # - "STARTSWITH_AND_ALLOW_NEW": Same "STARTSWITH" and allow to create a new one if not in the list suggestions
-
+      vars: hobby
   ```
 */
 export class Suggest extends Input<InputSuggestProps> {

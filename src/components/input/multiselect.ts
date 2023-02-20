@@ -9,7 +9,6 @@ import { InputMultiSelect } from './questions/input-multiselect'
   # - input'msel:
     - input'multiselect:
         title: Please select your hobbies ?
-        vars: hobbies
         choices:
           - title: Tennis
             value: tn
@@ -19,6 +18,7 @@ import { InputMultiSelect } from './questions/input-multiselect'
             value: bb
         default: [tn, fb]   # !optional
         required: true      # !optional
+      vars: hobbies
   ```
 */
 export class MultiSelect extends Input<InputMultiSelectProps> {

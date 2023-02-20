@@ -9,7 +9,7 @@ import { ViewJsonProps } from './view-json.props'
       view'json:
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-    - view'json: ${vars.TEST_DATA}
+    - view'json: ${$vars.TEST_DATA}
   ```
 */
 export class ViewJson extends View {

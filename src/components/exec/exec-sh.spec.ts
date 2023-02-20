@@ -39,7 +39,7 @@ test('should be executed', async () => {
 
 test('should get expression value from global vars', async () => {
   Testing.vars.txt = 'hello world'
-  execSh = await Testing.createElementProxy(ExecSh, 'echo "${vars.txt}"')
+  execSh = await Testing.createElementProxy(ExecSh, 'echo "${$vars.txt}"')
   const msg = await execSh.exec()
   expect(msg).toBe(Testing.vars.txt)
 })

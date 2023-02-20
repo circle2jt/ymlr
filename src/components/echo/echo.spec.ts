@@ -15,7 +15,7 @@ afterEach(async () => {
 
 test('pass string in echo', async () => {
   Testing.vars.name = 'world'
-  echo = await Testing.createElementProxy(Echo, 'Hello ${vars.name}')
+  echo = await Testing.createElementProxy(Echo, 'Hello ${$vars.name}')
   const rs = await echo.exec()
   expect(rs).toBe(`Hello ${Testing.vars.name}`)
 })
@@ -23,7 +23,7 @@ test('pass string in echo', async () => {
 test('pass object in echo', async () => {
   Testing.vars.name = 'world'
   echo = await Testing.createElementProxy(Echo, {
-    content: { txt: 'Hello ${vars.name}' }
+    content: { txt: 'Hello ${$vars.name}' }
   })
   const rs = await echo.exec()
   expect(rs).toEqual({
