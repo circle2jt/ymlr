@@ -16,10 +16,10 @@ import { VarsProps } from './vars.props'
     - scene:
         path: ./child.scene.yaml
 
-    - echo: ${vars.MainName}      # => global var
-    - echo: ${vars.mainName}      # => local var
-    - echo: ${vars.name}          # => undefined
-    - echo: ${vars.Name}          # => global name here
+    - echo: ${$vars.MainName}      # => global var
+    - echo: ${$vars.mainName}      # => local var
+    - echo: ${$vars.name}          # => undefined
+    - echo: ${$vars.Name}          # => global name here
   ```
   A scene file `child.scene.yaml` is:
   ```yaml
@@ -27,10 +27,10 @@ import { VarsProps } from './vars.props'
         Name: global name here
         name: scene name here     # Only used in this scene
 
-    - echo: ${vars.MainName}      # => global var
-    - echo: ${vars.mainName}      # => undefined
-    - echo: ${vars.name}          # => scene name here
-    - echo: ${vars.Name}          # => global name here
+    - echo: ${$vars.MainName}      # => global var
+    - echo: ${$vars.mainName}      # => undefined
+    - echo: ${$vars.name}          # => scene name here
+    - echo: ${$vars.Name}          # => global name here
   ```
 */
 export class Vars implements Element {

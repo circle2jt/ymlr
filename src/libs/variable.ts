@@ -2,14 +2,14 @@ import { callFunctionScript } from 'src/libs/async-function'
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
-  const vars = others.vars
+  const $vars = others.$vars
   if (typeof varObj === 'string') {
-    vars[varObj] = vl
+    $vars[varObj] = vl
     return [varObj]
   }
   const keys = Object.keys(varObj)
   for (const k of keys) {
-    vars[k] = await getVars(varObj[k], ctx, others)
+    $vars[k] = await getVars(varObj[k], ctx, others)
   }
   return keys
 }

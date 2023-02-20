@@ -10,10 +10,18 @@ import { ExecShProps } from './exec-sh.props'
 /** |**  exec'sh
   Execute a shell script
   @example
+  Execute a sh file
   ```yaml
     - name: Write a hello file
       exec'sh:
         path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
+      vars: log       # !optional
+  ```
+
+  Execute a bash script
+  ```yaml
+    - name: Write a hello file
+      exec'sh:
         script: |                       # Shell script content
           touch hello.txt
           echo "Hello world" > /tmp/hello.txt

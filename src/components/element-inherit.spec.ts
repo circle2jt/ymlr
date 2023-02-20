@@ -30,16 +30,16 @@ test('Should run echo element', async () => {
 
 - <-: [class, school, student]
   echo:
-    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
+    content: \${this.$.schoolName}/\${this.$.className}/\${this.$.name}
 
 - <-: [class, school]
   echo:
-    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
+    content: \${this.$.schoolName}/\${this.$.className}/\${this.$.name}
     name: Person 1
 
 - <-: student
   echo:
-    content: \${this.element.schoolName}/\${this.element.className}/\${this.element.name}
+    content: \${this.$.schoolName}/\${this.$.className}/\${this.$.name}
 `
   })
   const rs = await scene.exec()

@@ -20,13 +20,13 @@ import { InstallProps } from './install.props'
         vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
         require('myapp')
 
-    - echo: ${vars.newObject}
+    - echo: ${$vars.newObject}
   ```
 
   Install from github
   ```yaml
     - name: Install from github
-      if: ${vars.useExternalPackage}
+      if: ${$vars.useExternalPackage}
       npm'install:
         - myapp: git+ssh:git@github.com:...
         - ymlr...

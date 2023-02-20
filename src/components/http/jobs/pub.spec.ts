@@ -21,7 +21,7 @@ test('Add a jobs in queue', async () => {
     runs: [
       {
         vars: {
-          jobData: '${parentState.jobData}'
+          jobData: '${$parentState.jobData}'
         }
       },
       {

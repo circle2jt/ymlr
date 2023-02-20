@@ -9,8 +9,8 @@ import { InputPassword } from './questions/input-password'
   # - input'pwd:
     - input'password:
         title: Enter your password ?
-        vars: password
         required: true  # !optional
+      vars: password
   ```
 */
 export class Password extends Input<InputPasswordProps> {

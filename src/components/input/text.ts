@@ -9,9 +9,9 @@ import { InputTextProps } from './text.props'
   # - input:
     - input'text:
         title: Enter your name
-        vars: name
         default: Noname # !optional
         required: true  # !optional
+      vars: name
   ```
 */
 export class Text extends Input<InputTextProps> {

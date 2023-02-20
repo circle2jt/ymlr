@@ -21,16 +21,7 @@ import { EchoProps } from './echo.props'
   ```yaml
     - vars:
         name: thanh
-    - echo: ${vars.name}
-  ```
-
-  Quick print
-  ```yaml
-    - Hello world
-
-    - vars:
-        name: thanh
-    - ${vars.name}
+    - echo: ${$vars.name}
   ```
 
   Print text with custom type. (Follow "chalk")

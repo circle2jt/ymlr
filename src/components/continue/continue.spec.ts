@@ -19,10 +19,10 @@ vars:
   step: 0
 runs:
   - exec'js: |
-      vars.step = 1
+      $vars.step = 1
   - continue:
   - exec'js: |
-      vars.step = 2
+      $vars.step = 2
 `
   })
   await scene.exec()

@@ -16,8 +16,8 @@
   - scene:
       path: https://raw.githubusercontent.com/circle2jt/ymlr/main/shares/version.yaml
       vars:
-        preid: ${vars.preid}
-        versionName: ${vars.versionName}
+        preid: ${$vars.preid}
+        versionName: ${$vars.versionName}
         changeDir: ../changelogs      # Path of folder which includes log files for each of changing
         changeFile: ../CHANGELOG.md   # Path of CHANGELOG file
         commitFiles:                  # Files will be added to commit when up version

@@ -61,13 +61,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elemProxy = new ElementProxy(elem, baseProps)
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
     elemProxy.logger = this.logger.clone(this.proxy.tag, this.proxy.loggerLevel)
-    elemProxy.parent = this.proxy
+    elemProxy.parent = this
     elemProxy.scene = this.innerScene
     elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene
-    if (loopObj) {
-      elemProxy.loopKey = loopObj.loopKey
-      elemProxy.loopValue = loopObj.loopValue
-    }
+    Object.assign(elemProxy, loopObj)
     return elemProxy
   }
 
@@ -190,18 +187,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   }
 
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj: { loopKey?: any, loopValue?: any } = {}) {
-    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, { parent: this.proxy, parentState, ...loopObj }, { parentState })
+    const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
+
+    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, elemProxy)
     if (!isContinue) return undefined
 
-    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, { parent: this.proxy, parentState, ...loopObj }, { parentState })
-
+    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
     if (asyncJobs.length && !async) {
       await Promise.all(asyncJobs)
       asyncJobs.splice(0, asyncJobs.length)
     }
 
-    const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
-    // Execute
     const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
     if (!async) {
       await p

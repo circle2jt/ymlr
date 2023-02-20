@@ -18,8 +18,8 @@ test('if - condition', async () => {
   group = await Testing.createElementProxy(Group, [
     {
       loop: '${[1,2,3]}',
-      if: '${this.loopValue %2 === 0}',
-      echo: '${this.loopValue}'
+      if: '${$loopValue %2 === 0}',
+      echo: '${$loopValue}'
     },
     {
       vars: {
@@ -36,7 +36,7 @@ test('loop', async () => {
   group = await Testing.createElementProxy(Group, [
     {
       loop: '${[1,2,3]}',
-      name: '${this.loopValue}'
+      name: '${$loopValue}'
     }
   ])
   const steps = await group.exec()

@@ -6,16 +6,14 @@ import { Element } from '../element.interface'
   @example
   ```yaml
     - name: group 1
-      group:
-        runs:
-          - echo: 1             # => 1
-          - continue:           # => Stop here then ignore the next steps in the same parent
-          - echo: 2
-          - echo: 3
+      runs:
+        - echo: 1             # => 1
+        - continue:           # => Stop here then ignore the next steps in the same parent
+        - echo: 2
+        - echo: 3
     - name: group 1
-      group:                    # Still run the next group
-        runs:
-          - echo: 2             # => 2
+      runs:                    # Still run the next group
+        - echo: 2             # => 2
   ```
 */
 export class Continue implements Element {
