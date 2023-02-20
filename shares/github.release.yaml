@@ -19,35 +19,35 @@ runs:
       baseURL: https://api.github.com
       headers:
         Accept: application/vnd.github+json"
-        Authorization: Bearer ${vars.token}
+        Authorization: Bearer ${$vars.token}
 
   - exec'js: |
-      const version = require(this.scene.getPath(vars.packageJson)).version
-      vars.tag = !vars.tag ? version : vars.tag.replace('%s', version)
-      vars.name = vars.name.replace('%s', vars.tag)
+      const version = require(this.scene.getPath($vars.packageJson)).version
+      $vars.tag = !$vars.tag ? version : $vars.tag.replace('%s', version)
+      $vars.name = $vars.name.replace('%s', $vars.tag)
 
-  - if: ${ !vars.validTagRegex || new RegExp(vars.validTagRegex).test(vars.tag) }
+  - if: ${ !$vars.validTagRegex || new RegExp($vars.validTagRegex).test($vars.tag) }
     runs:
       - <-: git-http
         http'get:
-          url: /repos/${vars.owner}/${vars.repo}/commits/${vars.lastCommitSHA}
-          vars:
-            lastCommitDes: ${this.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
+          url: /repos/${$vars.owner}/${$vars.repo}/commits/${$vars.lastCommitSHA}
+        vars:
+          lastCommitDes: ${this.$.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
 
       - echo: |
-          tag_name: ${vars.tag}
-          name: ${vars.name}
-          body: ${vars.lastCommitDes}
+          tag_name: ${$vars.tag}
+          name: ${$vars.name}
+          body: ${$vars.lastCommitDes}
 
       - <-: git-http
         http'post:
-          url: /repos/${vars.owner}/${vars.repo}/releases
+          url: /repos/${$vars.owner}/${$vars.repo}/releases
           body:
-            tag_name: ${vars.tag}
-            name: ${vars.name}
-            body: ${vars.lastCommitDes}
-            draft: ${vars.draft}
-            prerelease: ${vars.prerelease}
-            make_latest: ${vars.makeLatest}
+            tag_name: ${$vars.tag}
+            name: ${$vars.name}
+            body: ${$vars.lastCommitDes}
+            draft: ${$vars.draft}
+            prerelease: ${$vars.prerelease}
+            make_latest: ${$vars.makeLatest}
             generate_release_notes: false
       - echo: Done

@@ -12,7 +12,7 @@ import { ViewTableProps } from './view-table.props'
           - age
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-    - view'table: ${vars.TEST_DATA}
+    - view'table: ${$vars.TEST_DATA}
   ```
 */
 export class ViewTable extends View {

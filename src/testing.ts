@@ -7,13 +7,16 @@ import { Logger, LoggerLevel } from './libs/logger'
 
 export class Testing {
   static rootScene: RootScene
+  static get rootSceneProxy() {
+    return this.rootScene?.proxy
+  }
 
   static get vars() {
     return Testing.rootScene.localVars
   }
 
   static get logger() {
-    return Testing.rootScene.proxy.logger
+    return Testing.rootSceneProxy.logger
   }
 
   static async reset() {

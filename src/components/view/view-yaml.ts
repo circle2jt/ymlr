@@ -10,7 +10,7 @@ import { ViewYamlProps } from './view-yaml.props'
         name: Yaml Viewer
         data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
 
-    - view'yaml: ${vars.TEST_DATA}
+    - view'yaml: ${$vars.TEST_DATA}
   ```
 */
 export class ViewYaml extends View {

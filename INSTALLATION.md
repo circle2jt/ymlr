@@ -86,7 +86,7 @@ runs:
       url: http://localhost:3000/posts
     vars: postData
 
-  - echo: ${vars.postData}
+  - echo: ${ $vars.postData }
 ```
 
 2. Run

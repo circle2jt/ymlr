@@ -135,8 +135,8 @@ test('should eval value into vars', async () => {
   await vars.exec()
 
   const test = await Testing.createElementProxy(Vars, {
-    Hello: 'Hello ${vars.Name}',
-    hello: 'hello ${vars.name}'
+    Hello: 'Hello ${$vars.Name}',
+    hello: 'hello ${$vars.name}'
   })
   await test.exec()
   await test.dispose()

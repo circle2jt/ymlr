@@ -29,7 +29,7 @@ import { FileStoreProps } from './file-store.props'
         // Save data to file
         fileDB.save()
 
-    - echo: ${vars.fileDB.data}   # => ['item 1', 'item 2']
+    - echo: ${$vars.fileDB.data}   # => ['item 1', 'item 2']
   ```
 */
 export class FileStore implements Element {

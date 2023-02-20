@@ -19,13 +19,13 @@ import { SubProps } from './sub.props'
           concurrent: 1                 # Num of jobs can be run parallel
           password: ***                 # Password to encrypt queue file
         runs:                           # Steps to do a job
-          - ${parentState.jobData}      # {parentState.jobData} is job data in the queue which is included both querystring and request body
-          - ${parentState.jobInfo}      # {parentState.jobInfo} is job information
-                                        # {parentState.jobInfo.path} request path
-                                        # {parentState.jobInfo.method} request method
-                                        # {parentState.jobInfo.query} request query string
-                                        # {parentState.jobInfo.headers} request headers
-                                        # {parentState.jobRes} Respnose data directly when client send a "PUT" request
+          - ${$parentState.jobData}     # {$parentState.jobData} is job data in the queue which is included both querystring and request body
+          - ${$parentState.jobInfo}     # {$parentState.jobInfo} is job information
+                                        # {$parentState.jobInfo.path} request path
+                                        # {$parentState.jobInfo.method} request method
+                                        # {$parentState.jobInfo.query} request query string
+                                        # {$parentState.jobInfo.headers} request headers
+                                        # {$parentState.jobRes} Respnose data directly when client send a "PUT" request
   ```
 
   Use a file store to save queue data
@@ -41,14 +41,14 @@ import { SubProps } from './sub.props'
         address: 0.0.0.0:8811           # Address to listen to add a new job to
         queue:                          # Wait to finish a job before keep doing the next. If not set, it's will run ASAP when received requests
           concurrent: 1                 # Num of jobs can be run parallel
-          storage: ${vars.fileStorage}  # Set a storage to queue
+          storage: ${$vars.fileStorage}  # Set a storage to queue
         runs:                           # Steps to do a job
-          - ${parentState.jobData}      # {parentState.jobData} is job data in the queue which is included both querystring and request body
-          - ${parentState.jobInfo}      # {parentState.jobInfo} is job information
-                                        # {parentState.jobInfo.path} request path
-                                        # {parentState.jobInfo.method} request method
-                                        # {parentState.jobInfo.query} request query string
-                                        # {parentState.jobInfo.headers} request headers
+          - ${$parentState.jobData}      # {$parentState.jobData} is job data in the queue which is included both querystring and request body
+          - ${$parentState.jobInfo}      # {$parentState.jobInfo} is job information
+                                        # {$parentState.jobInfo.path} request path
+                                        # {$parentState.jobInfo.method} request method
+                                        # {$parentState.jobInfo.query} request query string
+                                        # {$parentState.jobInfo.headers} request headers
   ```
 */
 export class Sub extends Job {

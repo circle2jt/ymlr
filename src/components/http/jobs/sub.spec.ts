@@ -27,7 +27,7 @@ test('Listen to handle jobs in queue', async () => {
     runs: [
       {
         vars: {
-          jobData: '${parentState.jobData}'
+          jobData: '${$parentState.jobData}'
         }
       },
       {
@@ -59,7 +59,7 @@ test('Check basic authentication via headers', async () => {
     runs: [
       {
         vars: {
-          jobData: '${parentState.jobData}'
+          jobData: '${$parentState.jobData}'
         }
       },
       {
@@ -93,11 +93,14 @@ test('Check basic authentication via querystring', async () => {
         password: '123'
       }
     },
-    queue: {},
+    queue: {
+      concurrent: 1
+    },
     runs: [
       {
+        if: '${$parentState.jobData}',
         vars: {
-          jobData: '${parentState.jobData}'
+          jobData: '${$parentState.jobData}'
         }
       },
       {
@@ -132,13 +135,13 @@ test('Test storage is ref ID', async () => {
   sub = await Testing.createElementProxy(Sub, {
     address: '0.0.0.0:4002',
     queue: {
-      storage: '${vars.fileStorage}'
+      storage: '${$vars.fileStorage}'
     },
     runs: [
       {
         vars: {
-          jobData: '${parentState.jobData}',
-          jobInfo: '${parentState.jobInfo}'
+          jobData: '${$parentState.jobData}',
+          jobInfo: '${$parentState.jobInfo}'
         }
       },
       {

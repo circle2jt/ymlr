@@ -16,10 +16,10 @@ vars:
   scanCount: 10
   gitLogs: []
 runs:
-  - echo: ${vars}
+  - echo: ${$vars}
   - name: Validate input
     runs:
-      - if: ${!vars.versionName}
+      - if: ${!$vars.versionName}
         input'select:
           title: Version name
           choices:
@@ -38,7 +38,7 @@ runs:
             - title: prerelease
               value: prerelease
         var: versionName
-      - if: ${!vars.preid && !vars.force}
+      - if: ${!$vars.preid && !$vars.force}
         input'text:
           title: Preid
         vars: preid
@@ -47,103 +47,103 @@ runs:
       const allVersions = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
       allVersions.find(v => {
         matchVersion.push(v)
-        return vars.versionName === v
+        return $vars.versionName === v
       })
-      vars.matchVersion = matchVersion.map(v => `(${v} )`).join('|')
-      
-      if (!vars.commitFormat) vars.commitFormat = `chore[^:]*: ${vars.matchVersion}([^ ]+)`
-      vars.changeDir = this.scene.getPath(vars.changeDir)
-      vars.changeFile = this.scene.getPath(vars.changeFile)
-  - name: Get new version ${vars.matchVersion}
+      $vars.matchVersion = matchVersion.map(v => `(${v} )`).join('|')
+
+      if (!$vars.commitFormat) $vars.commitFormat = `chore[^:]*: ${$vars.matchVersion}([^ ]+)`
+      $vars.changeDir = this.scene.getPath($vars.changeDir)
+      $vars.changeFile = this.scene.getPath($vars.changeFile)
+  - name: Get new version ${$vars.matchVersion}
     exec'sh: |
-      mkdir -p "${vars.changeDir}"
-      npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${vars.preid} ${vars.versionName}
+      mkdir -p "${$vars.changeDir}"
+      npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${$vars.preid} ${$vars.versionName}
     vars:
-      lastCommit: "chore${vars.versionName === 'major' ? '!' : ''}: ${vars.versionName} ${this.result}"
+      lastCommit: "chore${$vars.versionName === 'major' ? '!' : ''}: ${$vars.versionName} ${this.result}"
       version: ${this.result}
 
   - name: Commit information
     runs:
-      - echo: "Version: ${vars.versionName} (${vars.version})"
-      - echo: "Preid: ${vars.preid}"
-      - echo: "Commit: ${vars.lastCommit}"
+      - echo: "Version: ${$vars.versionName} (${$vars.version})"
+      - echo: "Preid: ${$vars.preid}"
+      - echo: "Commit: ${$vars.lastCommit}"
 
-      - if: ${!vars.force}
+      - if: ${!$vars.force}
         pause:
 
-  - name: Collect git logs ${vars.scanIndex}
-    loop: ${vars.scan}
+  - name: Collect git logs ${$vars.scanIndex}
+    loop: ${$vars.scan}
     runs:
       - exec'sh: |
-          git log --skip ${vars.scanIndex} -n ${vars.scanCount} --pretty="format:* %s (%h)"
+          git log --skip ${$vars.scanIndex} -n ${$vars.scanCount} --pretty="format:* %s (%h)"
         vars:
           gitLog: ${this.result.split('\n').map(e => e.trim()).filter(e => e)}
       - exec'js: |
-          vars.scanIndex += vars.scanCount
-          const { gitLog, gitLogs } = vars
-          const m = new RegExp(vars.commitFormat)
+          $vars.scanIndex += $vars.scanCount
+          const { gitLog, gitLogs } = $vars
+          const m = new RegExp($vars.commitFormat)
           for (const log of gitLog) {
             if (m.test(log)) {
-              vars.scan = false
+              $vars.scan = false
               this.logger.debug('scan: stoped when match')
               break          
             }
             gitLogs.push(log)
           }
-          if (vars.scan && gitLog.length < vars.scanCount) {
-            vars.scan = false
+          if ($vars.scan && gitLog.length < $vars.scanCount) {
+            $vars.scan = false
             this.logger.debug('scan: stoped when end')
           }
   - name: Write logs to changelog files
     file'write:
-      path: ${vars.changeDir}/${Date.now()}--${vars.version}.md
+      path: ${$vars.changeDir}/${Date.now()}--${$vars.version}.md
       content: |
-        ### ${vars.version}
+        ### ${$vars.version}
 
-        ${vars.gitLogs.join('\n')}
+        ${$vars.gitLogs.join('\n')}
 
   - name: Concat changes file
     runs:
       - exec'js: |
           const { readdirSync, readFileSync } = require('fs') 
           const { join, basename } = require('path')
-          const files = readdirSync(vars.changeDir)
+          const files = readdirSync($vars.changeDir)
           files.sort().reverse()
-          vars.changeContent = []
-          vars.changeMenu = []
+          $vars.changeContent = []
+          $vars.changeMenu = []
           files.forEach(f => {
             const idx = f.indexOf('--')
             const fname = basename(f)
             const d = fname.substring(0, idx)
             const mn = fname.substring(idx+2)
-            vars.changeMenu.push(`- [${mn}](#${d})  -  _${new Date(+d).toLocaleString()}_`)
-            const content = readFileSync(join(vars.changeDir, f)).toString()
-            if (mn === `${vars.version}.md`) vars.lastCommitContent = content.substring(content.indexOf('\n'))
-            vars.changeContent.push(`<a id="${d}"></a>\n${content}`)
+            $vars.changeMenu.push(`- [${mn}](#${d})  -  _${new Date(+d).toLocaleString()}_`)
+            const content = readFileSync(join($vars.changeDir, f)).toString()
+            if (mn === `${$vars.version}.md`) $vars.lastCommitContent = content.substring(content.indexOf('\n'))
+            $vars.changeContent.push(`<a id="${d}"></a>\n${content}`)
           })
           this.logger.debug(files)
-      - if: ${vars.changeContent?.length}
+      - if: ${$vars.changeContent?.length}
         file'write:
-          path: ${vars.changeFile}
+          path: ${$vars.changeFile}
           content: |
             # Changes logs
 
             ## History
 
-            ${vars.changeMenu.join('\n')}
+            ${$vars.changeMenu.join('\n')}
 
             ## Details
 
-            ${vars.changeContent.join('  \n')}
+            ${$vars.changeContent.join('  \n')}
 
   - name: Add and commit changelog
     runs:
       - exec'js: |
-          vars.gitCommitFiles = vars.commitFiles.map(file => {
+          $vars.gitCommitFiles = $vars.commitFiles.map(file => {
             return `git add ${this.scene.getPath(file)}`
           }).join('\n')
       - exec'sh: |
-          git add ${vars.changeFile}
-          git add ${vars.changeDir}
-          ${vars.gitCommitFiles}
-          git commit -m "${vars.lastCommit}${vars.lastCommitContent}"
+          git add ${$vars.changeFile}
+          git add ${$vars.changeDir}
+          ${$vars.gitCommitFiles}
+          git commit -m "${$vars.lastCommit}${$vars.lastCommitContent}"

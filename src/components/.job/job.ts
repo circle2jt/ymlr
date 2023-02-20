@@ -7,6 +7,7 @@ import { JobsManager } from 'src/libs/queue-jobs/jobs-manager'
 import { JobsManagerOption } from 'src/libs/queue-jobs/jobs-manager.props'
 import { FileStorage } from 'src/libs/storage/file-storage'
 import { sleep } from 'src/libs/time'
+import { ElementProxy } from '../element-proxy'
 import { JobExecute } from './job-executor'
 import { JobProps } from './job.props'
 
@@ -17,7 +18,7 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
     file?: string
     password?: string
 
-    storage?: FileStore
+    storage?: FileStore | ElementProxy<FileStore>
   }
 
   protected jobsManager?: JobsManager
@@ -44,8 +45,14 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
       if (this.queue.file) {
         opts.storage = new FileStorage(this.logger, this.scene.getPath(this.queue.file), this.queue.password)
       } else if (this.queue.storage) {
-        assert(this.queue.storage instanceof FileStore, 'Storage is not valid')
-        opts.storage = this.queue.storage
+        let storage: FileStore
+        if (this.queue.storage instanceof ElementProxy) {
+          storage = this.queue.storage.element
+        } else {
+          storage = this.queue.storage
+        }
+        assert(storage instanceof FileStore, 'Storage is not valid')
+        opts.storage = storage
       }
       this.jobsManager = new JobsManager(this.logger, opts)
       t = this.jobsManager.start()

@@ -23,7 +23,7 @@ import { YAMLFormater } from './write/yaml.formater'
   ```yaml
     - file'write:
         path: /tmp/data.yaml
-        content: ${vars.fileData}
+        content: ${$vars.fileData}
         format: yaml  # !optional
   ```
   Write a text file

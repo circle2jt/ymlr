@@ -15,9 +15,9 @@ export type TestProps = string | {
   ```yaml
     - test:
         title: Number must be greater than 10
-        check: ${vars.age > 10}
+        check: ${$vars.age > 10}
 
-    - test: ${vars.age < 10}
+    - test: ${$vars.age < 10}
   ```
 
   Test with nodejs script
@@ -25,7 +25,7 @@ export type TestProps = string | {
     - test:
         title: Number must be greater than 10
         script: |
-          if (vars.age > 10) this.failed('Age is not valid')
+          if (vars.age > 10) this.$.failed('Age is not valid')
   ```
 */
 export class Test implements Element {

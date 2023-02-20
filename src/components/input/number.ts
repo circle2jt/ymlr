@@ -9,9 +9,9 @@ import { InputNumber } from './questions/input-number'
   # - input'num:
     - input'number:
         title: Enter your age ?
-        vars: age
         default: 18     # !optional
         required: true  # !optional
+      vars: age
   ```
 */
 export class Number extends Input<InputNumberProps> {

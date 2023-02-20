@@ -9,7 +9,6 @@ import { InputSelectProps } from './select.props'
   # - input'sel:
     - input'select:
         title: Your sex ?
-        vars: sex
         choices:
           - title: male
             value: m
@@ -17,6 +16,7 @@ import { InputSelectProps } from './select.props'
             value: f
         default: m      # !optional
         required: true  # !optional
+      vars: sex
   ```
 */
 export class Select extends Input<InputSelectProps> {

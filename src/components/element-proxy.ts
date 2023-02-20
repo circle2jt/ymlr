@@ -18,13 +18,23 @@ export class ElementProxy<T extends Element> {
     @position top
     @tag It's a property in a tag
     @example
+    Use `skip`
     ```yaml
       - ->: helloTemplate
         skip: true
         echo: Hello               # Not run
 
-      - <-: helloTemplate
-        echo: Hi                  # => Hi
+      - <-: helloTemplate         # => Hello
+
+    ```
+
+    Use `template`
+    ```yaml
+      - ->: hiTemplate
+        template: Hi              # Not run
+
+      - <-: hiTemplate            # => Hi
+        echo:
     ```
   */
   '->'?: string
@@ -34,19 +44,16 @@ export class ElementProxy<T extends Element> {
     @tag It's a property in a tag
     @example
     ```yaml
-      - skip: true
-        ->: baseRequest
-        http'get:
+      - ->: baseRequest
+        template:
           baseURL: http://localhost
-      - skip: true
-        <-: baseRequest
+      - <-: baseRequest
         ->: user1Request
-        http'get:
+        template:
           headers:
             authorization: Bearer user1_token
-      - skip: true
-        ->: user2RequestWithoutBaseURL
-        http'get:
+      - ->: user2RequestWithoutBaseURL
+        template:
           headers:
             authorization: Bearer user2_token
 
@@ -146,7 +153,7 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - echo: Hello world
         vars: helloText
-      - echo: ${vars.helloText}     # => Hello world
+      - echo: ${$vars.helloText}     # => Hello world
     ```
   */
   vars?: VarsProps
@@ -159,8 +166,8 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - vars:
           arrs: [1,2,3,4]
-      - loop: ${vars.arrs}
-        echo: Index is ${this.loopKey}, value is ${this.loopValue}
+      - loop: ${$vars.arrs}
+        echo: Index is ${$loopKey}, value is ${$loopValue}    # $loopKey ~ this.loopKey AND $loopValue ~ this.loopValue
       # =>
       # Index is 0, value is 1
       # Index is 1, value is 2
@@ -175,8 +182,8 @@ export class ElementProxy<T extends Element> {
             "name": "thanh",
             "sex": "male"
           }
-      - loop: ${vars.obj}
-        echo: Key is ${this.loopKey}, value is ${this.loopValue}
+      - loop: ${$vars.obj}
+        echo: Key is ${$loopKey}, value is ${$loopValue}
       # =>
       # Key is name, value is thanh
       # Key is sex, value is male
@@ -186,8 +193,8 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - vars:
           i: 0
-      - loop: ${vars.i < 3}
-        echo: value is ${vars.i++}
+      - loop: ${$vars.i < 3}
+        echo: value is ${$vars.i++}
       # =>
       # value is 0
       # value is 1
@@ -198,11 +205,10 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - vars:
           arrs: [1,2,3]
-      - loop: ${vars.arrs}
-        name: group ${this.loopValue}
-        group:
-          runs:
-            - echo: item value is ${this.parent.loopValue}
+      - loop: ${$vars.arrs}
+        name: group ${$loopValue}
+        runs:
+          - echo: item value is ${this.parent.loopValue}
       # =>
       # group 1
       # item value is 1
@@ -217,10 +223,10 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - vars:
           number: 11
-      - if: ${vars.number > 10}
+      - if: ${$vars.number > 10}
         echo: Value is greater than 10      # => Value is greater than 10
 
-      - if: ${vars.number < 10}
+      - if: ${$vars.number < 10}
         echo: Value is lessthan than 10     # No print
     ```
   */
@@ -240,7 +246,7 @@ export class ElementProxy<T extends Element> {
           url: /product/1
         vars: product
 
-      - name: The product ${product.name} is in the categories ${categories.map(c => c.name)}
+      - name: The product ${$vars.product.name} is in the categories ${$vars.categories.map(c => c.name)}
     ```
   */
   async?: boolean | string
@@ -249,10 +255,27 @@ export class ElementProxy<T extends Element> {
   logger!: Logger
   loopKey?: any
   loopValue?: any
-  parent?: ElementProxy<Element>
+
+  parent?: Element
+  get parentProxy() {
+    return this.parent?.proxy
+  }
+
   parentState?: Record<string, any>
   scene!: Scene
+  get sceneProxy() {
+    return this.scene.proxy
+  }
+
   rootScene!: RootScene
+  get rootSceneProxy() {
+    return this.rootScene.proxy
+  }
+
+  get $() {
+    return this.element
+  }
+
   result?: any
   error?: Error
 
@@ -263,28 +286,30 @@ export class ElementProxy<T extends Element> {
   private readonly elementAsyncProps?: any
 
   get loggerLevel(): LoggerLevel {
-    return this?.debug || this.parent?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
+    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
   }
 
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
 
     if (this.element.asyncConstructor) this.elementAsyncProps = props
-
-    Object.defineProperty(this.element, 'proxy', {
-      value: this,
-      writable: false
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    Object.defineProperties(this.element, {
+      proxy: {
+        value: this,
+        writable: false
+      }
     })
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
-    let parent = this.parent
-    do {
-      if (ClazzTypes.some(ClazzType => parent?.element instanceof ClazzType)) {
-        return parent as ElementProxy<T>
+    let parent: Element | undefined = this.parent
+    while (parent) {
+      if (ClazzTypes.some(ClazzType => parent instanceof ClazzType)) {
+        return parent.proxy as ElementProxy<T>
       }
-      parent = parent?.parent
-    } while (parent)
+      parent = parent?.proxy.parent
+    }
     return undefined
   }
 
@@ -324,11 +349,21 @@ export class ElementProxy<T extends Element> {
     proms.length && await Promise.all(proms)
   }
 
-  async callFunctionScript(script: string, ctx: T = this.element, others: Record<string, any> = {}) {
-    const rs = await callFunctionScript(script, ctx, {
-      logger: this.logger,
-      vars: this.scene.localVars,
-      utils: this.rootScene.globalUtils,
+  injectOtherCxt(ctx: ElementProxy<Element> | any, others: Record<string, any> = {}) {
+    if (ctx instanceof ElementProxy) {
+      Object.assign(others, {
+        $loopKey: ctx.loopKey,
+        $loopValue: ctx.loopValue,
+        $parentState: ctx.parentState
+      })
+    }
+  }
+
+  async callFunctionScript(script: string, others: Record<string, any> = {}) {
+    this.injectOtherCxt(this, others)
+    const rs = await callFunctionScript(script, this, {
+      $vars: this.scene.localVars,
+      $utils: this.rootScene.globalUtils,
       ...others
     })
     return rs
@@ -349,7 +384,7 @@ export class ElementProxy<T extends Element> {
     try {
       await this.evalPropsBeforeExec()
 
-      isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parent?.name !== undefined
+      isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
       if (isAddIndent) this.logger.addIndent()
 
       this.name && this.logger.info('%s', this.name)

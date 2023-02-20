@@ -57,7 +57,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.lazyInitRuns(remoteFileProps)
     } else {
       const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this)
+      const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
       if (this.title === undefined && title) {
         this.title = title
       }
@@ -91,20 +91,18 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async getVars(str: any, ctx?: ElementProxy<Element> | any, others: any = {}) {
-    if (ctx?.loggerLevel) {
-      others.parentState = ctx.parentState
-    }
+    this.proxy.injectOtherCxt(ctx, others)
     return await getVars(str, ctx, {
-      vars: this.localVars,
-      utils: this.rootScene.globalUtils,
+      $vars: this.localVars,
+      $utils: this.rootScene.globalUtils,
       ...others
     })
   }
 
   async setVars(varObj: any, vl: any, ctx?: any) {
     return await setVars(varObj, vl, ctx, {
-      vars: this.localVars,
-      utils: this.rootScene.globalUtils
+      $vars: this.localVars,
+      $utils: this.rootScene.globalUtils
     })
   }
 
@@ -178,7 +176,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     this.mergeVars(vars)
     if (this.isRoot) await this.loadEnv()
     if (this.vars) {
-      const overridedVars = await (this.scene || this).getVars(this.vars, this)
+      const overridedVars = await (this.scene || this).getVars(this.vars, this.proxy)
       this.mergeVars(overridedVars)
     }
     this.logger.trace('[vars]    \t%j', this.localVars)
