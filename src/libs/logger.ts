@@ -44,6 +44,13 @@ const MappingValue = Object.keys(Mapping).reduce<Record<number, LoggerLevel>>((s
 }, {})
 
 export class Logger {
+  private static _globalName = ''
+
+  // eslint-disable-next-line accessor-pairs
+  static set globalName(gname: string) {
+    this._globalName = chalk.gray(` \t#${gname}`)
+  }
+
   level = Mapping.all
   indentString = ''
   get levelName() {
@@ -86,17 +93,17 @@ export class Logger {
     const sp = msg ? ' ' : ''
     switch (level) {
       case LoggerLevel.INFO:
-        return `${Icon.info}${sp}${msg}`
+        return `${Icon.info}${sp}${msg} ${Logger._globalName}`
       case LoggerLevel.WARN:
-        return `${Icon.warn}${sp}${msg}`
+        return `${Icon.warn}${sp}${msg} ${Logger._globalName}`
       case LoggerLevel.ERROR:
-        return `${Icon.error}${sp}${msg}`
+        return `${Icon.error}${sp}${msg} ${Logger._globalName}`
       case LoggerLevel.FATAL:
-        return `${Icon.fatal}${sp}${msg}`
+        return `${Icon.fatal}${sp}${msg} ${Logger._globalName}`
       case LoggerLevel.TRACE:
-        return `${Icon.trace}${sp}${chalk.magenta(msg)}`
+        return `${Icon.trace}${sp}${chalk.magenta(msg)} ${Logger._globalName}`
       case LoggerLevel.DEBUG:
-        return `${Icon.debug}${chalk.gray(`${msg}`)}`
+        return `${Icon.debug}${chalk.gray(`${msg}`)} ${Logger._globalName}`
     }
     return `${msg}`
   }

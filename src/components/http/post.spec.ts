@@ -110,7 +110,7 @@ test('post a raw request ok', async () => {
 
 test('upload a file ok', async () => {
   const tmp = new FileTemp()
-  await tmp.create('hello')
+  tmp.create('hello')
   try {
     const bodyData = {
       name: 'thanh',

@@ -4,8 +4,9 @@ import { GlobalEvent } from 'src/managers/events-manager'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
+import { WorkerManager } from 'src/managers/worker-manager'
+import { RootSceneProps } from './root-scene.props'
 import { Scene } from './scene/scene'
-import { SceneProps } from './scene/scene.props'
 
 /** |** Root scene
 Root scene file includes all of steps to run
@@ -26,6 +27,11 @@ Root scene file includes all of steps to run
 ```
 */
 export class RootScene extends Scene {
+  private _workerManager?: WorkerManager
+  get workerManager() {
+    return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
+  }
+
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
@@ -33,10 +39,11 @@ export class RootScene extends Scene {
   readonly runDir = process.cwd()
   rootDir = ''
 
-  constructor(props: SceneProps) {
+  constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
+    if (globalVars) merge(this.globalVars, globalVars)
     this.isRoot = true
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir', '_workerManager')
   }
 
   async asyncConstructor() {
@@ -48,6 +55,7 @@ export class RootScene extends Scene {
     GlobalEvent.emit('scene/exec:before')
     try {
       const rs = await super.exec()
+      await this._workerManager?.exec()
       return rs
     } finally {
       GlobalEvent.emit('scene/exec:end')
@@ -55,9 +63,12 @@ export class RootScene extends Scene {
   }
 
   async dispose() {
+    const proms = []
     GlobalEvent.emit('scene/dispose:before')
     try {
-      await super.dispose()
+      proms.push(super.dispose())
+      if (this._workerManager) proms.push(this._workerManager.dispose())
+      await Promise.all(proms)
     } finally {
       GlobalEvent.emit('scene/dispose:end')
     }

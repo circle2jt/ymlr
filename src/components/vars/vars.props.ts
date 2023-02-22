@@ -1,1 +1,1 @@
-export type VarsProps = string | object
+export type VarsProps = string | Record<string, any>

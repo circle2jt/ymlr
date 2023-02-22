@@ -33,7 +33,7 @@
   },
   "include": [
     "src"
-, "test-local/element-builder.spec.ts"  ],
+  ],
   "exclude": [
     "*.rm"
   ]

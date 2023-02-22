@@ -16,7 +16,7 @@ afterEach(async () => {
 
 test('Read text file', async () => {
   const tmp = new FileTemp()
-  await tmp.create('Hello world')
+  tmp.create('Hello world')
   try {
     reader = await Testing.createElementProxy(FileRead, {
       path: tmp.file
@@ -30,7 +30,7 @@ test('Read text file', async () => {
 
 test('Read json file', async () => {
   const tmp = new FileTemp()
-  await tmp.create(JSON.stringify({ msg: 'Hello world' }))
+  tmp.create(JSON.stringify({ msg: 'Hello world' }))
   try {
     reader = await Testing.createElementProxy(FileRead, {
       path: tmp.file,
@@ -45,7 +45,7 @@ test('Read json file', async () => {
 
 test('Read yaml file', async () => {
   const tmp = new FileTemp()
-  await tmp.create(stringify({ msg: 'Hello world' }))
+  tmp.create(stringify({ msg: 'Hello world' }))
   try {
     reader = await Testing.createElementProxy(FileRead, {
       path: tmp.file,

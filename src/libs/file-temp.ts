@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync, writeFile } from 'fs'
+import { existsSync, unlinkSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
@@ -13,13 +13,8 @@ export class FileTemp {
     if (ext) { this.file += ext }
   }
 
-  async create(content: string) {
-    return await new Promise((resolve, reject) => {
-      writeFile(this.file, content, 'utf-8', err => {
-        if (err) { return reject(err) }
-        resolve(undefined)
-      })
-    })
+  create(content: string) {
+    writeFileSync(this.file, content, 'utf-8')
   }
 
   remove() {

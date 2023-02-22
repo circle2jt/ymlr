@@ -26,7 +26,7 @@ afterAll(() => {
 test('Check localVars and globalVars', async () => {
   const tmp = new FileTemp()
   const tmp1 = new FileTemp()
-  await tmp.create(`
+  tmp.create(`
 - vars:
     localVars: my local vars in scene
     GlobalVars1: My Global Vars 1 in scene
@@ -92,7 +92,7 @@ test('Check localVars and globalVars', async () => {
 test('Should load vars from yaml file', async () => {
   const tmp = new FileTemp('.yaml')
   try {
-    await tmp.create(stringify({
+    tmp.create(stringify({
       name: 'name 1',
       age: 1,
       male: true,
@@ -127,7 +127,7 @@ runs:
 test('Should load vars from json file', async () => {
   const tmp = new FileTemp('.json')
   try {
-    await tmp.create(JSON.stringify({
+    tmp.create(JSON.stringify({
       name: 'name 1',
       age: 1,
       male: true,
@@ -214,7 +214,7 @@ runs:
 test('Should load successfully from file', async () => {
   const tmp = new FileTemp()
   try {
-    await tmp.create(`
+    tmp.create(`
 name: Test here
 runs:
   - echo: Hello
@@ -231,7 +231,7 @@ runs:
 test('Should generate a generated scene file when set password', async () => {
   const tmp = new FileTemp('.yaml')
   try {
-    await tmp.create(`
+    tmp.create(`
 name: Test here
 password: ${password}
 runs:
@@ -250,7 +250,7 @@ runs:
 test('Load a encrypted scene file', async () => {
   const tmp = new FileTemp('.yaml')
   try {
-    await tmp.create(`
+    tmp.create(`
 name: Test here
 password: ${password}
 runs:

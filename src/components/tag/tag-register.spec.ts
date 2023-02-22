@@ -10,7 +10,7 @@ beforeEach(async () => {
 test('Register a tag from a file', async () => {
   const tmp = new FileTemp()
   try {
-    await tmp.create(`
+    tmp.create(`
     module.exports = {
       constructor(props) {
         Object.assign(this, props)

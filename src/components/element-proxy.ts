@@ -251,6 +251,8 @@ export class ElementProxy<T extends Element> {
   */
   async?: boolean | string
 
+  parentState?: Record<string, any>
+
   tag!: string
   logger!: Logger
   loopKey?: any
@@ -261,7 +263,6 @@ export class ElementProxy<T extends Element> {
     return this.parent?.proxy
   }
 
-  parentState?: Record<string, any>
   scene!: Scene
   get sceneProxy() {
     return this.scene.proxy
@@ -370,7 +371,7 @@ export class ElementProxy<T extends Element> {
   }
 
   async exec(parentState?: any) {
-    this.parentState = parentState
+    if (parentState !== undefined) this.parentState = parentState
     // Object.defineProperty(this, 'parentState', {
     //   get() {
     //     return parentState

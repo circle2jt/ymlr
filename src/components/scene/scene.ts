@@ -4,15 +4,16 @@ import { writeFile } from 'fs/promises'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { AES } from 'src/libs/encrypt/aes'
+import { MD5 } from 'src/libs/encrypt/md5'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
+import { FileTemp } from 'src/libs/file-temp'
 import { getVars, setVars } from 'src/libs/variable'
 import { parse } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
-import { VarsProps } from '../vars/vars.props'
 import { prefixPassword } from './constants'
 import { SceneProps } from './scene.props'
 
@@ -26,6 +27,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         name: A scene from remote server
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
+        process: false                    # Run as a child process
         vars:                             # Set value to global environment
           foo: bar
   ```
@@ -35,24 +37,40 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   path?: string
   encryptedPath?: string
   password?: string
-  vars?: VarsProps
+  vars?: Record<string, any>
   content?: string
   curDir = ''
   localVars: Record<string, any> = {}
   isRoot = false
+  process?: boolean
+  tmpSceneFile?: FileTemp
+
   protected get innerScene() {
     return this
   }
 
-  constructor({ path, content, password, vars, ...props }: SceneProps) {
+  constructor({ path, content, password, vars, process, ...props }: SceneProps) {
     super(props)
-    Object.assign(this, { path, content, password, vars })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot')
+    Object.assign(this, { path, content, password, vars, process })
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile')
   }
 
   async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
-    this.path && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
+    !this.tmpSceneFile && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
+    const isProcess = await this.getVars(this.process, this.proxy)
+    if (isProcess && this.path) {
+      this.copyVarsToGlobal(this.scene.localVars)
+      void this.rootScene.workerManager.createWorker({
+        path: this.path,
+        password: this.password,
+        globalVars: this.rootScene.globalVars,
+        vars: this.vars
+      }, {
+        name: this.proxy.name || new MD5().encrypt(Date.now().toString() + '-' + Math.random().toString())
+      }).exec()
+      return
+    }
     if (Array.isArray(remoteFileProps)) {
       this.lazyInitRuns(remoteFileProps)
     } else {
@@ -72,6 +90,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async exec() {
+    if (this.process) {
+      return []
+    }
     if (this.title) this.logger.info('%s', this.title)
     this.copyVarsToLocal()
     if (this.isRoot) this.logger.debug('')
@@ -80,6 +101,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async dispose() {
+    await super.dispose()
+    this.tmpSceneFile?.remove()
   }
 
   getPath(p: string) {
@@ -124,6 +147,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async getRemoteFileProps() {
+    if (!this.path && this.process) {
+      this.tmpSceneFile = new FileTemp()
+      this.tmpSceneFile.create(this.content || '')
+      this.path = this.tmpSceneFile.file
+    }
     if (this.path) {
       const fileRemote = new FileRemote(this.path, this.scene || this)
       this.content = await fileRemote.getTextContent()

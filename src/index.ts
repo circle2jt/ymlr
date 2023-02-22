@@ -20,7 +20,7 @@ program
   .option('--debug <level>', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
   .option('--tagDirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
-  .action(async (source: string, password?: string, opts: any = {}) => {
+  .action(async (path: string, password?: string, opts: any = {}) => {
     try { await fetch('') } catch { }
     let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
     const { debug, env, tagDirs } = opts
@@ -33,7 +33,12 @@ program
       })
     if (debug) globalDebug = debug
     const appLogger = new Logger(globalDebug)
-    const app = new App(appLogger, source, password)
+    appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
+    appLogger.log('')
+    const app = new App(appLogger, {
+      path,
+      password
+    })
     tagDirs?.length && app.setDirTags(tagDirs)
     await app.exec()
   })
