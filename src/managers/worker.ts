@@ -9,17 +9,19 @@ export class Worker {
   private resolve!: Function
   private reject!: Function
   private proms?: Promise<any>
+  private error?: any
 
-  constructor(private readonly props: RootSceneProps, baseProps: ElementBaseProps, private readonly logger: Logger) {
+  constructor(private readonly props: RootSceneProps, baseProps: ElementBaseProps, private readonly logger: Logger, others: { tagDirs?: string[] }) {
     this.worker = new WorkerThread(join(__dirname, '../worker-service.js'), {
       workerData: {
         baseProps,
-        props
+        props,
+        ...others
       },
       env: process.env
     })
-    this.worker.on('message', this.onMessage.bind(this))
     this.worker.on('error', this.onError.bind(this))
+    this.worker.on('exit', this.onExit.bind(this))
   }
 
   async exec() {
@@ -35,19 +37,17 @@ export class Worker {
   async dispose() {
     if (this.proms) {
       await this.worker.terminate()
+      await this.proms
+      this.proms = undefined
     }
   }
 
-  onMessage(msg: any) {
-    this.logger.trace('message: %s', msg.toString())
-  }
-
   onError(err: any) {
-    this.logger.error('error: %o', err)
+    this.error = err
   }
 
   onExit(code: number) {
     this.logger.trace(`exit: ${code}`)
-    return !code ? this.resolve() : this.reject(new Error(`Thread "${this.props.path}" exited with code "${code}"`))
+    return !code ? this.resolve() : this.reject(this.error || new Error(`Thread "${this.props.path}" exited with code "${code}"`))
   }
 }

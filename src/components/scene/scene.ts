@@ -9,6 +9,7 @@ import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { getVars, setVars } from 'src/libs/variable'
+import { Worker } from 'src/managers/worker'
 import { parse } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
@@ -45,6 +46,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   process?: boolean
   tmpSceneFile?: FileTemp
 
+  private processor?: Worker
+
   protected get innerScene() {
     return this
   }
@@ -52,23 +55,24 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   constructor({ path, content, password, vars, process, ...props }: SceneProps) {
     super(props)
     Object.assign(this, { path, content, password, vars, process })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile')
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile', 'process', 'processor')
   }
 
   async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
-    !this.tmpSceneFile && this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
-    const isProcess = await this.getVars(this.process, this.proxy)
-    if (isProcess && this.path) {
-      this.copyVarsToGlobal(this.scene.localVars)
-      void this.rootScene.workerManager.createWorker({
+    this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
+    this.copyVarsToLocal()
+    if (this.process && this.path) {
+      this.processor = this.rootScene.workerManager.createWorker({
         path: this.path,
         password: this.password,
         globalVars: this.rootScene.globalVars,
         vars: this.vars
       }, {
         name: this.proxy.name || new MD5().encrypt(Date.now().toString() + '-' + Math.random().toString())
-      }).exec()
+      }, {
+        tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir))
+      })
       return
     }
     if (Array.isArray(remoteFileProps)) {
@@ -90,7 +94,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async exec() {
-    if (this.process) {
+    if (this.processor) {
+      await this.processor.exec()
       return []
     }
     if (this.title) this.logger.info('%s', this.title)
@@ -103,6 +108,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   async dispose() {
     await super.dispose()
     this.tmpSceneFile?.remove()
+    this.copyVarsToGlobal()
+    this.scene.syncGlobalVars()
   }
 
   getPath(p: string) {
@@ -133,9 +140,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     merge(this.localVars, obj)
   }
 
+  syncGlobalVars() {
+    Object.assign(this.localVars, this.rootScene.globalVars)
+  }
+
   private copyVarsToLocal() {
     this.copyVarsToGlobal(this.scene.localVars)
-    Object.assign(this.localVars, this.rootScene.globalVars)
+    this.syncGlobalVars()
   }
 
   private copyVarsToGlobal(localVars = this.localVars) {

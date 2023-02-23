@@ -48,7 +48,7 @@ export class RootScene extends Scene {
 
   async asyncConstructor() {
     this.proxy.scene = this.proxy.rootScene = this
-    return await super.asyncConstructor()
+    await super.asyncConstructor()
   }
 
   async exec() {

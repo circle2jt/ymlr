@@ -39,7 +39,7 @@ program
       path,
       password
     })
-    tagDirs?.length && app.setDirTags(tagDirs)
+    if (tagDirs?.length) app.setDirTags(tagDirs)
     await app.exec()
   })
   .addHelpText('after', () => {

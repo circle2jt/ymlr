@@ -18,9 +18,7 @@ export class TagsManager {
     return this.scene.proxy.logger
   }
 
-  constructor(private readonly scene: Scene) {
-
-  }
+  constructor(private readonly scene: Scene) { }
 
   register(name: string, pathOfModule: string) {
     this.modules[name] = this.scene.getPath(pathOfModule)

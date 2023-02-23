@@ -9,19 +9,26 @@ export class WorkerManager {
 
   async exec() {
     const wks = Array.from(this.workers)
-    await Promise.all(wks.map(async wk => await wk.exec()))
+    await Promise.all(wks.map(async wk => {
+      try {
+        await wk.exec()
+      } finally {
+        await wk.dispose()
+        this.workers.delete(wk)
+      }
+    }))
   }
 
   async dispose() {
     const wks = Array.from(this.workers)
     await Promise.all(wks.map(async wk => {
       await wk.dispose()
-      await wk.exec()
+      this.workers.delete(wk)
     }))
   }
 
-  createWorker(props: RootSceneProps, baseProps: ElementBaseProps) {
-    const wk = new Worker(props, baseProps, this.logger.clone(`worker:${baseProps.name}`))
+  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: { tagDirs?: string[] }) {
+    const wk = new Worker(props, baseProps, this.logger.clone(`worker:${baseProps.name}`), others)
     this.workers.add(wk)
     return wk
   }
