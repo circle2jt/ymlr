@@ -1248,8 +1248,9 @@ Load another scene into the running program
 Example:  
 
 ```yaml
-  - scene:
-      name: A scene from remote server
+  - name: A scene from remote server
+    scene:
+      name: Scene name
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
       process: true                     # Run as a child process
