@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.1-alpha.2.md](#1677423246240)  -  _2/26/2023, 2:54:06 PM_
 - [1.1.0.md](#1676887754962)  -  _2/20/2023, 10:09:14 AM_
 - [1.0.0.md](#1676438730395)  -  _2/15/2023, 5:25:30 AM_
 - [0.0.1.md](#1676125376876)  -  _2/11/2023, 2:22:56 PM_
@@ -9,6 +10,15 @@
 
 ## Details
 
+<a id="1677423246240"></a>
+### 1.1.1-alpha.2
+
+* doc: update document (3e501c4)
+* fix: priority debug logger is not correct (51aa3b4)
+* feat: add "includes" tag (fa098d2)
+* fix(scene): pass env, tagDirs to new process (5e4c90f)
+* feat: support run a scene as a child process (b1b968b)
+  
 <a id="1676887754962"></a>
 ### 1.1.0
 
