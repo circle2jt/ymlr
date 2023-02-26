@@ -2,6 +2,7 @@ import cloneDeep from 'lodash.clonedeep'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
 import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
+import { Includes } from '../includes'
 import { RootScene } from '../root-scene'
 import { GroupItemProps, GroupProps } from './group.props'
 
@@ -81,7 +82,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const asyncJobs = new Array<Promise<any>>()
     const result = new Array<ElementProxy<Element>>()
     const newRuns = cloneDeep(this.runs)
-    for (const allProps of newRuns) {
+    let len = newRuns.length
+    let i = 0
+    while (i < len) {
+      const allProps = newRuns[i++]
       // Init props
       const props: any = allProps || {}
       if (props.runs) {
@@ -93,6 +97,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       }
       let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
       let tagName = this.getTagName(eProps)
+
+      if (tagName === 'includes') {
+        const includes = await this.newElementProxy(Includes, eProps[tagName])
+        const childs = await includes.exec()
+        newRuns.splice(--i, 1, ...childs)
+        len = newRuns.length
+        continue
+      }
 
       // Only support template or tag name. Prefer tag name
       if (tagName && eProps.template) eProps.template = undefined

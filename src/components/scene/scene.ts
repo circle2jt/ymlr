@@ -28,7 +28,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         name: A scene from remote server
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
-        process: false                    # Run as a child process
+        process: true                     # Run as a child process
         vars:                             # Set value to global environment
           foo: bar
   ```

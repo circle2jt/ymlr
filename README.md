@@ -121,6 +121,9 @@ runs:
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
+| [includes](#includes) | Replace steps in a file to current step.
+"includes" is lightweight than scene.
+It's use same variable scope in the scene which included itself |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
 | [input'number](#input'number) | Get user input from keyboard then convert to number |
@@ -988,6 +991,34 @@ Example:
 ```  
 
 
+## <a id="includes"></a>includes  
+  
+Replace steps in a file to current step.
+"includes" is lightweight than scene.
+It's use same variable scope in the scene which included itself  
+
+Example:  
+
+Load a simple file
+```yaml
+  - name: Include a file into here      # => this is a file 1
+    includes: ./file1.yaml
+```
+
+Load a encrypted file
+```yaml
+  - name: Include a file into here      # => this is a file 1
+    includes:
+      path: ./file1.yaml
+      password: $PASSWORD
+```
+
+`file1.yaml`
+```yaml
+  - echo: this is a file 1
+```  
+
+
 ## <a id="input'confirm"></a>input'confirm  
   
 Get user confirm (yes/no)  
@@ -1221,6 +1252,7 @@ Example:
       name: A scene from remote server
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
+      process: true                     # Run as a child process
       vars:                             # Set value to global environment
         foo: bar
 ```  
