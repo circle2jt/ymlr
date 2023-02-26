@@ -254,7 +254,6 @@ export class ElementProxy<T extends Element> {
   parentState?: Record<string, any>
 
   tag!: string
-  logger!: Logger
   loopKey?: any
   loopValue?: any
 
@@ -277,6 +276,19 @@ export class ElementProxy<T extends Element> {
     return this.element
   }
 
+  private _logger?: Logger
+  private get loggerLevel(): LoggerLevel {
+    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
+  }
+
+  get logger(): Logger {
+    return this._logger || (this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.tag, this.loggerLevel))
+  }
+
+  set logger(logger: Logger) {
+    this._logger = logger
+  }
+
   result?: any
   error?: Error
 
@@ -285,10 +297,6 @@ export class ElementProxy<T extends Element> {
   }
 
   private readonly elementAsyncProps?: any
-
-  get loggerLevel(): LoggerLevel {
-    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
-  }
 
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
@@ -301,6 +309,11 @@ export class ElementProxy<T extends Element> {
         writable: false
       }
     })
+  }
+
+  setDebug(debug: LoggerLevel) {
+    this.debug = debug
+    this._logger?.setLevel(this.debug)
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {

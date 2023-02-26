@@ -61,7 +61,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps)
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
-    elemProxy.logger = this.logger.clone(this.proxy.tag, this.proxy.loggerLevel)
     elemProxy.parent = this
     elemProxy.scene = this.innerScene
     elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene

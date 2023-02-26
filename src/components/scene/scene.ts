@@ -1,5 +1,4 @@
 import assert from 'assert'
-import chalk from 'chalk'
 import { writeFile } from 'fs/promises'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
@@ -24,8 +23,9 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   Load another scene into the running program
   @example
   ```yaml
-    - scene:
-        name: A scene from remote server
+    - name: A scene from remote server
+      scene:
+        name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
         process: true                     # Run as a child process
@@ -34,7 +34,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   ```
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
-  title?: string
+  name?: string
   path?: string
   encryptedPath?: string
   password?: string
@@ -60,7 +60,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
-    this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
     this.copyVarsToLocal()
     if (this.process && this.path) {
       this.processor = this.rootScene.workerManager.createWorker({
@@ -78,13 +77,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (Array.isArray(remoteFileProps)) {
       this.lazyInitRuns(remoteFileProps)
     } else {
-      const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
-      if (this.title === undefined && title) {
-        this.title = title
-      }
-      if (debug) this.proxy.debug = debug
-      if (this.title) this.proxy.name = ''
+      const { name: _name, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
+      const { name, debug, password, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
+      if (debug) this.proxy.setDebug(debug)
+      if (this.name === undefined && name) this.name = name
       if (password && !this.password) {
         await this.generateEncryptedFile(this.content, password)
       }
@@ -98,7 +94,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       await this.processor.exec()
       return []
     }
-    if (this.title) this.logger.info('%s', this.title)
+    if (this.name) this.logger.info('%s', this.name)
     this.copyVarsToLocal()
     if (this.isRoot) this.logger.debug('')
     const results = await super.exec()
