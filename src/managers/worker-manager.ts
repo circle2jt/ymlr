@@ -27,8 +27,8 @@ export class WorkerManager {
     }))
   }
 
-  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: { tagDirs?: string[] }) {
-    const wk = new Worker(props, baseProps, this.logger.clone(`worker:${baseProps.name}`), others)
+  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: { id: string, tagDirs?: string[] }) {
+    const wk = new Worker(props, baseProps, this.logger.clone(`worker:${others.id}`), others)
     this.workers.add(wk)
     return wk
   }

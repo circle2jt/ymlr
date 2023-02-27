@@ -133,6 +133,7 @@ runs:
 | [pause](#pause) | Pause the program then wait to user enter to continue |
 | [runs](#runs) | Group elements |
 | [scene](#scene) | Load another scene into the running program |
+| [scene'process](#scene'process) | Same "scene" but it run as a child process |
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
@@ -1217,12 +1218,41 @@ Load another scene into the running program
 Example:  
 
 ```yaml
-  - scene:
-      name: A scene from remote server
+  - name: A scene from remote server
+    scene:
+      name: Scene name
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
-      vars:                             # Set value to global environment
-        foo: bar
+      scope: local                      # Value in [local, share]. Default is local
+                                        # - Global vars is always share, but scene vars is
+                                        #   - local: Variables in the scene only apply in the scene
+                                        #   - share: Variabes in the scene will be updated to all of scene
+      vars:                             # They will only overrides "vars" in the scene
+        foo: scene bar                  # First is lowercase is vars in scenes
+        Foo: Global bar                 # First is uppercase is global vars which is used in the program
+```  
+
+
+## <a id="scene'process"></a>scene'process  
+  
+Same "scene" but it run as a child process  
+
+Example:  
+
+```yaml
+  - name: A scene run as a child process
+    scene'process:
+      id: proc01                        # process id which is how in log
+      name: Scene name
+      path: https://.../another.yaml    # path can be URL or local path
+      password:                         # password to decode when the file is encrypted
+      scope: local                      # Value in [local, share]. Default is local
+                                        # - Global vars is always share, but scene vars is
+                                        #   - local: Variables in the scene only apply in the scene
+                                        #   - share: Variabes in the scene will be updated to all of scene
+      vars:                             # They will only overrides "vars" in the scene
+        foo: scene bar                  # First is lowercase is vars in scenes
+        Foo: Global bar                 # First is uppercase is global vars which is used in the program
 ```  
 
 

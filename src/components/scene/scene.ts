@@ -3,13 +3,10 @@ import { writeFile } from 'fs/promises'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { AES } from 'src/libs/encrypt/aes'
-import { MD5 } from 'src/libs/encrypt/md5'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
-import { FileTemp } from 'src/libs/file-temp'
 import { getVars, setVars } from 'src/libs/variable'
-import { Worker } from 'src/managers/worker'
-import { parse } from 'yaml'
+import { parse, stringify } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
@@ -28,7 +25,6 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
-        process: true                     # Run as a child process
         scope: local                      # Value in [local, share]. Default is local
                                           # - Global vars is always share, but scene vars is
                                           #   - local: Variables in the scene only apply in the scene
@@ -49,63 +45,41 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   curDir = ''
   localVars!: Record<string, any>
   isRoot = false
-  process?: boolean
-  tmpSceneFile?: FileTemp
-
-  private processor?: Worker
 
   protected get innerScene() {
     return this
   }
 
-  constructor({ path, content, password, vars, process, scope, ...props }: SceneProps) {
+  constructor({ path, content, password, vars, scope, ...props }: SceneProps) {
     super(props)
-    Object.assign(this, { path, content, password, vars, process, scope })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile', 'process', 'processor', 'scope')
+    Object.assign(this, { path, content, password, vars, scope })
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'scope')
   }
 
   async asyncConstructor() {
-    const remoteFileProps = await this.getRemoteFileProps()
-    if (this.scope === 'share') {
-      this.localVars = this.scene.localVars
+    this.setupVars()
+    await this.handleFile()
+  }
+
+  async handleFile() {
+    const remoteFileRawProps = await this.getRemoteFileProps()
+    if (Array.isArray(remoteFileRawProps)) {
+      this.lazyInitRuns(remoteFileRawProps)
     } else {
-      this.localVars = {}
-      this.copyVarsToGlobal(this.scene.localVars)
-      this.copyGlobalVarsToLocal()
-    }
-    if (this.process && this.path) {
-      this.processor = this.rootScene.workerManager.createWorker({
-        path: this.path,
-        password: this.password,
-        globalVars: this.rootScene.localVars,
-        vars: this.vars
-      }, {
-        name: this.proxy.name || new MD5().encrypt(Date.now().toString() + '-' + Math.random().toString())
-      }, {
-        tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir))
-      })
-      return
-    }
-    if (Array.isArray(remoteFileProps)) {
-      this.lazyInitRuns(remoteFileProps)
-    } else {
-      const { name: _name, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { name, debug, password, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
+      const { password, ...remoteFileProps } = remoteFileRawProps
+      if (password) {
+        await this.generateEncryptedFile(stringify(remoteFileProps), password)
+      }
+      const { name: _name, debug: _debug, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
+      const { name, debug, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFile: _varsFile }, this.proxy)
       if (debug) this.proxy.setDebug(debug)
       if (this.name === undefined && name) this.name = name
-      if (password && !this.password) {
-        await this.generateEncryptedFile(this.content, password)
-      }
       this.lazyInitRuns(groupProps)
       await this.loadVars(vars, varsFile)
     }
   }
 
   async exec() {
-    if (this.processor) {
-      await this.processor.exec()
-      return []
-    }
     if (this.name) this.logger.info('%s', this.name)
     if (this.isRoot) this.logger.debug('')
     try {
@@ -119,7 +93,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async dispose() {
     await super.dispose()
-    this.tmpSceneFile?.remove()
   }
 
   getPath(p: string) {
@@ -154,6 +127,16 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     Object.assign(this.localVars, this.rootScene.localVars)
   }
 
+  private setupVars() {
+    if (this.scope === 'share') {
+      this.localVars = this.scene.localVars
+    } else {
+      this.localVars = {}
+      this.copyVarsToGlobal(this.scene.localVars)
+      this.copyGlobalVarsToLocal()
+    }
+  }
+
   private copyVarsToGlobal(localVars = this.localVars) {
     Object.keys(localVars)
       .filter(key => REGEX_FIRST_UPPER.test(key[0]))
@@ -163,11 +146,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async getRemoteFileProps() {
-    if (!this.path && this.process) {
-      this.tmpSceneFile = new FileTemp()
-      this.tmpSceneFile.create(this.content || '')
-      this.path = this.tmpSceneFile.file
-    }
     if (this.path) {
       const fileRemote = new FileRemote(this.path, this.scene || this)
       this.content = await fileRemote.getTextContent()
