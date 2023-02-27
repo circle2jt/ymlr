@@ -1,5 +1,4 @@
 import assert from 'assert'
-import chalk from 'chalk'
 import { writeFile } from 'fs/promises'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
@@ -16,7 +15,7 @@ import { Element } from '../element.interface'
 import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
 import { prefixPassword } from './constants'
-import { SceneProps } from './scene.props'
+import { SceneProps, SceneScope } from './scene.props'
 
 const REGEX_FIRST_UPPER = /^[A-Z]/
 
@@ -24,24 +23,31 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   Load another scene into the running program
   @example
   ```yaml
-    - scene:
-        name: A scene from remote server
+    - name: A scene from remote server
+      scene:
+        name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
-        process: false                    # Run as a child process
-        vars:                             # Set value to global environment
-          foo: bar
+        process: true                     # Run as a child process
+        scope: local                      # Value in [local, share]. Default is local
+                                          # - Global vars is always share, but scene vars is
+                                          #   - local: Variables in the scene only apply in the scene
+                                          #   - share: Variabes in the scene will be updated to all of scene
+        vars:                             # They will only overrides "vars" in the scene
+          foo: scene bar                  # First is lowercase is vars in scenes
+          Foo: Global bar                 # First is uppercase is global vars which is used in the program
   ```
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
-  title?: string
+  name?: string
   path?: string
+  scope?: SceneScope
   encryptedPath?: string
   password?: string
   vars?: Record<string, any>
   content?: string
   curDir = ''
-  localVars: Record<string, any> = {}
+  localVars!: Record<string, any>
   isRoot = false
   process?: boolean
   tmpSceneFile?: FileTemp
@@ -52,21 +58,26 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return this
   }
 
-  constructor({ path, content, password, vars, process, ...props }: SceneProps) {
+  constructor({ path, content, password, vars, process, scope, ...props }: SceneProps) {
     super(props)
-    Object.assign(this, { path, content, password, vars, process })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile', 'process', 'processor')
+    Object.assign(this, { path, content, password, vars, process, scope })
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'tmpSceneFile', 'process', 'processor', 'scope')
   }
 
   async asyncConstructor() {
     const remoteFileProps = await this.getRemoteFileProps()
-    this.logger.trace('%s \t%s', 'Scene', chalk.underline(this.path))
-    this.copyVarsToLocal()
+    if (this.scope === 'share') {
+      this.localVars = this.scene.localVars
+    } else {
+      this.localVars = {}
+      this.copyVarsToGlobal(this.scene.localVars)
+      this.copyGlobalVarsToLocal()
+    }
     if (this.process && this.path) {
       this.processor = this.rootScene.workerManager.createWorker({
         path: this.path,
         password: this.password,
-        globalVars: this.rootScene.globalVars,
+        globalVars: this.rootScene.localVars,
         vars: this.vars
       }, {
         name: this.proxy.name || new MD5().encrypt(Date.now().toString() + '-' + Math.random().toString())
@@ -78,13 +89,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (Array.isArray(remoteFileProps)) {
       this.lazyInitRuns(remoteFileProps)
     } else {
-      const { title: _title, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { title, debug, password, vars, varsFile } = await this.getVars({ title: _title, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
-      if (this.title === undefined && title) {
-        this.title = title
-      }
-      if (debug) this.proxy.debug = debug
-      if (this.title) this.proxy.name = ''
+      const { name: _name, debug: _debug, password: _password, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
+      const { name, debug, password, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, password: _password, vars: _vars, varsFile: _varsFile }, this.proxy)
+      if (debug) this.proxy.setDebug(debug)
+      if (this.name === undefined && name) this.name = name
       if (password && !this.password) {
         await this.generateEncryptedFile(this.content, password)
       }
@@ -98,18 +106,20 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       await this.processor.exec()
       return []
     }
-    if (this.title) this.logger.info('%s', this.title)
-    this.copyVarsToLocal()
+    if (this.name) this.logger.info('%s', this.name)
     if (this.isRoot) this.logger.debug('')
-    const results = await super.exec()
-    return results || []
+    try {
+      const results = await super.exec()
+      return results || []
+    } finally {
+      this.copyVarsToGlobal()
+      this.scene.copyGlobalVarsToLocal()
+    }
   }
 
   async dispose() {
     await super.dispose()
     this.tmpSceneFile?.remove()
-    this.copyVarsToGlobal()
-    this.scene.syncGlobalVars()
   }
 
   getPath(p: string) {
@@ -140,20 +150,15 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     merge(this.localVars, obj)
   }
 
-  syncGlobalVars() {
-    Object.assign(this.localVars, this.rootScene.globalVars)
-  }
-
-  private copyVarsToLocal() {
-    this.copyVarsToGlobal(this.scene.localVars)
-    this.syncGlobalVars()
+  copyGlobalVarsToLocal() {
+    Object.assign(this.localVars, this.rootScene.localVars)
   }
 
   private copyVarsToGlobal(localVars = this.localVars) {
     Object.keys(localVars)
       .filter(key => REGEX_FIRST_UPPER.test(key[0]))
       .forEach(key => {
-        this.rootScene.globalVars[key] = localVars[key]
+        this.rootScene.localVars[key] = localVars[key]
       })
   }
 

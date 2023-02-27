@@ -35,15 +35,16 @@ export class RootScene extends Scene {
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
-  readonly globalVars: Record<string, any> = {}
   readonly runDir = process.cwd()
   rootDir = ''
 
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
-    if (globalVars) merge(this.globalVars, globalVars)
     this.isRoot = true
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'globalVars', 'templatesManager', 'rootDir', '_workerManager')
+    this.scope = 'local'
+    this.localVars = {}
+    if (globalVars) merge(this.localVars, globalVars)
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
   }
 
   async asyncConstructor() {

@@ -5,6 +5,7 @@ import { stringify } from 'yaml'
 import { Echo } from '../echo/echo'
 import { ElementProxy } from '../element-proxy'
 import { RootScene } from '../root-scene'
+import { Vars } from '../vars/vars'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>
@@ -279,4 +280,32 @@ test('Should run echo element', async () => {
   })
   const [echo] = await scene.exec() as Array<ElementProxy<Echo>>
   expect(echo.result).toBe('ok')
+})
+
+test('should share vars when scope is "share"', async () => {
+  scene = await Testing.createElementProxy(Scene, {
+    scope: 'share',
+    content: `
+- vars:
+    GlobalVar: Global var
+    sceneVar: scene var
+`
+  })
+  await scene.exec() as Array<ElementProxy<Vars>>
+  expect(Testing.vars.GlobalVar).toBe('Global var')
+  expect(Testing.vars.sceneVar).toBe('scene var')
+})
+
+test('should NOT share vars when scope is "local"', async () => {
+  scene = await Testing.createElementProxy(Scene, {
+    scope: 'local',
+    content: `
+- vars:
+    GlobalVar: Global var
+    sceneVar: scene var
+`
+  })
+  await scene.exec() as Array<ElementProxy<Vars>>
+  expect(Testing.vars.GlobalVar).toBe('Global var')
+  expect(Testing.vars.sceneVar).toBe(undefined)
 })
