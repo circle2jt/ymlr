@@ -27,7 +27,7 @@ test('auto install external tags', async () => {
 test('load a new tag from a class in a external file', async () => {
   const tmpFile = new FileTemp('.js')
   try {
-    await tmpFile.create(`
+    tmpFile.create(`
     module.exports = class {
       constructor(props) {
         this.props = props
@@ -53,7 +53,7 @@ test('load a new tag from a class in a external file', async () => {
 test('load a new tag from a object in a external file', async () => {
   const tmpFile = new FileTemp('.js')
   try {
-    await tmpFile.create(`
+    tmpFile.create(`
     module.exports = {
       constructor(props) {
         this.props = props

@@ -7,7 +7,7 @@ const logger = new Logger(LoggerLevel.SILENT)
 test('Should load env from files and objects', async () => {
   const tmpFile = new FileTemp('.env')
   try {
-    await tmpFile.create(`
+    tmpFile.create(`
 NAME=env 1
 age=11
 MALE=true

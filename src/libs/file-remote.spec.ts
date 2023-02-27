@@ -10,7 +10,7 @@ beforeEach(async () => {
 test('should get content if input is a file', async () => {
   const tempFile = new FileTemp()
   try {
-    await tempFile.create('ok')
+    tempFile.create('ok')
     const f = new FileRemote(tempFile.file, Testing.rootScene)
     expect(f.isRemote).toBe(false)
     expect(f.existed).toBe(true)

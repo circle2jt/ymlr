@@ -56,7 +56,7 @@ export class ExecSh implements Element {
     assert(this.script)
     const tmpFile = new FileTemp()
     try {
-      await tmpFile.create(this.script)
+      tmpFile.create(this.script)
       const rs = await new Promise((resolve, reject) => {
         execFile(this.bin, [tmpFile.file], { env: process.env, cwd: this.scene.curDir }, (err, stdout, stderr) => {
           if (err) return reject(err)

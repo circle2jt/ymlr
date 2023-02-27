@@ -37,7 +37,7 @@ test('Check localVars and globalVars', async () => {
 - echo: \${$vars.rootLocalVars}
 - echo: \${$vars.GlobalVars2}
 `)
-  await tmp1.create(`
+  tmp1.create(`
 - vars:
     localVars1: my local vars 1 in scene 1
     GlobalVars1: My Global Vars 1 in scene 1

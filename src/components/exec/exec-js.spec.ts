@@ -38,7 +38,7 @@ test('should not get expression value from global vars', async () => {
 
 test('should run from external file', async () => {
   const tmpFile = new FileTemp('.execJs')
-  await tmpFile.create('this.logger.info(\'Test here\'); return $vars.txt')
+  tmpFile.create('this.logger.info(\'Test here\'); return $vars.txt')
   try {
     Testing.vars.txt = 'hello world'
     execJs = await Testing.createElementProxy(ExecJs, { path: tmpFile.file })

@@ -47,7 +47,7 @@ test('should get expression value from global vars', async () => {
 test('should run from external file', async () => {
   const txt = 'hello world'
   const tmpFile = new FileTemp('.execSh')
-  await tmpFile.create(`echo "${txt}"`)
+  tmpFile.create(`echo "${txt}"`)
   try {
     execSh = await Testing.createElementProxy(ExecSh, {
       path: tmpFile.file
