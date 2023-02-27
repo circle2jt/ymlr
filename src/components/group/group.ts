@@ -80,7 +80,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const asyncJobs = new Array<Promise<any>>()
     const result = new Array<ElementProxy<Element>>()
     const newRuns = cloneDeep(this.runs)
-    for (const allProps of newRuns) {
+    const len = newRuns.length
+    let i = 0
+    while (i < len) {
+      const allProps = newRuns[i++]
       // Init props
       const props: any = allProps || {}
       if (props.runs) {
@@ -92,6 +95,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       }
       let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
       let tagName = this.getTagName(eProps)
+
+      // if (tagName === 'import') {
+      //   const imports = await this.newElementProxy(Import, eProps[tagName])
+      //   const childs = await imports.exec()
+      //   newRuns.splice(--i, 1, ...childs)
+      //   len = newRuns.length
+      //   continue
+      // }
 
       // Only support template or tag name. Prefer tag name
       if (tagName && eProps.template) eProps.template = undefined
