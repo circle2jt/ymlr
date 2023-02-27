@@ -121,6 +121,7 @@ runs:
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
+| [import](#import) | Copy a file to replace it |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
 | [input'number](#input'number) | Get user input from keyboard then convert to number |
@@ -986,6 +987,30 @@ Example:
       runs:                         # Steps to do a job
         - echo: Display then stop
         - http/jobs'stop:           # Stop job here
+```  
+
+
+## <a id="import"></a>import  
+  
+Copy a file to replace it  
+
+Example:  
+
+Load a simple file
+```yaml
+  - import: ./file1.yaml
+```
+
+Load a encrypted file
+```yaml
+  - import:
+      path: ./file1.yaml
+      password: $PASSWORD
+```
+
+`file1.yaml`
+```yaml
+  - echo: this is a file 1
 ```  
 
 

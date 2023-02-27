@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.1-alpha.3.md](#1677496853425)  -  _2/27/2023, 11:20:53 AM_
 - [1.1.0.md](#1676887754962)  -  _2/20/2023, 10:09:14 AM_
 - [1.0.0.md](#1676438730395)  -  _2/15/2023, 5:25:30 AM_
 - [0.0.1.md](#1676125376876)  -  _2/11/2023, 2:22:56 PM_
@@ -9,6 +10,16 @@
 
 ## Details
 
+<a id="1677496853425"></a>
+### 1.1.1-alpha.3
+
+* feat(scene): separate scene to scene-process (01025e0)
+* feat(scene): add "scope" in scene (4ce6bfc)
+* fix(debug): debug is not overrided (d69750e)
+* fix(FileTemp): replace to sync create function (6d4e592)
+* fix(scene): pass env, tagDirs to new process (5e4c90f)
+* feat: support run a scene as a child process (b1b968b)
+  
 <a id="1676887754962"></a>
 ### 1.1.0
 
