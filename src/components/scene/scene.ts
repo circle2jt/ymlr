@@ -21,6 +21,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
   @example
   ```yaml
     - name: A scene from remote server
+      # scene: ./another.yaml             # path can be URL or local path
       scene:
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
@@ -50,7 +51,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return this
   }
 
-  constructor({ path, content, password, vars, scope, ...props }: SceneProps) {
+  constructor(eProps: SceneProps | string) {
+    if (typeof eProps === 'string') {
+      eProps = { path: eProps }
+    }
+    const { path, content, password, vars, scope, ...props } = eProps
     super(props)
     Object.assign(this, { path, content, password, vars, scope })
     this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'scope')
@@ -113,9 +118,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async setVars(varObj: any, vl: any, ctx?: any) {
+    const others = {}
+    this.proxy.injectOtherCxt(ctx, others)
     return await setVars(varObj, vl, ctx, {
       $vars: this.localVars,
-      $utils: this.rootScene.globalUtils
+      $utils: this.rootScene.globalUtils,
+      ...others
     })
   }
 
