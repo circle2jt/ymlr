@@ -10,25 +10,21 @@ export class AES implements Encrypt {
 
   encrypt(text: string, _salt?: string) {
     const salt = _salt ? Buffer.from(_salt) : this.salt
-    const hash = createHash('sha1')
-    hash.update(salt)
-    const key = new Uint8Array(hash.digest()).slice(0, 16)
+    const key = new Uint8Array(createHash('sha1').update(salt).digest()).slice(0, 16)
     const iv = randomBytes(16)
     const cipher = createCipheriv('aes-128-cbc', key, iv)
-    const encrypted = Buffer.concat([cipher.update(text), cipher.final()])
-    return iv.toString('hex') + ':' + encrypted.toString('hex')
+    const encrypted = Buffer.concat([iv, cipher.update(text), cipher.final()])
+    return encrypted.toString('base64')
   }
 
-  decrypt(text: string, _salt?: string) {
+  decrypt(buf: string, _salt?: string) {
     const salt = _salt ? Buffer.from(_salt) : this.salt
-    const hash = createHash('sha1')
-    hash.update(salt)
-    const key = new Uint8Array(hash.digest()).slice(0, 16)
-    const textParts = text.split(':')
-    const iv = Buffer.from(textParts.shift() as string, 'hex')
-    const encryptedText = Buffer.from(textParts.join(':'), 'hex')
+    let bufContent: Buffer = Buffer.from(buf, 'base64')
+    const iv = bufContent.subarray(0, 16)
+    bufContent = bufContent.subarray(16)
+    const key = new Uint8Array(createHash('sha1').update(salt).digest()).slice(0, 16)
     const decipher = createDecipheriv('aes-128-cbc', key, iv)
-    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()])
+    const decrypted = Buffer.concat([decipher.update(bufContent), decipher.final()])
     return decrypted.toString()
   }
 }

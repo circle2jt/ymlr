@@ -1,8 +1,8 @@
-import { stringify } from 'yaml'
+import { dump } from 'js-yaml'
 import { Formater } from './formater.interface'
 
 export class YAMLFormater implements Formater {
   format(content: any) {
-    return stringify(content)
+    return dump(content, { indent: 2 })
   }
 }

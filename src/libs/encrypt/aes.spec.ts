@@ -1,16 +1,17 @@
 import { AES } from './aes'
 
-const encrypt = 'd0978ec23fae64d7072a0f857ded73a9:d6adcc93af9e00a292715e61b106b655'
-const decrypt = 'thanh'
+const txt = 'Hello world'
+const password = 'salt-pass'
+let encrypt: string
 
 test('encrypt', () => {
   const aes = new AES()
-  const rs = aes.encrypt('thanh', 'salt')
-  expect(rs.length).toBe(encrypt.length)
+  encrypt = aes.encrypt(txt, password)
+  expect(encrypt.length).toBeGreaterThan(0)
 })
 
 test('decrypt', () => {
   const aes = new AES()
-  const rs = aes.decrypt(encrypt, 'salt')
-  expect(rs).toBe(decrypt)
+  const rs = aes.decrypt(encrypt, password)
+  expect(rs).toEqual(txt)
 })

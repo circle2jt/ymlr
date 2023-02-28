@@ -1,12 +1,11 @@
 import assert from 'assert'
 import { writeFile } from 'fs/promises'
+import { load } from 'js-yaml'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
-import { AES } from 'src/libs/encrypt/aes'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
 import { getVars, setVars } from 'src/libs/variable'
-import { parse, stringify } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
@@ -73,7 +72,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     } else {
       const { password, ...remoteFileProps } = remoteFileRawProps
       if (password) {
-        await this.generateEncryptedFile(stringify(remoteFileProps), password)
+        await this.generateEncryptedFile(remoteFileProps, password)
       }
       const { name: _name, debug: _debug, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
       const { name, debug, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFile: _varsFile }, this.proxy)
@@ -165,15 +164,17 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       }
     }
     assert(this.content, 'Scene file is not valid format')
-    const remoteFileProps = parse(await this.decryptContent(this.content, this.password))
-    return remoteFileProps
+    if (this.password) {
+      this.content = await this.decryptContent(this.content, this.password)
+      return JSON.parse(this.content)
+    }
+    return load(this.content)
   }
 
   private async decryptContent(content: string, password?: string) {
-    if (!password) return content
+    if (!password || !content) return content
     try {
-      const encryptor = new AES(`${prefixPassword}${password}`)
-      return encryptor.decrypt(content)
+      return this.rootScene.globalUtils.aes.decrypt(content, `${prefixPassword}${password}`)
     } catch (err: any) {
       if (err?.code === 'ERR_OSSL_BAD_DECRYPT') {
         throw new Error(`Password to decrypt the file "${this.path}" is not valid`)
@@ -182,12 +183,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
   }
 
-  private async generateEncryptedFile(content?: string, password?: string) {
-    if (!password || !this.path || !content) return
+  private async generateEncryptedFile(contentObject?: any, password?: string) {
+    if (!password || !this.path || !contentObject) return
+    const content = JSON.stringify(contentObject)
     this.encryptedPath = join(this.curDir, basename(this.path).split('.')[0])
     this.logger.trace('Encrypted to\t%s', this.encryptedPath)
-    const encryptor = new AES(`${prefixPassword}${password}`)
-    const econtent = encryptor.encrypt(content)
+    const econtent = this.rootScene.globalUtils.aes.encrypt(content, `${prefixPassword}${password}`)
     await writeFile(this.encryptedPath, econtent)
   }
 
@@ -195,11 +196,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (varsFile) {
       const file = new FileRemote(varsFile, this)
       const content = await file.getTextContent()
-      let newVars = {}
+      let newVars: any = {}
       try {
         newVars = JSON.parse(content)
       } catch {
-        newVars = parse(content)
+        newVars = load(content)
       }
       merge(vars, newVars)
     }

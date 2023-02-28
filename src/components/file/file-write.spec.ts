@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, unlinkSync } from 'fs'
+import { load } from 'js-yaml'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { Testing } from 'src/testing'
-import { parse } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { FileWrite } from './file-write'
 
@@ -83,7 +83,7 @@ test('Write yaml file', async () => {
     })
     await writer.exec()
     expect(existsSync(p)).toBe(true)
-    const obj = parse(readFileSync(p).toString('utf-8'))
+    const obj: any = load(readFileSync(p).toString('utf-8'))
     expect(obj.msg).toBe('Hello world')
   } finally {
     unlinkSync(p)

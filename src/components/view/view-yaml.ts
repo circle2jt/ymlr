@@ -1,4 +1,4 @@
-import { stringify } from 'yaml'
+import { dump } from 'js-yaml'
 import { View } from './view'
 import { ViewYamlProps } from './view-yaml.props'
 
@@ -21,7 +21,7 @@ export class ViewYaml extends View {
   print() {
     this.logger.addIndent()
     try {
-      this.logger.log(stringify(this.data, { indent: 2 }))
+      this.logger.log(dump(this.data, { indent: 2 }))
     } finally {
       this.logger.removeIndent()
     }

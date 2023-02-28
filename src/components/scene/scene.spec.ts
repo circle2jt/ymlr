@@ -1,7 +1,7 @@
 import { existsSync, unlinkSync } from 'fs'
+import { dump } from 'js-yaml'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { stringify } from 'yaml'
 import { Echo } from '../echo/echo'
 import { ElementProxy } from '../element-proxy'
 import { RootScene } from '../root-scene'
@@ -93,7 +93,7 @@ test('Check localVars and globalVars', async () => {
 test('Should load vars from yaml file', async () => {
   const tmp = new FileTemp('.yaml')
   try {
-    tmp.create(stringify({
+    tmp.create(dump({
       name: 'name 1',
       age: 1,
       male: true,

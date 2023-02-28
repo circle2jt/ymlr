@@ -1,6 +1,6 @@
+import { dump } from 'js-yaml'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { stringify } from 'yaml'
 import { ElementProxy } from '../element-proxy'
 import { FileRead } from './file-read'
 
@@ -45,7 +45,7 @@ test('Read json file', async () => {
 
 test('Read yaml file', async () => {
   const tmp = new FileTemp()
-  tmp.create(stringify({ msg: 'Hello world' }))
+  tmp.create(dump({ msg: 'Hello world' }))
   try {
     reader = await Testing.createElementProxy(FileRead, {
       path: tmp.file,

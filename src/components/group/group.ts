@@ -56,9 +56,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return new ElemClass(props)
   }
 
-  async newElementProxy(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
+  async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
-    const elemProxy = new ElementProxy(elem, baseProps)
+    const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
     elemProxy.parent = this
     elemProxy.scene = this.innerScene
