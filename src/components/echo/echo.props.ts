@@ -1,6 +1,6 @@
 
 export type EchoProps = {
-  style?: string
+  styles?: string[]
   pretty?: boolean
   content?: any
 } | string

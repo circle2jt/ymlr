@@ -21,25 +21,18 @@ import { EchoProps } from './echo.props'
   ```yaml
     - vars:
         name: thanh
-    - echo: ${$vars.name}
+    - echo: ${ $vars.name }
   ```
 
   Print text with custom type. (Follow "chalk")
   ```yaml
-    - echo'red: Color is red
-    - echo'yellow: Color is yellow
-    - echo'gray: Color is gray
-    - echo'blue: Color is blue
-    - echo'cyan: Color is cyan
-    - echo'green: Color is green
-    - echo'magenta: Color is magenta
     - echo: Color is white
 
     - echo:
-        style: red
+        styles: [red]
         content: Color is red
     - echo:
-        style: red.bold
+        styles: [red, bold]
         content: Content is red and bold
   ```
 */
@@ -49,7 +42,7 @@ export class Echo implements Element {
   private get logger() { return this.proxy.logger }
 
   content: any
-  style?: string
+  styles?: string[]
 
   constructor(props: EchoProps) {
     if (typeof props !== 'object') {
@@ -66,12 +59,18 @@ export class Echo implements Element {
   }
 
   private format() {
-    // @ts-expect-error
-    const style: Function = this.style ? chalk[this.style] : (msg: string) => msg
-    if (typeof this.content === 'object') {
-      return format(`${style('%j')}`, this.content)
+    let styles: Function = (msg: any) => msg
+    if (this.styles?.length) {
+      styles = this.styles
+        .reduce((sum: any, method: string) => {
+          sum = sum[method]
+          return sum
+        }, chalk)
     }
-    return style(this.content?.toString())
+    if (typeof this.content === 'object') {
+      return format(`${styles('%j')}`, this.content)
+    }
+    return styles(this.content?.toString())
   }
 
   dispose() { }

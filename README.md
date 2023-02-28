@@ -458,25 +458,18 @@ Print a variable
 ```yaml
   - vars:
       name: thanh
-  - echo: ${$vars.name}
+  - echo: ${ $vars.name }
 ```
 
 Print text with custom type. (Follow "chalk")
 ```yaml
-  - echo'red: Color is red
-  - echo'yellow: Color is yellow
-  - echo'gray: Color is gray
-  - echo'blue: Color is blue
-  - echo'cyan: Color is cyan
-  - echo'green: Color is green
-  - echo'magenta: Color is magenta
   - echo: Color is white
 
   - echo:
-      style: red
+      styles: [red]
       content: Color is red
   - echo:
-      style: red.bold
+      styles: [red, bold]
       content: Content is red and bold
 ```  
 

@@ -1,6 +1,5 @@
 import { Testing } from 'src/testing'
 import { ElementProxy } from '../element-proxy'
-import { Group } from '../group/group'
 import { Echo } from './echo'
 
 let echo: ElementProxy<Echo>
@@ -29,18 +28,4 @@ test('pass object in echo', async () => {
   expect(rs).toEqual({
     txt: `Hello ${Testing.vars.name}`
   })
-})
-
-test('quick print text with color', async () => {
-  const group = await Testing.createElementProxy(Group, [
-    {
-      "echo'blue": 'blue here'
-    },
-    {
-      "echo'red": 'red here'
-    }
-  ])
-  const echo = await group.exec() as Array<ElementProxy<Echo>>
-  expect(echo[0].element.style).toBe('blue')
-  expect(echo[1].element.style).toBe('red')
 })
