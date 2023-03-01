@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { ElementProxy } from 'src/components/element-proxy'
 import { Element } from 'src/components/element.interface'
 import { PubProps } from './pub.props'
+import fetch from 'node-fetch'
 
 /** |**  http/jobs'add
   Add a job to the queue

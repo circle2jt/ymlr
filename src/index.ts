@@ -21,7 +21,6 @@ program
   .option('--tagDirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
   .action(async (path: string, password?: string, opts: any = {}) => {
-    try { await fetch('') } catch { }
     let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
     const { debug, env, tagDirs } = opts
     env?.filter((keyValue: string) => keyValue.includes('='))

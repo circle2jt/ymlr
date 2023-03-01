@@ -5,4 +5,5 @@ export interface HeadProps {
   url: string
   headers?: any
   query?: any
+  opts?: any
 }

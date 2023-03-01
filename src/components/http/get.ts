@@ -4,11 +4,11 @@ import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger'
 import { ProgressBar } from 'src/libs/progress-bar'
-import { Readable } from 'stream'
 import { finished } from 'stream/promises'
 import { GetProps } from './get.props'
 import { Head } from './head'
 import { ResponseType } from './types'
+import fetch, { Response } from 'node-fetch'
 
 /** |**  http'get
   Send a http request with GET method
@@ -140,7 +140,8 @@ export class Get extends Head {
         await bar?.start(chalk.gray.dim('Connecting to server...'))
         try {
           const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
-          const body = Readable.fromWeb(rs.body as any)
+          const body = rs.body
+          // const body = Readable.fromWeb(rs.body as any)
           if (bar) {
             let total = 0
             body.on('data', (chunk: Buffer) => {

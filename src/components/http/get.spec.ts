@@ -65,7 +65,7 @@ test('send a "get" request then get blob data', async () => {
     responseType: 'blob'
   })
   await request.exec()
-  expect(request.element.response?.data).toBeInstanceOf(Blob)
+  expect(request.element.response?.data.constructor.name).toBe('Blob')
 })
 
 test('send a "get" request then get arraybuffer data', async () => {

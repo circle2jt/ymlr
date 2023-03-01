@@ -6,6 +6,7 @@ import { Element } from '../element.interface'
 import { HeadProps } from './head.props'
 import { HttpError } from './http-error'
 import { Response } from './types'
+import fetch from 'node-fetch'
 
 /** |**  http'head
   Send a http request with HEAD method
@@ -41,6 +42,7 @@ export class Head implements Element {
   query?: any
   response?: Response
   executionTime?: number
+  opts?: any
 
   private abortController?: AbortController
 
@@ -71,7 +73,7 @@ export class Head implements Element {
       if (!this.response) {
         this.abortController = new AbortController()
         const proms: Array<Promise<null | Response>> = [
-          this.send({ signal: this.abortController.signal })
+          this.send({ ...this.opts, signal: this.abortController.signal })
         ]
         let tm: NodeJS.Timeout | undefined
         if (this.timeout) {

@@ -4,6 +4,7 @@ import { FileStore } from 'src/components/file/file-store'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { Sub } from './sub'
+import fetch from 'node-fetch'
 
 let sub: ElementProxy<Sub>
 const tmp = new FileTemp()

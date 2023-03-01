@@ -1,8 +1,11 @@
 import chalk from 'chalk'
-import { readFileSync } from 'fs'
+import { createReadStream } from 'fs'
 import { Get } from './get'
 import { PostProps } from './post.props'
 import { RequestType, UploadFile } from './types'
+import FormData from 'form-data'
+import fetch from 'node-fetch'
+
 /** |**  http'post
   Send a http request with POST method
   @example
@@ -98,11 +101,13 @@ export class Post extends Get {
         // file: {path: '', name: '', }
         if (typeof vl === 'object') {
           const { path, name } = vl as UploadFile
-          form1.append(key, new Blob([readFileSync(this.scene.getPath(path))]), name)
+          form1.append(key, createReadStream(this.scene.getPath(path)), name)
+          // form1.append(key, new Blob([readFileSync(this.scene.getPath(path))]), name)
         } else {
           form1.append(key, vl)
         }
       })
+      // Object.assign(this.headers, form1.getHeaders())
       return form1
     }
     if (this.type === 'text') {
