@@ -8,6 +8,7 @@ import { SceneProcessProps } from './scene-process.props'
   @example
   ```yaml
     - name: A scene run as a child process
+      # scene'process: ./another.yaml     # path can be URL or local path
       scene'process:
         id: proc01                        # process id which is how in log
         name: Scene name
@@ -27,7 +28,11 @@ export class SceneProcess extends Scene {
   private processor!: Worker
   private readonly id!: string
 
-  constructor({ id, ...props }: SceneProcessProps) {
+  constructor(eProps: SceneProcessProps | string) {
+    if (typeof eProps === 'string') {
+      eProps = { path: eProps }
+    }
+    const { id, ...props } = eProps
     super(props)
     Object.assign(this, { id })
     if (!this.id) this.id = (++SceneProcess.ID).toString()

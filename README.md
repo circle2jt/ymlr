@@ -1235,6 +1235,7 @@ Example:
 
 ```yaml
   - name: A scene run as a child process
+    # scene'process: ./another.yaml     # path can be URL or local path
     scene'process:
       id: proc01                        # process id which is how in log
       name: Scene name
