@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.2.md](#1677756809559)  -  _3/2/2023, 11:33:29 AM_
 - [1.1.1.md](#1677582060163)  -  _2/28/2023, 11:01:00 AM_
 - [1.1.1-alpha.3.md](#1677496853425)  -  _2/27/2023, 11:20:53 AM_
 - [1.1.0.md](#1676887754962)  -  _2/20/2023, 10:09:14 AM_
@@ -11,6 +12,15 @@
 
 ## Details
 
+<a id="1677756809559"></a>
+### 1.1.2
+
+* doc: share a scene to upload a file to tmpfiles server (81a8d5a)
+* refactor: Replace fetch to axios (50777ac)
+* refactor(http): Replace fetch native to node-fetch (0ffb512)
+* fix(scene): Allow pass string in scene'process (e525a64)
+* fix(docker): Update example scene (0345c3c)
+  
 <a id="1677582060163"></a>
 ### 1.1.1
 
