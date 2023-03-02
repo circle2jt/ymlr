@@ -1,8 +1,8 @@
 import assert from 'assert'
+import axios from 'axios'
 import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { Scene } from 'src/components/scene/scene'
-import fetch from 'node-fetch'
 
 export class FileRemote {
   get isRemote() {
@@ -26,9 +26,8 @@ export class FileRemote {
       const buf = await readFile(this.uri)
       return buf
     }
-    const rs = await fetch(this.uri)
-    const ab = await rs.arrayBuffer()
-    return Buffer.from(new Uint8Array(ab))
+    const { data } = await axios.get(this.uri, { responseType: 'arraybuffer' })
+    return Buffer.from(new Uint8Array(data))
   }
 
   async getTextContent() {
@@ -36,8 +35,7 @@ export class FileRemote {
       const buf = await readFile(this.uri)
       return buf.toString()
     }
-    const rs = await fetch(this.uri)
-    const txt = await rs.text()
-    return txt
+    const { data } = await axios.get(this.uri, { responseType: 'text' })
+    return data
   }
 }

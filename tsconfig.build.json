@@ -11,7 +11,7 @@
     "declaration": true,
     "preserveSymlinks": true,
     "removeComments": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "allowJs": true,
     "skipLibCheck": true,
     "typeRoots": [

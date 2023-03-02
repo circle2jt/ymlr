@@ -1,5 +1,5 @@
 export function formatNumber(n: number, opts?: Intl.NumberFormatOptions) {
-  return n.toLocaleString(undefined, opts)
+  return Number(n).toLocaleString(undefined, opts)
 }
 
 export function kebabToCamelCase(snake: string) {

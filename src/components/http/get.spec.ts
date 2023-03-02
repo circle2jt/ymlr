@@ -44,58 +44,6 @@ test('send a "get" request then get json data', async () => {
   expect(request.element.response?.data).toEqual(bodyData)
 })
 
-test('send a "get" request then get blob data', async () => {
-  const bodyData = {
-    name: 'thanh',
-    sex: 'male'
-  }
-  server.get('/')
-    .mockImplementationOnce((ctx) => {
-      ctx.status = 200
-      ctx.message = 'OK MEN'
-      ctx.body = bodyData
-      expect(ctx.query.time).toBeDefined()
-      expect(ctx.query.rd).toBeDefined()
-    })
-  request = await Testing.createElementProxy(Get, {
-    url: server.getURL().toString() + '?time=' + Date.now().toString(),
-    query: {
-      rd: Math.random().toString()
-    },
-    responseType: 'blob'
-  })
-  await request.exec()
-  expect(request.element.response?.data.constructor.name).toBe('Blob')
-})
-
-test('send a "get" request then get arraybuffer data', async () => {
-  const bodyData = {
-    name: 'thanh',
-    sex: 'male'
-  }
-  server.get('/')
-    .mockImplementationOnce((ctx) => {
-      ctx.status = 200
-      ctx.message = 'OK MEN'
-      ctx.body = bodyData
-      ctx.set('custom', 'thanh')
-      expect(ctx.query.time).toBeDefined()
-      expect(ctx.query.rd).toBeDefined()
-    })
-  request = await Testing.createElementProxy(Get, {
-    url: server.getURL().toString() + '?time=' + Date.now().toString(),
-    query: {
-      rd: Math.random().toString()
-    },
-    responseType: 'buffer'
-  })
-  await request.exec()
-  expect(request.element.response?.status).toBe(200)
-  expect(request.element.response?.statusText).toBe('OK MEN')
-  expect(request.element.response?.headers?.custom).toBe('thanh')
-  expect(request.element.response?.data).toBeInstanceOf(ArrayBuffer)
-})
-
 test('send a "get" request then ignore response data', async () => {
   const bodyData = {
     name: 'thanh',
@@ -139,6 +87,59 @@ test('send a "get" request then get text data', async () => {
   expect(request.element.response?.status).toBe(200)
   expect(request.element.response?.statusText).toBe('OK MEN')
   expect(typeof request.element.response?.data).toBe('string')
+})
+
+test('send a "get" request then get arraybuffer data', async () => {
+  const bodyData = {
+    name: 'thanh',
+    sex: 'male'
+  }
+  server.get('/')
+    .mockImplementationOnce((ctx) => {
+      ctx.status = 200
+      ctx.message = 'OK MEN'
+      ctx.body = bodyData
+      ctx.set('custom', 'thanh')
+      expect(ctx.query.time).toBeDefined()
+      expect(ctx.query.rd).toBeDefined()
+    })
+  request = await Testing.createElementProxy(Get, {
+    url: server.getURL().toString() + '?time=' + Date.now().toString(),
+    query: {
+      rd: Math.random().toString()
+    },
+    responseType: 'arraybuffer'
+  })
+  await request.exec()
+  expect(request.element.response?.status).toBe(200)
+  expect(request.element.response?.statusText).toBe('OK MEN')
+  expect(request.element.response?.headers?.custom).toBe('thanh')
+  expect(request.element.response?.data).toBeInstanceOf(Buffer)
+})
+
+// Only test for fetch
+test.skip('send a "get" request then get blob data', async () => {
+  const bodyData = {
+    name: 'thanh',
+    sex: 'male'
+  }
+  server.get('/')
+    .mockImplementationOnce((ctx) => {
+      ctx.status = 200
+      ctx.message = 'OK MEN'
+      ctx.body = bodyData
+      expect(ctx.query.time).toBeDefined()
+      expect(ctx.query.rd).toBeDefined()
+    })
+  request = await Testing.createElementProxy(Get, {
+    url: server.getURL().toString() + '?time=' + Date.now().toString(),
+    query: {
+      rd: Math.random().toString()
+    },
+    responseType: 'blob'
+  })
+  await request.exec()
+  expect(request.element.response?.data.constructor.name).toBe('Blob')
 })
 
 test('should download a file', async () => {

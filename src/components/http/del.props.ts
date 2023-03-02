@@ -1,3 +1,3 @@
-import { HeadProps } from './head.props'
+import { PostProps } from './post.props'
 
-export type DelProps = {} & HeadProps
+export type DelProps = {} & PostProps

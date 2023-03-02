@@ -1,8 +1,6 @@
-import Spinnies from 'spinnies'
+import { Ora } from 'ora'
+import { loadESModule } from 'src/managers/modules-manager'
 import { Logger, LoggerLevel } from './logger'
-import { sleep } from './time'
-
-const spinnies = new Spinnies()
 
 export class ProgressBar {
   static readonly Color = {
@@ -17,33 +15,33 @@ export class ProgressBar {
     Gray: 'gray'
   }
 
-  private readonly id = `${Date.now()}-${Math.random()}`
   private maxLength = 0
+  private spinner?: Ora
 
-  constructor(public logger: Logger, private readonly color = ProgressBar.Color.Cyan) {
+  constructor(public logger: Logger) {
 
   }
 
   async start(txt: string) {
     if (txt.length > this.maxLength) this.maxLength = txt.length
-    spinnies.add(this.id, {
+    const { default: ora } = await loadESModule('ora')
+    this.spinner = ora({
       text: txt,
       indent: this.logger.indent * 2,
-      color: this.color as any
+      color: 'gray'
     })
+    this.spinner?.start()
   }
 
   update(txt: string, level?: LoggerLevel) {
     if (txt.length > this.maxLength) this.maxLength = txt.length
-    spinnies.update(this.id, {
-      text: this.logger.formatWithoutIndent(txt, level)
-    })
+    if (this.spinner) this.spinner.text = this.logger.formatWithoutIndent(txt, level)
   }
 
   async stop() {
     this.update(new Array(this.maxLength).fill(' ').join(''))
-    await sleep(100)
-    spinnies.remove(this.id)
+    // this.spinner?.clear()
+    this.spinner?.stop()
   }
 
   async passed(txt: string, ...args: string[]) {

@@ -110,3 +110,5 @@ test-local/
 src/package-lock.json
 src/yarn.lock
 src/pnpm-lock.yaml
+*.rm
+*.rm.*

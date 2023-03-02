@@ -1,10 +1,12 @@
 import chalk from 'chalk'
+import FormData from 'form-data'
 import { createReadStream } from 'fs'
+import { formatNumber } from 'src/libs/format'
+import { LoggerLevel } from 'src/libs/logger'
+import { ProgressBar } from 'src/libs/progress-bar'
 import { Get } from './get'
 import { PostProps } from './post.props'
 import { RequestType, UploadFile } from './types'
-import FormData from 'form-data'
-import fetch from 'node-fetch'
 
 /** |**  http'post
   Send a http request with POST method
@@ -54,66 +56,76 @@ export class Post extends Get {
   method = 'post'
   type?: RequestType
   body?: any
+  protected isUpload?: true
 
   constructor({ type, body, ...props }: PostProps) {
     super(props)
     Object.assign(this, { type, body })
   }
 
-  async send(fetchOpts: any = {}) {
-    if (!this.type) this.type = 'json'
+  async send(moreOptions: any = {}) {
     const body = this.getRequestBody()
-    const rs = await fetch(this.fullURLQuery, {
-      method: this.method,
-      headers: this.headers,
-      body,
-      ...fetchOpts
-    })
-    const data = await this.getResponseData(rs)
-    this.response = {
-      ok: rs.ok,
-      headers: this.getResponseHeader(rs),
-      data,
-      status: rs.status,
-      statusText: rs.statusText
+    let bar: ProgressBar | undefined
+    if (this.isUpload) {
+      // eslint-disable-next-line no-case-declarations
+      bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
+      if (bar) {
+        if (this.proxy.name) bar.logger.addIndent()
+        await bar.start(chalk.gray.dim('Connecting ...'))
+        moreOptions.onUploadProgress = (data: any) => {
+          const { bytes, loaded } = data
+          bar?.update(chalk.gray(`Uploading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
+        }
+      }
     }
-    return this.response
+    try {
+      const rs = await super.send({
+        data: body,
+        ...moreOptions
+      })
+      return rs
+    } finally {
+      if (this.proxy.name) bar?.logger.addIndent(-1)
+      await bar?.stop()
+    }
   }
 
   protected getRequestBody() {
-    if (this.body === null || this.body === undefined) return this.body
-    this.logger.debug('%s\t%j', chalk.gray('‣ Body   '), this.body)
+    if (!this.type) this.type = 'json'
+    let body = this.body
+    const hasBody = this.body !== null && this.body !== undefined
+    this.logger.debug('%s\t%j', chalk.gray('‣ Body   '), body)
     if (this.type === 'json') {
       this.setHeader('content-type', 'application/json')
-      return JSON.stringify(this.body)
-    }
-    if (this.type === 'form') {
+    } else if (this.type === 'form') {
       this.setHeader('content-type', 'application/x-www-form-urlencoded')
-      const form2 = new URLSearchParams()
-      Object.keys(this.body).forEach(key => form2.append(key, this.body[key]))
-      return form2
-    }
-    if (this.type === 'multipart') {
-      // this.setHeader('content-type', 'multipart/form-data')
-      const form1 = new FormData()
-      Object.keys(this.body).forEach(key => {
-        const vl = this.body[key]
-        // file: {path: '', name: '', }
-        if (typeof vl === 'object') {
-          const { path, name } = vl as UploadFile
-          form1.append(key, createReadStream(this.scene.getPath(path)), name)
-          // form1.append(key, new Blob([readFileSync(this.scene.getPath(path))]), name)
-        } else {
-          form1.append(key, vl)
-        }
-      })
-      // Object.assign(this.headers, form1.getHeaders())
-      return form1
-    }
-    if (this.type === 'text') {
+      if (hasBody) {
+        body = new URLSearchParams(body)
+      }
+    } else if (this.type === 'multipart') {
+      this.setHeader('content-type', 'multipart/form-data')
+      if (hasBody) {
+        const form1 = new FormData()
+        Object.keys(body).forEach(key => {
+          const vl = this.body[key]
+          // file: {path: '', name: '', }
+          if (typeof vl === 'object') {
+            if (!this.isUpload) this.isUpload = true
+            const { path, name } = vl as UploadFile
+            form1.append(key, createReadStream(this.scene.getPath(path)), { filename: name })
+          } else {
+            form1.append(key, vl)
+          }
+        })
+        Object.assign(this.headers, form1.getHeaders())
+        body = form1
+      }
+    } else if (this.type === 'text') {
       this.setHeader('content-type', 'text/plain')
-      return this.body.toString()
+      if (hasBody) {
+        body = body.toString()
+      }
     }
-    return this.body
+    return body
   }
 }

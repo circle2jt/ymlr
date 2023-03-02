@@ -1,10 +1,10 @@
+import axios from 'axios'
 import { escape } from 'querystring'
 import { ElementProxy } from 'src/components/element-proxy'
 import { FileStore } from 'src/components/file/file-store'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { Sub } from './sub'
-import fetch from 'node-fetch'
 
 let sub: ElementProxy<Sub>
 const tmp = new FileTemp()
@@ -38,10 +38,7 @@ test('Listen to handle jobs in queue', async () => {
   })
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    await fetch('http://0.0.0.0:4001', {
-      method: 'POST',
-      body: JSON.stringify(jobData)
-    })
+    await axios.post('http://0.0.0.0:4001', jobData)
   }, 1000)
   await sub.exec()
   expect(Testing.vars.jobData).toEqual(jobData)
@@ -70,12 +67,10 @@ test('Check basic authentication via headers', async () => {
   })
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    const resp = await fetch('http://0.0.0.0:4001', {
-      method: 'POST',
+    const resp = await axios.post('http://0.0.0.0:4001', jobData, {
       headers: {
         authorization: `Basic ${Testing.rootScene.globalUtils.base64.encrypt('thanh:123')}`
-      },
-      body: JSON.stringify(jobData)
+      }
     })
     expect(resp.status).toBe(200)
     expect(resp.statusText).toBe('secured-pipe')
@@ -112,10 +107,7 @@ test('Check basic authentication via querystring', async () => {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
     const token = escape(`Basic ${Testing.rootScene.globalUtils.base64.encrypt('thanh:123')}`)
-    const resp = await fetch(`http://0.0.0.0:4001?authorization=${token}`, {
-      method: 'POST',
-      body: JSON.stringify(jobData)
-    })
+    const resp = await axios.post(`http://0.0.0.0:4001?authorization=${token}`, jobData)
     expect(resp.status).toBe(200)
     expect(resp.statusText).toBe('secured-queue')
   }, 1000)
@@ -154,12 +146,10 @@ test('Test storage is ref ID', async () => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       try {
-        await fetch('http://0.0.0.0:4002/test?foo=bar', {
-          method: 'POST',
+        await axios.post('http://0.0.0.0:4002/test?foo=bar', jobData, {
           headers: {
             author: 'thanh'
-          },
-          body: JSON.stringify(jobData)
+          }
         })
       } catch (err) {
         reject(err)

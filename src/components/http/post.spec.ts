@@ -102,6 +102,9 @@ test('post a raw request ok', async () => {
   request = await Testing.createElementProxy(Post, {
     url: server.getURL().toString(),
     responseType: 'none',
+    headers: {
+      'content-type': 'text/plain'
+    },
     type: 'raw',
     body: bodyData
   })

@@ -1,5 +1,7 @@
+import axios, { AxiosResponse } from 'axios'
 import chalk from 'chalk'
 import { createWriteStream } from 'fs'
+import { IncomingMessage } from 'http'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger'
@@ -8,7 +10,6 @@ import { finished } from 'stream/promises'
 import { GetProps } from './get.props'
 import { Head } from './head'
 import { ResponseType } from './types'
-import fetch, { Response } from 'node-fetch'
 
 /** |**  http'get
   Send a http request with GET method
@@ -47,6 +48,7 @@ export class Get extends Head {
   method = 'get'
   responseType?: ResponseType
   saveTo?: string
+  isDownload?: true
 
   protected get scene() { return this.proxy.scene }
 
@@ -55,30 +57,39 @@ export class Get extends Head {
     Object.assign(this, { responseType, saveTo })
   }
 
-  async exec() {
-    if (this.saveTo) {
-      this.responseType = 'pipe'
-      this.saveTo = this.scene.getPath(this.saveTo)
+  async send(moreOptions: any = {}) {
+    if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
+    if (this.responseType === 'stream') this.isDownload = true
+    let bar: ProgressBar | undefined
+    if (this.isDownload) {
+      // eslint-disable-next-line no-case-declarations
+      bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
+      if (bar) {
+        if (this.proxy.name) bar.logger.addIndent()
+        await bar.start(chalk.gray.dim('Connecting ...'))
+        moreOptions.onDownloadProgress = (data: any) => {
+          const { bytes, loaded } = data
+          bar?.update(chalk.gray(`Downloading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
+        }
+      }
     }
-    if (!this.responseType) this.responseType = 'json'
-    return await super.exec()
-  }
-
-  async send(fetchOpts: any = {}) {
-    const rs = await fetch(this.fullURLQuery, {
-      method: this.method,
-      headers: this.headers,
-      ...fetchOpts
-    })
-    const data = await this.getResponseData(rs)
-    this.response = {
-      ok: rs.ok,
-      headers: this.getResponseHeader(rs),
-      data,
-      status: rs.status,
-      statusText: rs.statusText
+    try {
+      const rs = await axios({
+        responseType: this.responseType === 'none' ? 'stream' : this.responseType,
+        ...this.axiosOpts,
+        ...moreOptions
+      })
+      this.response = {
+        status: rs.status,
+        statusText: rs.statusText,
+        headers: this.getResponseHeader(rs),
+        data: await this.getResponseData(rs)
+      }
+      return this.response
+    } finally {
+      if (this.proxy.name) bar?.logger.addIndent(-1)
+      await bar?.stop()
     }
-    return this.response
   }
 
   // protected async handleCustomResponse() {
@@ -122,42 +133,17 @@ export class Get extends Head {
   //   this.response.data = await this.getResponseData(rs)
   // }
 
-  protected async getResponseData(rs: Response) {
-    switch (this.responseType) {
-      case 'none':
-        return undefined
-      case 'json':
-        return await rs.json()
-      case 'blob':
-        return await rs.blob()
-      case 'buffer':
-        return await rs.arrayBuffer()
-      case 'pipe':
-        if (!this.saveTo) return undefined
-        // eslint-disable-next-line no-case-declarations
-        const bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
-        if (this.proxy.name) bar?.logger.addIndent()
-        await bar?.start(chalk.gray.dim('Connecting to server...'))
-        try {
-          const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
-          const body = rs.body
-          // const body = Readable.fromWeb(rs.body as any)
-          if (bar) {
-            let total = 0
-            body.on('data', (chunk: Buffer) => {
-              const len = chunk.byteLength
-              total += len
-              bar?.update(chalk.gray(`Downloading ${formatNumber(total / 1000, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(len, { maximumFractionDigits: 0 })} bytes`))
-            })
-          }
-          await finished(body.pipe(stream))
-        } finally {
-          if (this.proxy.name) bar?.logger.addIndent(-1)
-          await bar?.stop()
-        }
-        return new File(this.saveTo, this.scene)
-      default:
-        return await rs.text()
+  protected async getResponseData(rs: AxiosResponse) {
+    if (this.responseType === 'none') {
+      const data: IncomingMessage = rs.data
+      data.destroy()
+      return undefined
     }
+    if (!this.saveTo) return rs.data
+    // eslint-disable-next-line no-case-declarations
+    const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
+    const body: IncomingMessage = rs.data
+    await finished(body.pipe(stream))
+    return new File(this.saveTo, this.scene)
   }
 }

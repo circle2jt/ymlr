@@ -1,9 +1,9 @@
 import assert from 'assert'
+import axios from 'axios'
 import chalk from 'chalk'
 import { ElementProxy } from 'src/components/element-proxy'
 import { Element } from 'src/components/element.interface'
 import { PubProps } from './pub.props'
-import fetch from 'node-fetch'
 
 /** |**  http/jobs'add
   Add a job to the queue
@@ -60,10 +60,8 @@ export class Pub implements Element {
           headers.authorization = `Basic ${this.secure.basic}`
         }
       }
-      const rs = await fetch(address.toString(), {
-        method: 'post',
-        headers,
-        body: this.data ? JSON.stringify(this.data) : undefined
+      const rs = await axios.post(address.toString(), this.data, {
+        headers
       })
       return rs
     } catch (err: any) {

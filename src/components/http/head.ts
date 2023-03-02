@@ -1,12 +1,19 @@
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import chalk from 'chalk'
+import { Agent } from 'http'
+import { Agent as Agents } from 'https'
 import { decode, encode } from 'querystring'
-import { formatTextToMs } from 'src/libs/format'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { HeadProps } from './head.props'
 import { HttpError } from './http-error'
 import { Response } from './types'
-import fetch from 'node-fetch'
+
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+axios.defaults.maxRedirects = Number.MAX_SAFE_INTEGER
+axios.defaults.withCredentials = true
+axios.defaults.httpAgent = new Agent()
+axios.defaults.httpsAgent = new Agents()
 
 /** |**  http'head
   Send a http request with HEAD method
@@ -44,7 +51,7 @@ export class Head implements Element {
   executionTime?: number
   opts?: any
 
-  private abortController?: AbortController
+  private readonly abortController: AbortController
 
   protected get fullURL() {
     return `${this.baseURL || ''}${this.url}`
@@ -54,12 +61,26 @@ export class Head implements Element {
     return this.fullURL + (this.query ? `?${encode(this.query)}` : '')
   }
 
+  protected get axiosOpts() {
+    return {
+      method: this.method,
+      baseURL: this.baseURL,
+      url: this.url,
+      params: this.query,
+      headers: this.headers,
+      timeout: this.timeout,
+      signal: this.abortController.signal,
+      ...this.opts
+    }
+  }
+
   constructor(props: HeadProps) {
     Object.assign(this, props)
+    this.abortController = new AbortController()
   }
 
   abort() {
-    this.abortController?.abort()
+    this.abortController.abort()
   }
 
   async exec() {
@@ -71,38 +92,23 @@ export class Head implements Element {
       this.prehandleHeaders()
       const before = Date.now()
       if (!this.response) {
-        this.abortController = new AbortController()
-        const proms: Array<Promise<null | Response>> = [
-          this.send({ ...this.opts, signal: this.abortController.signal })
-        ]
-        let tm: NodeJS.Timeout | undefined
-        if (this.timeout) {
-          this.timeout = formatTextToMs(this.timeout)
-          proms.push(new Promise<null>((resolve) => {
-            tm = setTimeout(() => resolve(null), this.timeout as number)
-          }))
-        }
-        const rs = await Promise.race<any>(proms)
-        if (rs === null) {
-          // Timeout
-          this.abort()
-          throw new HttpError(408, `Request timeout >= ${this.timeout}ms`)
-        } else if (tm) {
-          // success/error
-          clearTimeout(tm)
-        }
+        await this.send()
       } else {
         const isGotData = this.response.data !== null && this.response.data !== undefined
         this.response.status = isGotData ? 200 : 204
-        this.response.ok = this.response.status >= 200 && this.response.status < 300
-        // await this.handleCustomResponse()
       }
       this.executionTime = Date.now() - before
       this.prehandleResponseHeaders()
       this.prehandleResponseData()
-      if (!this.response?.ok) throw new HttpError(this.response?.status, this.response?.statusText, this.response?.data)
     } catch (err: any) {
-      const error = err instanceof HttpError ? err : new HttpError(0, err?.message)
+      if (err instanceof AxiosError && err.response?.status !== undefined) {
+        if (!this.response) this.response = {}
+        this.response.status = err.response?.status
+        this.response.statusText = err.response?.statusText
+        this.response.headers = err.response?.headers
+        this.response.data = err.response?.data
+      }
+      const error = err instanceof HttpError ? err : new HttpError(this.response?.status || 0, err?.message, this.response)
       throw error
     } finally {
       this.proxy.vars && this.applyVar()
@@ -116,17 +122,12 @@ export class Head implements Element {
     return this.response?.data
   }
 
-  // protected async handleCustomResponse() { }
-
-  async send(fetchOpts: any = {}) {
-    this.prehandleHeaders()
-    const rs = await fetch(this.fullURLQuery, {
-      method: this.method,
-      headers: this.headers,
-      ...fetchOpts
+  async send(moreOptions = {}) {
+    const rs = await axios({
+      ...this.axiosOpts,
+      ...moreOptions
     })
     this.response = {
-      ok: rs.ok,
       headers: this.getResponseHeader(rs),
       status: rs.status,
       statusText: rs.statusText
@@ -134,7 +135,7 @@ export class Head implements Element {
     return this.response
   }
 
-  dispose() {
+  async dispose() {
     this.abort()
   }
 
@@ -158,16 +159,11 @@ export class Head implements Element {
 
   protected setHeader(key: string, value: any) {
     if (!this.headers) this.headers = {}
-    if (!this.headers[key]) this.headers[key] = value
+    this.headers[key] = value
   }
 
-  protected getResponseHeader(rs: Response) {
-    const headers = Array.from<string>(rs.headers.entries())
-    if (!headers.length) return undefined
-    return headers.reduce<Record<string, any>>((sum, [key, vl]) => {
-      sum[key] = vl
-      return sum
-    }, {})
+  protected getResponseHeader(rs: AxiosResponse): any {
+    return rs.headers
   }
 
   protected prehandleResponseHeaders() {

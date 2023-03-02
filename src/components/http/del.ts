@@ -1,5 +1,5 @@
 import { DelProps } from './del.props'
-import { Head } from './head'
+import { Post } from './post'
 
 /** |**  http'del
   Send a http request with DELETE method
@@ -19,7 +19,7 @@ import { Head } from './head'
         status: ${this.response.status}
   ```
 */
-export class Del extends Head {
+export class Del extends Post {
   method = 'delete'
 
   constructor(props: DelProps) {
