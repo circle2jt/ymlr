@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash.clonedeep'
+import { AppEvent } from 'src/app-event'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
 import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
@@ -64,6 +65,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     elemProxy.scene = this.innerScene
     elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene
     Object.assign(elemProxy, loopObj)
+    const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
+    if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
     return elemProxy
   }
 
@@ -197,7 +200,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       await Promise.all(asyncJobs)
       asyncJobs.splice(0, asyncJobs.length)
     }
-
     const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
     if (!async) {
       await p

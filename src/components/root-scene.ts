@@ -1,6 +1,7 @@
+import EventEmitter from 'events'
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
-import { GlobalEvent } from 'src/managers/events-manager'
+import { AppEvent } from 'src/app-event'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
@@ -35,6 +36,8 @@ export class RootScene extends Scene {
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
+  readonly onAppExit = new Array<AppEvent>()
+  readonly event = new EventEmitter({ captureRejections: false })
   readonly runDir = process.cwd()
   rootDir = ''
 
@@ -45,6 +48,7 @@ export class RootScene extends Scene {
     this.localVars = {}
     if (globalVars) merge(this.localVars, globalVars)
     this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
+    this.event.setMaxListeners(0)
   }
 
   async asyncConstructor() {
@@ -53,25 +57,26 @@ export class RootScene extends Scene {
   }
 
   async exec() {
-    GlobalEvent.emit('scene/exec:before')
+    this.event.emit('scene/exec:before')
     try {
       const rs = await super.exec()
       await this._workerManager?.exec()
       return rs
     } finally {
-      GlobalEvent.emit('scene/exec:end')
+      this.event.emit('scene/exec:end')
     }
   }
 
   async dispose() {
     const proms = []
-    GlobalEvent.emit('scene/dispose:before')
+    this.event.emit('scene/dispose:before')
     try {
       proms.push(super.dispose())
       if (this._workerManager) proms.push(this._workerManager.dispose())
+      if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
       await Promise.all(proms)
     } finally {
-      GlobalEvent.emit('scene/dispose:end')
+      this.event.emit('scene/dispose:end')
     }
   }
 

@@ -4,7 +4,6 @@ import { Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { isGetEvalExp } from 'src/libs/variable'
-import { GlobalEvent } from 'src/managers/events-manager'
 import { Element } from './element.interface'
 import { VarsProps } from './vars/vars.props'
 
@@ -269,7 +268,7 @@ export class ElementProxy<T extends Element> {
 
   rootScene!: RootScene
   get rootSceneProxy() {
-    return this.rootScene.proxy
+    return this.rootScene?.proxy
   }
 
   get $() {
@@ -377,7 +376,7 @@ export class ElementProxy<T extends Element> {
     this.injectOtherCxt(this, others)
     const rs = await callFunctionScript(script, this, {
       $vars: this.scene.localVars,
-      $utils: this.rootScene.globalUtils,
+      $utils: this.rootScene?.globalUtils,
       ...others
     })
     return rs
@@ -392,7 +391,7 @@ export class ElementProxy<T extends Element> {
     // })
     if (this.elementAsyncProps && this.element.asyncConstructor) await this.element.asyncConstructor(this.elementAsyncProps)
 
-    GlobalEvent.emit('element/exec')
+    this.rootScene?.event.emit('element/exec:before', this)
 
     let isAddIndent: boolean | undefined
     try {
@@ -412,6 +411,7 @@ export class ElementProxy<T extends Element> {
       if (isAddIndent) this.logger.removeIndent()
     }
     await this.setVarsAfterExec()
+    this.rootScene?.event.emit('element/exec:end', this)
     return this.result
   }
 

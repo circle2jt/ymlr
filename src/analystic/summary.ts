@@ -1,9 +1,13 @@
 import chalk from 'chalk'
+import { ElementProxy } from 'src/components/element-proxy'
+import { RootScene } from 'src/components/root-scene'
 import { formatDuration } from 'src/libs/format'
-import { Logger, LoggerLevel } from 'src/libs/logger'
-import { GlobalEvent } from 'src/managers/events-manager'
 
 export class Summary {
+  private get logger() {
+    return this.rootSceneProxy.logger
+  }
+
   private readonly count = {
     exec: 0,
     dispose: 0
@@ -15,9 +19,9 @@ export class Summary {
     execution: 0
   }
 
-  constructor(private readonly logger: Logger) {
-    GlobalEvent
-      .on('element/exec', () => {
+  constructor(private readonly rootSceneProxy: ElementProxy<RootScene>) {
+    this.rootSceneProxy.$.event
+      .on('element/exec:before', () => {
         this.count.exec++
       })
       .on('element/dispose', () => {
@@ -38,7 +42,6 @@ export class Summary {
   }
 
   print() {
-    if (!this.logger.is(LoggerLevel.DEBUG)) return
     this.logger.log('')
     this.logger.log(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
     this.logger.log('%s\t%s', 'Runs    ', `${this.count.exec}(items)`)

@@ -96,10 +96,13 @@ export class Head implements Element {
       } else {
         const isGotData = this.response.data !== null && this.response.data !== undefined
         this.response.status = isGotData ? 200 : 204
+        if (!this.response.headers) this.response.headers = {}
+        if (!this.response.headers['content-type']) this.response.headers['content-type'] = 'application/json'
       }
       this.executionTime = Date.now() - before
       this.prehandleResponseHeaders()
       this.prehandleResponseData()
+      if (this.response && this.response.ok === undefined) this.response.ok = true
     } catch (err: any) {
       if (err instanceof AxiosError && err.response?.status !== undefined) {
         if (!this.response) this.response = {}
@@ -107,6 +110,7 @@ export class Head implements Element {
         this.response.statusText = err.response?.statusText
         this.response.headers = err.response?.headers
         this.response.data = err.response?.data
+        this.response.ok = false
       }
       const error = err instanceof HttpError ? err : new HttpError(this.response?.status || 0, err?.message, this.response)
       throw error
