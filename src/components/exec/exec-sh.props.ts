@@ -5,4 +5,6 @@ export type ExecShProps = {
   script?: string
   path?: string
   vars?: VarsProps
+  timeout?: string | number
+  process?: boolean
 } | string
