@@ -8,7 +8,7 @@ import { Element } from './element.interface'
 import { VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
-  'name', 'skip', 'force', 'debug'
+  'name', 'skip', 'force', 'debug', '_parentState'
 ]
 
 export class ElementProxy<T extends Element> {
@@ -250,7 +250,16 @@ export class ElementProxy<T extends Element> {
   */
   async?: boolean | string
 
-  parentState?: Record<string, any>
+  private _parentState?: Record<string, any>
+
+  get parentState() {
+    if (this._parentState !== undefined) return this._parentState
+    return this.parentProxy?.parentState
+  }
+
+  set parentState(parentState: Record<string, any> | undefined) {
+    this._parentState = parentState
+  }
 
   tag!: string
   loopKey?: any

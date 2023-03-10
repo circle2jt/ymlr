@@ -1,4 +1,5 @@
 import { callFunctionScript } from 'src/libs/async-function'
+import { inspect } from 'util'
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
@@ -42,7 +43,7 @@ export function isGetEvalExp(vl: any) {
   } else if (typeof vl === 'object') {
     const typeName = vl.constructor?.toString()
     if (typeName?.startsWith('function Object() ') || typeName?.startsWith('function Array() ')) {
-      if (isGetEvalExp(JSON.stringify(vl))) return Object
+      if (isGetEvalExp(inspect(vl, false, Infinity, false))) return Object
     }
   }
   return null
