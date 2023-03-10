@@ -573,8 +573,10 @@ Execute a bash script
       script: |                       # Shell script content
         touch hello.txt
         echo "Hello world" > /tmp/hello.txt
-      bin: /bin/sh    # !optional. Default use /bin/sh to run sh script
-    vars: log       # !optional
+      bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
+      timeout: 10m                    # Time to run before force quit
+      process: true                   # Create a new child process to execute it. Default is false
+    vars: log                         # !optional
 ```  
 
 

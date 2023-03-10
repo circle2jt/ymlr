@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.3.md](#1678441053863)  -  _3/10/2023, 9:37:33 AM_
 - [1.1.2.md](#1677756809559)  -  _3/2/2023, 11:33:29 AM_
 - [1.1.1.md](#1677582060163)  -  _2/28/2023, 11:01:00 AM_
 - [1.1.1-alpha.3.md](#1677496853425)  -  _2/27/2023, 11:20:53 AM_
@@ -12,6 +13,14 @@
 
 ## Details
 
+<a id="1678441053863"></a>
+### 1.1.3
+
+* doc: add a new utils scene to connect to ssh (640b4aa)
+* feat: auto pass $parentState from parent (2edf64f)
+* feat(exec'sh): Support timeout and exec in a new process (bb23ccf)
+* feat: Handle on app exit event, event global (96e1b4b)
+  
 <a id="1677756809559"></a>
 ### 1.1.2
 
