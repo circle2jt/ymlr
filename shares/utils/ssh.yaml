@@ -2,8 +2,6 @@ vars:
   key: ""
   address: ""
   script: ""
-  result:
-    log: ""
 runs:
   - exec'js: |
       $vars.sshCommand = ["ssh"]
@@ -13,10 +11,12 @@ runs:
       $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-T")
       $vars.sshCommand = $vars.sshCommand.join(' ')
       this.logger.debug('>_ ' + $vars.sshCommand)
+      this.logger.debug($vars.script)
 
   - exec'sh: |
       ${$vars.sshCommand} <<'ENDSSH'
         ${$vars.script}
       ENDSSH
-    vars:
-      _: ${$vars.result.log = this.result}
+    vars: result
+
+  - scene'returns: ${$vars.result}
