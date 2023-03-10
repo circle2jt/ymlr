@@ -1,0 +1,22 @@
+vars:
+  key: ""
+  address: ""
+  script: ""
+  result:
+    log: ""
+runs:
+  - exec'js: |
+      $vars.sshCommand = ["ssh"]
+      if ($vars.key) {
+        $vars.sshCommand.push("-i", $vars.key)
+      }
+      $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-T")
+      $vars.sshCommand = $vars.sshCommand.join(' ')
+      this.logger.debug('>_ ' + $vars.sshCommand)
+
+  - exec'sh: |
+      ${$vars.sshCommand} <<'ENDSSH'
+        ${$vars.script}
+      ENDSSH
+    vars:
+      _: ${$vars.result.log = this.result}
