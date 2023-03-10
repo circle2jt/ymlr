@@ -5,6 +5,7 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Element } from './element.interface'
+import { Returns } from './scene/returns'
 import { VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
@@ -410,7 +411,9 @@ export class ElementProxy<T extends Element> {
       if (isAddIndent) this.logger.addIndent()
 
       this.name && this.logger.info('%s', this.name)
-      this.result = await this.element.exec(parentState)
+      const result = await this.element.exec(parentState)
+      if (this.result instanceof Returns) this.result = this.result.result
+      else this.result = result
     } catch (err: any) {
       this.error = err
       if (!this.force) throw err

@@ -134,6 +134,7 @@ runs:
 | [runs](#runs) | Group elements |
 | [scene](#scene) | Load another scene into the running program |
 | [scene'process](#scene'process) | Same "scene" but it run as a child process |
+| [scene'returns](#scene'returns) | Return value to parent scene |
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
@@ -1250,6 +1251,37 @@ Example:
       vars:                             # They will only overrides "vars" in the scene
         foo: scene bar                  # First is lowercase is vars in scenes
         Foo: Global bar                 # First is uppercase is global vars which is used in the program
+```  
+
+
+## <a id="scene'returns"></a>scene'returns  
+  
+Return value to parent scene  
+
+Example:  
+
+Scene `sum.yaml`
+```yaml
+  vars:
+    x: 0
+    y: 0
+  runs:
+    - vars:
+        result: ${ $vars.x + $vars.y }
+
+    - scene'returns: ${ $vars.result }
+```
+Main scene `index.yaml`
+```yaml
+  - name: Load a scene to sum 2 digits
+    scene:
+      path: .../sum.yaml
+      vars:
+        x: 10
+        y: 20
+    vars: sumOfXY
+
+  - echo: ${ $vars.sumOfXY }    # => 30
 ```  
 
 
