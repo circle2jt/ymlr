@@ -8,7 +8,7 @@ runs:
       if ($vars.key) {
         $vars.sshCommand.push("-i", $vars.key)
       }
-      $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-T")
+      $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-tt")
       $vars.sshCommand = $vars.sshCommand.join(' ')
       this.logger.debug('>_ ' + $vars.sshCommand)
       this.logger.debug($vars.script)
@@ -16,6 +16,7 @@ runs:
   - exec'sh: |
       ${$vars.sshCommand} <<'ENDSSH'
         ${$vars.script}
+        exit
       ENDSSH
     vars: result
 
