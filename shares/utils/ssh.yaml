@@ -9,14 +9,20 @@ runs:
         $vars.sshCommand.push("-i", $vars.key)
       }
       $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-T")
+      $vars.script = $vars.script.trim()
+      this.logger.debug($vars.script)
+      if ($vars.script.indexOf('\n') !== -1) {
+        $vars.sshCommand.push(`<<'ENDSSH'
+        ${$vars.script}
+      ENDSSH`)
+      } else {
+        $vars.sshCommand.push($vars.script)
+      }
       $vars.sshCommand = $vars.sshCommand.join(' ')
       this.logger.debug('>_ ' + $vars.sshCommand)
-      this.logger.debug($vars.script)
 
   - exec'sh: |
-      ${$vars.sshCommand} <<'ENDSSH'
-        ${$vars.script}
-      ENDSSH
+      ${$vars.sshCommand} 
     vars: result
 
   - scene'returns: ${$vars.result}
