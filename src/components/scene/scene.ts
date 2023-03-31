@@ -12,6 +12,7 @@ import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
 import { prefixPassword } from './constants'
 import { SceneProps, SceneScope } from './scene.props'
+import { SPACE_SCHEMA } from './yaml-type'
 
 const REGEX_FIRST_UPPER = /^[A-Z]/
 
@@ -168,7 +169,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.content = await this.decryptContent(this.content, this.password)
       return JSON.parse(this.content)
     }
-    return load(this.content)
+    return load(this.content, { schema: SPACE_SCHEMA })
   }
 
   private async decryptContent(content: string, password?: string) {
