@@ -368,6 +368,33 @@ Example:
 ```  
 
 
+## <a id="postScript"></a>postScript  
+`It's a property in a tag`  
+Execute a script before run  
+
+Example:  
+
+```yaml
+  - echo: Execute here                           # => Execute here
+    postScript: |                                # => Do something after executed
+      console.log('Do something after executed')
+
+```  
+
+
+## <a id="preScript"></a>preScript  
+`It's a property in a tag`  
+Execute a script before run  
+
+Example:  
+
+```yaml
+  - preScript: |                                # => Prepare data
+      console.log('Prepare data')               # => Execute here
+    echo: Execute here
+```  
+
+
 ## <a id="skip"></a>skip  
 `It's a property in a tag`  
 Only init but not execute  

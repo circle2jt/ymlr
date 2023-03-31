@@ -93,7 +93,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
         props.runs = undefined
       }
-      let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
+      let { '<-': inheritKeys, '->': exposeKey, skip, preScript, postScript, ...eProps } = props
       let tagName = this.getTagName(eProps)
 
       // Only support template or tag name. Prefer tag name
@@ -130,7 +130,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         debug,
         vars,
         async,
-        loop
+        loop,
+        preScript,
+        postScript
       }
       // Execute
       if (loop === undefined) {
