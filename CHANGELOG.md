@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.5.md](#1680250469475)  -  _3/31/2023, 8:14:29 AM_
 - [1.1.4.md](#1678460526324)  -  _3/10/2023, 3:02:06 PM_
 - [1.1.3.md](#1678441053863)  -  _3/10/2023, 9:37:33 AM_
 - [1.1.2.md](#1677756809559)  -  _3/2/2023, 11:33:29 AM_
@@ -14,6 +15,13 @@
 
 ## Details
 
+<a id="1680250469475"></a>
+### 1.1.5
+
+* feat: add YAML type "!regex" (5267a70)
+* feat: support preScript, postScript in proxy (a17dc2c)
+* fix(ssh.yaml): tput: No value for $TERM and no -T specified (f32ca79)
+  
 <a id="1678460526324"></a>
 ### 1.1.4
 
