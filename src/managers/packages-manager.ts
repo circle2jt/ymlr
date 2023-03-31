@@ -8,7 +8,7 @@ import { Logger, LoggerLevel } from 'src/libs/logger'
 import { ProgressBar } from 'src/libs/progress-bar'
 import { nodeModulesDir } from './modules-manager'
 
-const PackageManagerSupported = ['pnpm', 'yarn', 'npm'] as Array<'npm' | 'yarn' | 'pnpm'>
+const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['pnpm', 'yarn', 'npm']) as Array<'npm' | 'yarn' | 'pnpm'>
 
 export class PackagesManager {
   private static Bin?: 'pnpm' | 'npm' | 'yarn'
