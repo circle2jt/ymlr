@@ -10,6 +10,6 @@ export interface Element {
 
 }
 
-export const ElementBaseKeys = ['->', '<-', 'template', 'if', 'force', 'debug', 'vars', 'async', 'loop', 'name', 'skip', 'preScript', 'postScript']
-export type ElementBaseProps = Pick<ElementProxy<Element>, 'if' | 'force' | 'debug' | 'vars' | 'async' | 'loop' | 'name' | 'skip' | 'preScript' | 'postScript'>
+export const ElementBaseKeys = ['->', '<-', 'id', 'template', 'if', 'force', 'debug', 'vars', 'async', 'loop', 'name', 'skip', 'preScript', 'postScript']
+export type ElementBaseProps = Pick<ElementProxy<Element>, 'id' | 'if' | 'force' | 'debug' | 'vars' | 'async' | 'loop' | 'name' | 'skip' | 'preScript' | 'postScript'>
 export type ElementClass = new (props?: any) => Element

@@ -12,6 +12,18 @@ afterEach(async () => {
   await scene.dispose()
 })
 
+test('Should ref "id" props to element proxy in $vars', async () => {
+  scene = await Testing.createElementProxy(Scene, {
+    content: `
+- id: echo1
+  echo: Hello world
+`
+  })
+  const rs = await scene.exec()
+  const [echo1] = rs
+  expect(echo1).toBe(scene.element.localVars.echo1)
+})
+
 test('Should run echo element', async () => {
   scene = await Testing.createElementProxy(Scene, {
     content: `

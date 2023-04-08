@@ -108,7 +108,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip when skip=true or it's a template
       if (skip || eProps.template) continue
 
-      let { if: condition, force, debug, vars, async, loop, name } = eProps
+      let { if: condition, force, debug, vars, async, loop, name, id } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -124,6 +124,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         elemProps = undefined
       }
       const baseProps: ElementBaseProps = {
+        id,
         name,
         if: condition,
         force,
@@ -196,6 +197,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, elemProxy)
     if (!isContinue) return undefined
+
+    if (baseProps.id) {
+      await elemProxy.scene.setVars(baseProps.id, elemProxy)
+    }
 
     const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
     if (asyncJobs.length && !async) {

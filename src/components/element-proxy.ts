@@ -9,10 +9,26 @@ import { Returns } from './scene/returns'
 import { VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
-  'name', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript'
+  'name', 'id', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript'
 ]
 
 export class ElementProxy<T extends Element> {
+  /** |**  id
+    ID Reference to element object in the $vars
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - id: echo1
+        skip: true
+        echo: Hello               # Not run
+
+      - exec'js: |
+          this.logger.debug($vars.echo1.content)
+
+    ```
+  */
+  id?: string
   /** |**  ->
     Expose item properties for others extends
     @position top

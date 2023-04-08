@@ -292,6 +292,23 @@ Example:
 ```  
 
 
+## <a id="id"></a>id  
+`It's a property in a tag`  
+ID Reference to element object in the $vars  
+
+Example:  
+
+```yaml
+  - id: echo1
+    skip: true
+    echo: Hello               # Not run
+
+  - exec'js: |
+      this.logger.debug($vars.echo1.content)
+
+```  
+
+
 ## <a id="if"></a>if  
 `It's a property in a tag`  
 Check condition before run the item  
