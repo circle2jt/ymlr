@@ -7,11 +7,11 @@ WORKDIR /scripts
 ARG VERSION=latest
 
 ENV NODE_ENV=production
+ENV PACKAGE_MANAGERS=yarn,npm
 
-RUN yarn global add ymlr@$VERSION pnpm
-RUN pnpm config -g set store-dir /home/node/.pnpm-store && \
-    mkdir /my-tags && \
+RUN mkdir /my-tags && \
     echo -e '- echo: Welcome to ymlr container' > /scripts/index.yaml
+RUN yarn global add ymlr@$VERSION
 
 ENTRYPOINT ["ymlr", "--tagDirs", "/my-tags", "--"]
 CMD ["/scripts/index.yaml", ""]

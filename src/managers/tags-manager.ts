@@ -75,6 +75,7 @@ export class TagsManager {
     let triedToInstall: true | undefined
     let tagName: string | undefined
     do {
+      const errors = []
       try {
         try {
           ElementModule = await import(`../components/${path}`)
@@ -82,29 +83,30 @@ export class TagsManager {
           for (const dir of this.tagDirs) {
             try {
               ElementModule = await import(scene.getPath(join(dir, path)))
-            } catch { }
+            } catch (err) {
+              errors.push(err)
+            }
           }
           if (!ElementModule) throw err
         }
       } catch (err1: any) {
+        errors.push(err1)
         try {
           ElementModule = await this.getTag(path)
           tagName = path
         } catch (err2: any) {
+          errors.push(err2)
           if (err2.$$exit) throw err2
           try {
             ElementModule = await import(path)
           } catch (err3: any) {
+            errors.push(err3)
             if (triedToInstall) {
-              logger.error(1, err1?.message)
-              logger.error(2, err2?.message)
-              logger.error(3, err3?.message)
+              errors.forEach(err => logger.error(err))
               throw new Error(`Could not found class "${className}" in "${path}"`)
             }
             triedToInstall = true
-            logger.warn(1, err1?.message)
-            logger.warn(2, err2?.message)
-            logger.warn(3, err3?.message)
+            errors.forEach(err => logger.warn(err))
             await this.install(path)
           }
         }

@@ -8,19 +8,13 @@ ARG NODE_VERSION=latest
 ARG VERSION=latest
 
 ENV NODE_ENV=production
-ENV PNPM_HOME=/root/.local/share/pnpm
-ENV PATH=$PNPM_HOME:$PATH
+ENV PACKAGE_MANAGERS=yarn,npm
 
-RUN apk add --update nodejs~=$NODE_VERSION
+RUN apk add --update nodejs~=$NODE_VERSION yarn
 
-RUN wget -qO- https://get.pnpm.io/install.sh | ENV="/tmp/.shrc" SHELL="$(which sh)" sh - && \
-    source /tmp/.shrc
-
-RUN pnpm config -g set store-dir /home/node/.pnpm-store && \
-    mkdir /my-tags && \
+RUN mkdir /my-tags && \
     echo -e '- echo: Welcome to ymlr container' > /scripts/index.yaml
-
-RUN pnpm add -g ymlr@$VERSION
+RUN yarn global add ymlr@$VERSION
 
 ENTRYPOINT ["ymlr", "--tagDirs", "/my-tags", "--"]
 CMD ["/scripts/index.yaml", ""]
