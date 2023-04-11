@@ -12,7 +12,7 @@ import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
 import { prefixPassword } from './constants'
 import { SceneProps, SceneScope } from './scene.props'
-import { SPACE_SCHEMA } from './yaml-type'
+import { YamlType } from './yaml-type'
 
 const REGEX_FIRST_UPPER = /^[A-Z]/
 
@@ -68,6 +68,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async handleFile() {
     const remoteFileRawProps = await this.getRemoteFileProps()
+    debugger
     if (Array.isArray(remoteFileRawProps)) {
       this.lazyInitRuns(remoteFileRawProps)
     } else {
@@ -169,7 +170,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.content = await this.decryptContent(this.content, this.password)
       return JSON.parse(this.content)
     }
-    return load(this.content, { schema: SPACE_SCHEMA })
+    const yamlType = new YamlType(this)
+    return load(this.content, { schema: yamlType.spaceSchema })
   }
 
   private async decryptContent(content: string, password?: string) {
