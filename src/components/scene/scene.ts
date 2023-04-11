@@ -68,7 +68,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async handleFile() {
     const remoteFileRawProps = await this.getRemoteFileProps()
-    debugger
     if (Array.isArray(remoteFileRawProps)) {
       this.lazyInitRuns(remoteFileRawProps)
     } else {

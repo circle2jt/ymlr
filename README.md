@@ -53,7 +53,7 @@ Remove external tags, libraries which is used in the scene
 Customize source paths which are registed tags in application
 
 ```sh
-  r --tagDirs /myapp1 --tagDirs /myapp2 -- myapp.yaml     # "/myapp1", "/myapp2" are includes source code
+  r --tag-dirs /myapp1 --tag-dirs /myapp2 -- myapp.yaml     # "/myapp1", "/myapp2" are includes source code
 ```
 
 ## Docker

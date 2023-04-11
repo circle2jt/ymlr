@@ -1,6 +1,8 @@
 import assert from 'assert'
 import chalk from 'chalk'
 import { program } from 'commander'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import 'src/managers/modules-manager'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
@@ -18,12 +20,20 @@ program
   .passThroughOptions(true)
   .showHelpAfterError(true)
   .option('--debug <level>', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
-  .option('--tagDirs <path...>', 'path to folder which includes external tags')
+  .option('--tag-dirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
+  .option('-ef, --env-files <path...>', 'environment variables files')
   .action(async (path: string, password?: string, opts: any = {}) => {
     let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
-    const { debug, env, tagDirs } = opts
-    env?.filter((keyValue: string) => keyValue.includes('='))
+    const { debug, env = [], tagDirs, envFiles = [] } = opts
+    envFiles.forEach((envFile: string) => {
+      const envFileContent = readFileSync(resolve(envFile)).toString()
+      env.splice(0, 0, ...envFileContent
+        .split('\n')
+        .filter(e => e?.trim().length)
+      )
+    })
+    env.filter((keyValue: string) => keyValue.includes('='))
       .forEach((keyValue: string) => {
         const idx = keyValue.indexOf('=')
         const key = keyValue.substring(0, idx)

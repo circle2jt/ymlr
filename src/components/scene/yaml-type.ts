@@ -2,7 +2,7 @@ import { DEFAULT_SCHEMA, Type } from 'js-yaml'
 import { Scene } from './scene'
 
 export class YamlType {
-  private types = [
+  private readonly types = [
     /** |**  !regex
       Regex type
       @position top
@@ -26,7 +26,7 @@ export class YamlType {
         }
         return new RegExp(data)
       }
-    }),
+    })
     // new Type('!load', {
     //   kind: 'scalar',
     //   resolve: function (path: string) {
@@ -44,7 +44,6 @@ export class YamlType {
   get spaceSchema() {
     return DEFAULT_SCHEMA.extend(this.types)
   }
-  constructor(public scene: Scene) {
 
-  }
+  constructor(public readonly scene: Scene) { }
 }
