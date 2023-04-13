@@ -1278,8 +1278,8 @@ Example:
       password:                         # password to decode when the file is encrypted
       varsFiles: [.env1, .env2]         # Load env file to variable
       scope: local                      # Value in [local, share]. Default is local
-                                        # - local: The changing value in the scene will NOT be effected to variable in parent scene
-                                        # - share: The changing value in the scene will be effected to variable in parent scene
+                                        # - local: Don't pass parent scene variables
+                                        # - share: Pass parent scene variables
                                         # Note: Global variables are always updated
       vars:                             # They will only overrides "vars" in the scene
         foo: scene bar                  # First is lowercase is vars in scenes
