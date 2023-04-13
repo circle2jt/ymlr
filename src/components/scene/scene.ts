@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { writeFile } from 'fs/promises'
 import { load } from 'js-yaml'
+import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { Env } from 'src/libs/env'
@@ -26,10 +27,11 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
+        varsFiles: [.env1, .env2]         # Load env file to variable
         scope: local                      # Value in [local, share]. Default is local
-                                          # - Global vars is always share, but scene vars is
-                                          #   - local: Variables in the scene only apply in the scene
-                                          #   - share: Variabes in the scene will be updated to all of scene
+                                          # - local: The changing value in the scene will NOT be effected to variable in parent scene
+                                          # - share: The changing value in the scene will be effected to variable in parent scene
+                                          # Note: Global variables are always updated
         vars:                             # They will only overrides "vars" in the scene
           foo: scene bar                  # First is lowercase is vars in scenes
           Foo: Global bar                 # First is uppercase is global vars which is used in the program
@@ -44,7 +46,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   vars?: Record<string, any>
   content?: string
   curDir = ''
-  localVars = {} as Record<string, any>
+  localVars: Record<string, any> = {}
   isRoot = false
 
   protected get innerScene() {
@@ -58,12 +60,16 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     const { path, content, password, vars, scope, ...props } = eProps
     super(props)
     Object.assign(this, { path, content, password, vars, scope })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'scope')
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'scope', 'event')
   }
 
   async asyncConstructor() {
     this.setupVars()
     await this.handleFile()
+    this.proxy.rootScene.event.on('update/global-vars', (name: string) => {
+      this.logger.trace('Updated global vars to scene vars - ' + name)
+      this.copyGlobalVarsToLocal()
+    })
   }
 
   async handleFile() {
@@ -75,12 +81,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (password) {
         await this.generateEncryptedFile(remoteFileProps, password)
       }
-      const { name: _name, debug: _debug, vars: _vars, vars_file: _varsFile, ...groupProps } = remoteFileProps
-      const { name, debug, vars, varsFile } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFile: _varsFile }, this.proxy)
+      const { name: _name, debug: _debug, vars: _vars, vars_file: _varsFiles, ...groupProps } = remoteFileProps
+      const { name, debug, vars, varsFiles = [] } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFiles: _varsFiles }, this.proxy)
       if (debug) this.proxy.setDebug(debug)
       if (this.name === undefined && name) this.name = name
       this.lazyInitRuns(groupProps)
-      await this.loadVars(vars, varsFile)
+      await this.loadVars(vars, Array.isArray(varsFiles) ? varsFiles : [varsFiles])
     }
   }
 
@@ -92,7 +98,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       return results || []
     } finally {
       this.copyVarsToGlobal()
-      this.scene.copyGlobalVarsToLocal()
     }
   }
 
@@ -128,7 +133,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   mergeVars(obj: any) {
-    merge(this.localVars, obj)
+    Object.assign(this.localVars, obj)
   }
 
   copyGlobalVarsToLocal() {
@@ -137,20 +142,24 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   private setupVars() {
     if (this.scope === 'share') {
+      const newVars = this.localVars
       this.localVars = this.scene.localVars
+      this.mergeVars(newVars)
     } else {
-      this.localVars = {}
-      this.copyVarsToGlobal(this.scene.localVars)
-      this.copyGlobalVarsToLocal()
+      this.mergeVars(cloneDeep(this.scene.localVars))
     }
+    this.copyVarsToGlobal()
   }
 
   private copyVarsToGlobal(localVars = this.localVars) {
-    Object.keys(localVars)
+    const keys = Object.keys(localVars)
       .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-      .forEach(key => {
+    if (keys.length > 0) {
+      keys.forEach(key => {
         this.rootScene.localVars[key] = localVars[key]
       })
+      this.proxy.rootScene.event.emit('update/global-vars', this.name || this.path)
+    }
   }
 
   private async getRemoteFileProps() {
@@ -194,17 +203,19 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     await writeFile(this.encryptedPath, econtent)
   }
 
-  private async loadVars(vars: Record<string, any> = {}, varsFile?: string) {
-    if (varsFile) {
-      const file = new FileRemote(varsFile, this)
-      const content = await file.getTextContent()
-      let newVars: any = {}
-      try {
-        newVars = JSON.parse(content)
-      } catch {
-        newVars = load(content)
+  private async loadVars(vars: Record<string, any> = {}, varsFiles?: string[]) {
+    if (varsFiles?.length) {
+      for (const varsFile of varsFiles) {
+        const file = new FileRemote(varsFile, this)
+        const content = await file.getTextContent()
+        let newVars: any = {}
+        try {
+          newVars = JSON.parse(content)
+        } catch {
+          newVars = load(content)
+        }
+        merge(vars, newVars)
       }
-      merge(vars, newVars)
     }
     this.mergeVars(vars)
     if (this.isRoot) await this.loadEnv()

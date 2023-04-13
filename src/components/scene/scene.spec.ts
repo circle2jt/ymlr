@@ -17,7 +17,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await scene.dispose()
+  await scene?.dispose()
 })
 
 afterAll(() => {
@@ -75,14 +75,14 @@ test('Check localVars and globalVars', async () => {
     const [, _scene2, echo11, echo12, echo13, echo14] = _scene1.result || []
     expect(echo11.result).toBe('my local vars in scene')
     expect(echo12.result).toBe('My Global Vars 1 in scene 1')
-    expect(echo13.result).toBeUndefined()
+    expect(echo13.result).toBe('my local vars in root')
     expect(echo14.result).toBe('My Global 2 Vars in root')
 
     const [, echo21, echo22, echo23, echo24, echo25] = _scene2.result || []
-    expect(echo21.result).toBeUndefined()
+    expect(echo21.result).toBe('my local vars in scene')
     expect(echo22.result).toBe('my local vars 1 in scene 1')
     expect(echo23.result).toBe('My Global Vars 1 in scene 1')
-    expect(echo24.result).toBeUndefined()
+    expect(echo24.result).toBe('my local vars in root')
     expect(echo25.result).toBe('My Global 2 Vars in root')
   } finally {
     tmp.remove()
@@ -282,18 +282,22 @@ test('Should run echo element', async () => {
   expect(echo.result).toBe('ok')
 })
 
-test('should share vars when scope is "share"', async () => {
+test('should share vars when scope is "share" 1', async () => {
+  await Testing.reset(`
+- vars:
+    GlobalVar: Global var
+    sceneVar: scene var in root scene
+`)
   scene = await Testing.createElementProxy(Scene, {
     scope: 'share',
     content: `
 - vars:
-    GlobalVar: Global var
-    sceneVar: scene var
+    sceneVar: scene var in scene
 `
   })
   await scene.exec() as Array<ElementProxy<Vars>>
   expect(Testing.vars.GlobalVar).toBe('Global var')
-  expect(Testing.vars.sceneVar).toBe('scene var')
+  expect(Testing.vars.sceneVar).toBe('scene var in scene')
 })
 
 test('should NOT share vars when scope is "local"', async () => {
@@ -303,7 +307,7 @@ test('should NOT share vars when scope is "local"', async () => {
 - vars:
     GlobalVar: Global var
     sceneVar: scene var
-`
+  `
   })
   await scene.exec() as Array<ElementProxy<Vars>>
   expect(Testing.vars.GlobalVar).toBe('Global var')

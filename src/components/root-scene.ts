@@ -37,8 +37,8 @@ export class RootScene extends Scene {
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
   readonly onAppExit = new Array<AppEvent>()
-  readonly event = new EventEmitter({ captureRejections: false })
   readonly runDir = process.cwd()
+  readonly event = new EventEmitter({ captureRejections: false })
   rootDir = ''
 
   constructor({ globalVars, ...props }: RootSceneProps) {

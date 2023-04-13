@@ -7,6 +7,7 @@ export type SceneProps = {
   content?: string
   scope?: SceneScope
   items?: Element[]
+  varsFile?: string | string[]
   process?: boolean | string
   decryptedPassword?: string
   encryptedPath?: string
