@@ -44,7 +44,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   vars?: Record<string, any>
   content?: string
   curDir = ''
-  localVars!: Record<string, any>
+  localVars = {} as Record<string, any>
   isRoot = false
 
   protected get innerScene() {

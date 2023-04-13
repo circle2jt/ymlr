@@ -41,12 +41,16 @@ export class SceneProcess extends Scene {
 
   async handleFile() {
     assert(this.path)
+    this.path = this.scene.getPath(this.path)
     this.processor = this.rootScene.workerManager.createWorker({
       path: this.path,
+      scope: this.scope,
       password: this.password,
       globalVars: this.rootScene.localVars,
       vars: this.vars
-    }, {}, {
+    }, {
+      debug: this.proxy.debug
+    }, {
       id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir))
     })
