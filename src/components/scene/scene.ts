@@ -1,7 +1,6 @@
 import assert from 'assert'
 import { writeFile } from 'fs/promises'
 import { load } from 'js-yaml'
-import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { Env } from 'src/libs/env'
@@ -29,8 +28,8 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         password:                         # password to decode when the file is encrypted
         varsFiles: [.env1, .env2]         # Load env file to variable
         scope: local                      # Value in [local, share]. Default is local
-                                          # - local: The changing value in the scene will NOT be effected to variable in parent scene
-                                          # - share: The changing value in the scene will be effected to variable in parent scene
+                                          # - local: Don't pass parent scene variables
+                                          # - share: Pass parent scene variables
                                           # Note: Global variables are always updated
         vars:                             # They will only overrides "vars" in the scene
           foo: scene bar                  # First is lowercase is vars in scenes
@@ -145,10 +144,19 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       const newVars = this.localVars
       this.localVars = this.scene.localVars
       this.mergeVars(newVars)
+      if (Object.keys(newVars).length) {
+        this.copyVarsToGlobal()
+      }
     } else {
-      this.mergeVars(cloneDeep(this.scene.localVars))
+      this.copyVarsToGlobal(this.scene.localVars)
+      this.copyGlobalVarsToLocal()
+      const newVars = this.localVars
+      this.localVars = {}
+      this.mergeVars(newVars)
+      if (Object.keys(newVars).length) {
+        this.copyVarsToGlobal()
+      }
     }
-    this.copyVarsToGlobal()
   }
 
   private copyVarsToGlobal(localVars = this.localVars) {

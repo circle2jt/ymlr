@@ -1,4 +1,6 @@
 import assert from 'assert'
+import toPlainObject from 'lodash.toplainobject'
+import { removeCircleRef } from 'src/libs/format'
 import { Worker } from 'src/managers/worker'
 import { Scene } from './scene'
 import { SceneProcessProps } from './scene-process.props'
@@ -46,7 +48,7 @@ export class SceneProcess extends Scene {
       path: this.path,
       scope: this.scope,
       password: this.password,
-      globalVars: this.rootScene.localVars,
+      globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
       vars: this.vars
     }, {
       debug: this.proxy.debug

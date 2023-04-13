@@ -30,6 +30,9 @@ export class App {
     const summary = this.rootSceneProxy.logger.is(LoggerLevel.DEBUG) ? new Summary(this.rootSceneProxy) : undefined
     try {
       await this.rootSceneProxy.exec()
+    } catch (err) {
+      this.logger.error('%o', err)
+      throw err
     } finally {
       await this.rootSceneProxy.dispose()
       summary?.print()

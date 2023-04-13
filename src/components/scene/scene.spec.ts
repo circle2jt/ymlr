@@ -75,14 +75,14 @@ test('Check localVars and globalVars', async () => {
     const [, _scene2, echo11, echo12, echo13, echo14] = _scene1.result || []
     expect(echo11.result).toBe('my local vars in scene')
     expect(echo12.result).toBe('My Global Vars 1 in scene 1')
-    expect(echo13.result).toBe('my local vars in root')
+    expect(echo13.result).toBeUndefined()
     expect(echo14.result).toBe('My Global 2 Vars in root')
 
     const [, echo21, echo22, echo23, echo24, echo25] = _scene2.result || []
-    expect(echo21.result).toBe('my local vars in scene')
+    expect(echo21.result).toBeUndefined()
     expect(echo22.result).toBe('my local vars 1 in scene 1')
     expect(echo23.result).toBe('My Global Vars 1 in scene 1')
-    expect(echo24.result).toBe('my local vars in root')
+    expect(echo24.result).toBeUndefined()
     expect(echo25.result).toBe('My Global 2 Vars in root')
   } finally {
     tmp.remove()

@@ -20,6 +20,7 @@ export class Worker {
       },
       env: process.env
     })
+    this.worker.on('message', this.onMessage.bind(this))
     this.worker.on('error', this.onError.bind(this))
     this.worker.on('exit', this.onExit.bind(this))
   }
@@ -39,6 +40,15 @@ export class Worker {
       await this.worker.terminate()
       await this.proms
       this.proms = undefined
+    }
+  }
+
+  onMessage(msg: any) {
+    const { state, data } = JSON.parse(msg)
+    if (state === 'done') {
+      this.resolve(data)
+    } else if (state === 'error') {
+      this.reject(new Error(data))
     }
   }
 

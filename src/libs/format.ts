@@ -46,6 +46,23 @@ export function tryToParseObject(str: any) {
   }
 }
 
+export function removeCircleRef(obj: any) {
+  if (!obj || typeof obj !== 'object') return obj
+  const str = JSON.stringify(obj, (() => {
+    const seen = new WeakSet()
+    return (_: string, value: any) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return
+        }
+        seen.add(value)
+      }
+      return value
+    }
+  })())
+  return JSON.parse(str)
+}
+
 const AccentsMap: Record<string, RegExp> = {
   a: /[àảãáạăằẳẵắặâầẩẫấậ]/g,
   A: /[ÀẢÃÁẠĂẰẲẴẮẶÂẦẨẪẤẬ]/g,
