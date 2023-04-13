@@ -20,6 +20,12 @@ export class App {
     this.rootSceneProxy.element.tagsManager.tagDirs = dirs
   }
 
+  setTemplates(cached: any) {
+    Object.keys(cached).forEach((key: string) => {
+      this.rootSceneProxy.element.templatesManager.pushToCached(key, cached[key])
+    })
+  }
+
   async exec() {
     const summary = this.rootSceneProxy.logger.is(LoggerLevel.DEBUG) ? new Summary(this.rootSceneProxy) : undefined
     try {

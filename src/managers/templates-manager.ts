@@ -1,16 +1,16 @@
 
 export class TemplatesManager {
-  private readonly cached = new Map<string, any>()
+  cached: Record<string, any> = {}
 
   pushToCached(name: string, props: any) {
-    this.cached.set(name, props)
+    this.cached[name] = props
   }
 
   getFromCached(name: string) {
-    return this.cached.get(name)
+    return this.cached[name]
   }
 
   reset() {
-    this.cached.clear()
+    this.cached = {}
   }
 }

@@ -52,7 +52,8 @@ export class SceneProcess extends Scene {
       debug: this.proxy.debug
     }, {
       id: this.id,
-      tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir))
+      tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
+      templates: this.rootScene.templatesManager.cached
     })
   }
 
