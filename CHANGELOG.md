@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.10.md](#1681979885096)  -  _4/20/2023, 3:38:05 PM_
 - [1.1.10-alpha.0.md](#1681410959143)  -  _4/14/2023, 1:35:59 AM_
 - [1.1.9.md](#1681381769752)  -  _4/13/2023, 5:29:29 PM_
 - [1.1.8.md](#1681199796693)  -  _4/11/2023, 2:56:36 PM_
@@ -19,6 +20,16 @@
 
 ## Details
 
+<a id="1681979885096"></a>
+### 1.1.10
+
+* feat: add "js", "sh" tags (4172b26)
+* test: add new test to test async task in http'job (d0655ce)
+* fix(upgrade): not save new version in package.json when upgrade packages (432e8c3)
+* chore: prerelease 1.1.10-alpha.0 (ec3f1e9)
+* fix(scene'process): could not pass circle refs global vars (68b12b2)
+* feat(scene'process): allow clone template (6322819)
+  
 <a id="1681410959143"></a>
 ### 1.1.10-alpha.0
 
