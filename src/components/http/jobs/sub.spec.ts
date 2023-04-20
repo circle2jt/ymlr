@@ -167,3 +167,28 @@ test('Test storage is ref ID', async () => {
   expect(tmp.isExisted).toBe(true)
   await fs.dispose()
 })
+
+test('Test job response', async () => {
+  sub = await Testing.createElementProxy(Sub, {
+    address: '0.0.0.0:4001',
+    runs: [
+      {
+        "exec'js": `
+          await new Promise(r => setTimeout(r, 500))
+          $parentState.jobRes.writeHead(200)
+          $parentState.jobRes.write('ok')
+        `
+      },
+      {
+        "http/jobs'stop": null
+      }
+    ]
+  })
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  setTimeout(async () => {
+    const resp = await axios.post('http://0.0.0.0:4001?jobRes=1')
+    expect(resp.status).toBe(200)
+    expect(resp.data).toBe('ok')
+  }, 1000)
+  await sub.exec()
+})
