@@ -19,9 +19,9 @@ export class PackagesManager {
   }
 
   private static get CmdUpgrade() {
-    if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'upgrade', '--dir', `${join(nodeModulesDir, '..')}`]
-    if (PackagesManager.Bin === 'yarn') return ['yarn', 'upgrade', '--cwd', `${join(nodeModulesDir, '..')}`]
-    return ['npm', 'upgrade', '--prefix', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'upgrade', '--save', '--dir', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'yarn') return ['yarn', 'upgrade', '--save', '--cwd', `${join(nodeModulesDir, '..')}`]
+    return ['npm', 'upgrade', '--save', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
   private static get CmdUninstall() {
@@ -57,7 +57,13 @@ export class PackagesManager {
   }
 
   async upgrade(...packages: string[]) {
-    const existsPackages = this.getInstalledPackages(...packages)
+    let existsPackages = this.getInstalledPackages(...packages)
+    if (PackagesManager.Bin === 'yarn') {
+      existsPackages = existsPackages.map(packageName => {
+        const [name, version] = packageName.split('@')
+        return `${name}@${version || 'latest'}`
+      })
+    }
     existsPackages.length && await this.exec('Upgrading', PackagesManager.CmdUpgrade, existsPackages)
   }
 
