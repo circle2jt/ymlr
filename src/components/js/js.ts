@@ -2,15 +2,15 @@ import assert from 'assert'
 import { FileRemote } from 'src/libs/file-remote'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { ExecJsProps } from './exec-js.props'
+import { JsProps } from './js.props'
 
-/** |**  exec'js
+/** |**  js
   Execute a nodejs code
   @example
   Set value to a variable
   ```yaml
     - name: Set value to a variable
-      exec'js: |
+      js: |
         vars.name = 'thanh'
         logger.info(vars.name)
   ```
@@ -18,7 +18,7 @@ import { ExecJsProps } from './exec-js.props'
   Write a file
   ```yaml
     - name: Write a file
-      exec'js:
+      js:
         path: /sayHello.sh              # Path of js file (Use only "path" OR "script")
         script: |                       # NodeJS content
           const { writeFileSync } = require('fs')
@@ -27,7 +27,7 @@ import { ExecJsProps } from './exec-js.props'
       vars: result                      # !optional
   ```
 */
-export class ExecJs implements Element {
+export class Js implements Element {
   readonly ignoreEvalProps = ['script']
   readonly proxy!: ElementProxy<this>
 
@@ -36,7 +36,7 @@ export class ExecJs implements Element {
   script?: string
   path?: string
 
-  constructor(props: ExecJsProps) {
+  constructor(props: JsProps) {
     if (typeof props === 'string') {
       props = {
         script: props

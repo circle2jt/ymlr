@@ -128,6 +128,7 @@ runs:
 | [input'select](#input'select) | Suggest a list of choices for user then allow pick a choice |
 | [input'suggest](#input'suggest) | Suggest a list of choices for user then allow pick a choice or create a new one |
 | [input'text](#input'text) | Get user input from keyboard then convert to text |
+| [js](#js) | Execute a nodejs code |
 | [npm'install](#npm'install) | Install librarries to use in the scene. |
 | [npm'uninstall](#npm'uninstall) | Uninstall librarries to use in the scene. |
 | [pause](#pause) | Pause the program then wait to user enter to continue |
@@ -135,6 +136,7 @@ runs:
 | [scene](#scene) | Load another scene into the running program |
 | [scene'process](#scene'process) | Same "scene" but it run as a child process |
 | [scene'returns](#scene'returns) | Return value to parent scene |
+| [sh](#sh) | Execute a shell script |
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
@@ -588,25 +590,7 @@ Execute a nodejs code
 
 Example:  
 
-Set value to a variable
-```yaml
-  - name: Set value to a variable
-    exec'js: |
-      vars.name = 'thanh'
-      logger.info(vars.name)
-```
-
-Write a file
-```yaml
-  - name: Write a file
-    exec'js:
-      path: /sayHello.sh              # Path of js file (Use only "path" OR "script")
-      script: |                       # NodeJS content
-        const { writeFileSync } = require('fs')
-        writeFileSync('/tmp/hello.txt', 'Hello world')
-        return "OK"
-    vars: result                      # !optional
-```  
+Refers to "js" tag document  
 
 
 ## <a id="exec'sh"></a>exec'sh  
@@ -615,26 +599,7 @@ Execute a shell script
 
 Example:  
 
-Execute a sh file
-```yaml
-  - name: Write a hello file
-    exec'sh:
-      path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
-    vars: log       # !optional
-```
-
-Execute a bash script
-```yaml
-  - name: Write a hello file
-    exec'sh:
-      script: |                       # Shell script content
-        touch hello.txt
-        echo "Hello world" > /tmp/hello.txt
-      bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
-      timeout: 10m                    # Time to run before force quit
-      process: true                   # Create a new child process to execute it. Default is false
-    vars: log                         # !optional
-```  
+Refers to "sh" tag document  
 
 
 ## <a id="exit"></a>exit  
@@ -1174,6 +1139,33 @@ Example:
 ```  
 
 
+## <a id="js"></a>js  
+  
+Execute a nodejs code  
+
+Example:  
+
+Set value to a variable
+```yaml
+  - name: Set value to a variable
+    js: |
+      vars.name = 'thanh'
+      logger.info(vars.name)
+```
+
+Write a file
+```yaml
+  - name: Write a file
+    js:
+      path: /sayHello.sh              # Path of js file (Use only "path" OR "script")
+      script: |                       # NodeJS content
+        const { writeFileSync } = require('fs')
+        writeFileSync('/tmp/hello.txt', 'Hello world')
+        return "OK"
+    vars: result                      # !optional
+```  
+
+
 ## <a id="npm'install"></a>npm'install  
   
 Install librarries to use in the scene.  
@@ -1339,6 +1331,34 @@ Main scene `index.yaml`
     vars: sumOfXY
 
   - echo: ${ $vars.sumOfXY }    # => 30
+```  
+
+
+## <a id="sh"></a>sh  
+  
+Execute a shell script  
+
+Example:  
+
+Execute a sh file
+```yaml
+  - name: Write a hello file
+    sh:
+      path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
+    vars: log       # !optional
+```
+
+Execute a bash script
+```yaml
+  - name: Write a hello file
+    sh:
+      script: |                       # Shell script content
+        touch hello.txt
+        echo "Hello world" > /tmp/hello.txt
+      bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
+      timeout: 10m                    # Time to run before force quit
+      process: true                   # Create a new child process to execute it. Default is false
+    vars: log                         # !optional
 ```  
 
 

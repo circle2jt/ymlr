@@ -6,15 +6,15 @@ import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
-import { ExecShProps } from './exec-sh.props'
+import { ShProps } from './sh.props'
 
-/** |**  exec'sh
+/** |**  sh
   Execute a shell script
   @example
   Execute a sh file
   ```yaml
     - name: Write a hello file
-      exec'sh:
+      sh:
         path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
       vars: log       # !optional
   ```
@@ -22,7 +22,7 @@ import { ExecShProps } from './exec-sh.props'
   Execute a bash script
   ```yaml
     - name: Write a hello file
-      exec'sh:
+      sh:
         script: |                       # Shell script content
           touch hello.txt
           echo "Hello world" > /tmp/hello.txt
@@ -32,7 +32,7 @@ import { ExecShProps } from './exec-sh.props'
       vars: log                         # !optional
   ```
 */
-export class ExecSh implements Element {
+export class Sh implements Element {
   readonly proxy!: ElementProxy<this>
 
   private get scene() { return this.proxy.scene }
@@ -44,7 +44,7 @@ export class ExecSh implements Element {
   process?: boolean
   bin = '/bin/sh'
 
-  constructor(props: ExecShProps) {
+  constructor(props: ShProps) {
     if (typeof props === 'string') {
       props = {
         script: props
@@ -63,7 +63,7 @@ export class ExecSh implements Element {
     try {
       tmpFile.create(this.script)
       const timeout = this.timeout === undefined ? undefined : formatTextToMs(this.timeout)
-      const rs = await (this.process === true ? this.execLongScript(tmpFile, timeout) : this.execShortScript(tmpFile, timeout))
+      const rs = await (this.process === true ? this.execLongScript(tmpFile, timeout) : this.ShortScript(tmpFile, timeout))
       return rs
     } finally {
       tmpFile.remove()
@@ -92,7 +92,7 @@ export class ExecSh implements Element {
     })
   }
 
-  private async execShortScript(tmpFile: FileTemp, timeout: number | undefined) {
+  private async ShortScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
       execFile(this.bin, [tmpFile.file], { env: process.env, cwd: this.scene.curDir, timeout }, (err, stdout, stderr) => {
         if (err) return reject(err)
