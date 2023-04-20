@@ -171,6 +171,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async getRemoteFileProps() {
+    this.path = await this.scene.getVars(this.path)
     if (this.path) {
       const fileRemote = new FileRemote(this.path, this.scene || this)
       this.content = await fileRemote.getTextContent()

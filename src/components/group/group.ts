@@ -93,7 +93,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
         props.runs = undefined
       }
-      let { '<-': inheritKeys, '->': exposeKey, skip, preScript, postScript, ...eProps } = props
+      let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
       let tagName = this.getTagName(eProps)
 
       // Only support template or tag name. Prefer tag name
@@ -108,7 +108,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip when skip=true or it's a template
       if (skip || eProps.template) continue
 
-      let { if: condition, force, debug, vars, async, loop, name, id } = eProps
+      let { if: condition, force, debug, vars, async, loop, name, id, preScript, postScript } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag

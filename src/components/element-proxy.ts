@@ -447,31 +447,34 @@ export class ElementProxy<T extends Element> {
 
     let isAddIndent: boolean | undefined
     try {
-      await this.evalPropsBeforeExec()
+      try {
+        await this.evalPropsBeforeExec()
 
-      isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
-      if (isAddIndent) this.logger.addIndent()
+        isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
+        if (isAddIndent) this.logger.addIndent()
 
-      this.name && this.logger.info('%s', this.name)
-      if (this.preScript) {
-        await this.callFunctionScript(this.preScript)
+        this.name && this.logger.info('%s', this.name)
+        if (this.preScript) {
+          await this.callFunctionScript(this.preScript)
+        }
+        const result = await this.element.exec(parentState)
+        if (this.result instanceof Returns) this.result = this.result.result
+        else this.result = result
+      } catch (err: any) {
+        this.error = err
+        if (!this.force) throw err
+        this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
+        return
+      } finally {
+        if (isAddIndent) this.logger.removeIndent()
       }
-      const result = await this.element.exec(parentState)
-      if (this.result instanceof Returns) this.result = this.result.result
-      else this.result = result
-    } catch (err: any) {
-      this.error = err
-      if (!this.force) throw err
-      this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
-      return err
+      await this.setVarsAfterExec()
+      if (this.postScript) {
+        await this.callFunctionScript(this.postScript)
+      }
     } finally {
-      if (isAddIndent) this.logger.removeIndent()
+      this.rootScene?.event.emit('element/exec:end', this)
     }
-    await this.setVarsAfterExec()
-    if (this.postScript) {
-      await this.callFunctionScript(this.postScript)
-    }
-    this.rootScene?.event.emit('element/exec:end', this)
     return this.result
   }
 
