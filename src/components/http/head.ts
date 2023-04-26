@@ -85,7 +85,6 @@ export class Head implements Element {
 
   async exec() {
     try {
-      this.logger.debugBlock(true)
       this.logger.debug('%s \t%s', chalk.gray(`⇾ ${this.method.toUpperCase()}`), this.fullURL)
 
       this.prehandleQuery()
@@ -116,7 +115,6 @@ export class Head implements Element {
       throw error
     } finally {
       this.proxy.vars && this.applyVar()
-      this.logger.debugBlock(false)
     }
     // if (this.error) {
     //   const error = this.error as HttpError

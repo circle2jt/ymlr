@@ -5,6 +5,7 @@ export interface SubJobDataInfo {
   method: string
   headers: any
   query: any
+  body: any
 }
 
 export interface SubJobData {

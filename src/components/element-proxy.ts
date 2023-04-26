@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
 import { Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
@@ -463,7 +462,7 @@ export class ElementProxy<T extends Element> {
       } catch (err: any) {
         this.error = err
         if (!this.force) throw err
-        this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
+        this.logger.warn('%o', err)
         return
       } finally {
         if (isAddIndent) this.logger.removeIndent()
