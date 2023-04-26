@@ -28,6 +28,11 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
           GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
+      - name: Trigger to build other projects
+        run: yarn ci:trigger
+        env:
+          VERSION: ${{ github.ref_name }}
+          TOKEN: ${{ secrets.GIT_TOKEN }}
 
   publish-docker:
     needs: publish-npm

@@ -1,0 +1,13 @@
+vars:
+  version: ""
+  token: ""
+runs:
+  - http'post:
+      url: https://api.github.com/repos/circle2jt/ymlr-vscode/dispatches
+      headers:
+        Accept: application/vnd.github.everest-preview+json
+        Authorization: token ${ $vars.token }
+      body:
+        event_type: new_ymlr
+        client_payload:
+          version: ${ $vars.version }
