@@ -95,15 +95,15 @@ export class Logger {
       case LoggerLevel.INFO:
         return `${Icon.info}${sp}${msg} ${Logger._globalName}`
       case LoggerLevel.WARN:
-        return `${Icon.warn}${sp}${msg} ${Logger._globalName}`
+        return `${chalk.yellow(`[${this.context}] | ${msg}`)} ${Logger._globalName}`
       case LoggerLevel.ERROR:
-        return `${Icon.error}${sp}${msg} ${Logger._globalName}`
+        return `${chalk.red(`[${this.context}] | ${msg}`)} ${Logger._globalName}`
       case LoggerLevel.FATAL:
-        return `${Icon.fatal}${sp}${msg} ${Logger._globalName}`
+        return `${chalk.red.bold(`[${this.context}] | ${msg}`)} ${Logger._globalName}`
       case LoggerLevel.TRACE:
-        return `${Icon.trace}${sp}${chalk.magenta(msg)} ${Logger._globalName}`
+        return `${chalk.magenta(`[${this.context}] | ${msg}`)} ${Logger._globalName}`
       case LoggerLevel.DEBUG:
-        return `${Icon.debug}${chalk.gray(`${msg}`)} ${Logger._globalName}`
+        return `${chalk.gray(`[${this.context}] | ${msg}`)} ${Logger._globalName}`
     }
     return `${msg}`
   }
@@ -121,16 +121,16 @@ export class Logger {
     console.log(...args)
   }
 
-  debugBlock(isStart: boolean, msg = this.context || '', ...prms: any) {
-    if (!this.is(LoggerLevel.DEBUG)) return
-    if (isStart) {
-      this.print(`${this.indentString}%s %s`, Icon.debugBlock.begin, chalk.bgRed.dim('▾ ' + msg), ...prms)
-      this.addIndent()
-    } else {
-      this.removeIndent()
-      this.print(`${this.indentString}%s`, Icon.debugBlock.end)
-    }
-  }
+  // debugBlock(isStart: boolean, msg = this.context || '', ...prms: any) {
+  //   if (!this.is(LoggerLevel.DEBUG)) return
+  //   if (isStart) {
+  //     this.print(`${this.indentString}%s %s`, Icon.debugBlock.begin, chalk.bgRed.dim('▾ ' + msg), ...prms)
+  //     this.addIndent()
+  //   } else {
+  //     this.removeIndent()
+  //     this.print(`${this.indentString}%s`, Icon.debugBlock.end)
+  //   }
+  // }
 
   log(msg: any, ...prms: any) {
     if (!this.is(LoggerLevel.SILENT)) {
@@ -204,7 +204,7 @@ export class Logger {
         })
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
+        msg = '%o'
         this.print(`${this.format(msg, LoggerLevel.TRACE)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
       }
     }
@@ -220,7 +220,7 @@ export class Logger {
         })
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
+        msg = '%o'
         this.print(`${this.format(msg, LoggerLevel.ERROR)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
       }
     }
@@ -236,7 +236,7 @@ export class Logger {
         })
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
+        msg = '%o'
         this.print(`${this.format(msg, LoggerLevel.FATAL)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
       }
     }

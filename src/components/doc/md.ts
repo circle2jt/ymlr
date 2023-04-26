@@ -60,7 +60,6 @@ export class MDDoc implements Element {
     this.logger.addIndent()
     try {
       if (!this.includeDirs?.length || !this.saveTo) return
-      this.logger.debugBlock(true)
       this.includeDirs = this.includeDirs.map(dir => this.scene.getPath(dir))
       this.saveTo = this.scene.getPath(this.saveTo)
       const mdFileOutput = new MDFileOutput(this.title)
@@ -83,8 +82,6 @@ export class MDDoc implements Element {
       mdFileOutput.appendContent(...postContents)
 
       await mdFileOutput.save(this.saveTo)
-
-      this.logger.debugBlock(false)
 
       this.logger.info('Exported/Total files\t%d/%d', this.count.handled, this.count.handled + this.count.ignored)
     } finally {

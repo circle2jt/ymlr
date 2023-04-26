@@ -91,7 +91,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   async exec() {
     if (this.name) this.logger.info('%s', this.name)
-    if (this.isRoot) this.logger.debug('')
+    // if (this.isRoot) this.logger.debug('')
     try {
       const results = await super.exec()
       return results || []
