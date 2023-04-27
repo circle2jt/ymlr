@@ -13,8 +13,8 @@ const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['y
 export class PackagesManager {
   private static Bin?: 'pnpm' | 'npm' | 'yarn'
   private static get CmdInstall() {
-    if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'add', '--prefer-offline', '--dir', `${join(nodeModulesDir, '..')}`]
-    if (PackagesManager.Bin === 'yarn') return ['yarn', 'add', '--prefer-offline', '--cwd', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'add', '--dir', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'yarn') return ['yarn', 'add', '--cwd', `${join(nodeModulesDir, '..')}`]
     return ['npm', 'add', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
