@@ -5,6 +5,7 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { Logger, LoggerLevel } from 'src/libs/logger'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Element } from './element.interface'
+import { Group } from './group/group'
 import { Returns } from './scene/returns'
 import { VarsProps } from './vars/vars.props'
 
@@ -308,7 +309,7 @@ export class ElementProxy<T extends Element> {
   loopKey?: any
   loopValue?: any
 
-  parent?: Element
+  parent?: Group<any, any>
   get parentProxy() {
     return this.parent?.proxy
   }
@@ -446,6 +447,7 @@ export class ElementProxy<T extends Element> {
     this.rootScene?.event.emit('element/exec:before', this)
 
     let isAddIndent: boolean | undefined
+    let uuid: string | undefined
     try {
       try {
         await this.evalPropsBeforeExec()
@@ -453,7 +455,10 @@ export class ElementProxy<T extends Element> {
         isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
         if (isAddIndent) this.logger.addIndent()
 
-        this.name && this.logger.info('%s', this.name)
+        if (this.name) {
+          uuid = Date.now().toString() + Math.random().toString()
+          this.parent?.spinnies.add(uuid, { text: this.name })
+        }
         if (this.preScript) {
           await this.callFunctionScript(this.preScript)
         }
@@ -462,7 +467,10 @@ export class ElementProxy<T extends Element> {
         else this.result = result
       } catch (err: any) {
         this.error = err
-        if (!this.force) throw err
+        if (!this.force) {
+          if (uuid) this.parent?.spinnies.fail(uuid)
+          throw err
+        }
         this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
         return
       } finally {
@@ -472,6 +480,7 @@ export class ElementProxy<T extends Element> {
       if (this.postScript) {
         await this.callFunctionScript(this.postScript)
       }
+      if (uuid) this.parent?.spinnies.succeed(uuid)
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
     }
