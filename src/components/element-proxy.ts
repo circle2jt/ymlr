@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
 import { Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
@@ -447,7 +446,6 @@ export class ElementProxy<T extends Element> {
     this.rootScene?.event.emit('element/exec:before', this)
 
     let isAddIndent: boolean | undefined
-    let uuid: string | undefined
     try {
       try {
         await this.evalPropsBeforeExec()
@@ -455,9 +453,8 @@ export class ElementProxy<T extends Element> {
         isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
         if (isAddIndent) this.logger.addIndent()
 
-        if (this.name) {
-          uuid = Date.now().toString() + Math.random().toString()
-          this.parent?.spinnies.add(uuid, { text: this.name })
+        if (this.name && !this.$.hideName) {
+          this.logger.label(this.name)
         }
         if (this.preScript) {
           await this.callFunctionScript(this.preScript)
@@ -468,10 +465,9 @@ export class ElementProxy<T extends Element> {
       } catch (err: any) {
         this.error = err
         if (!this.force) {
-          if (uuid) this.parent?.spinnies.fail(uuid)
           throw err
         }
-        this.logger.debug(chalk.yellow(`⚠️ ${err.message}`))
+        this.logger.warn('%o', err)
         return
       } finally {
         if (isAddIndent) this.logger.removeIndent()
@@ -480,7 +476,9 @@ export class ElementProxy<T extends Element> {
       if (this.postScript) {
         await this.callFunctionScript(this.postScript)
       }
-      if (uuid) this.parent?.spinnies.succeed(uuid)
+      if (this.name && !this.$.hideName) {
+        this.logger.passed(this.name)
+      }
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
     }

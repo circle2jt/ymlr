@@ -1,6 +1,6 @@
 {
   "name": "ymlr",
-  "version": "1.1.11-alpha.0",
+  "version": "1.1.11-alpha.3",
   "description": "A platform helps to do everythings base on a yaml script file",
   "main": "src/index.js",
   "types": "src/index.d.ts",
@@ -82,12 +82,10 @@
     "form-data": "^4.0.0",
     "js-yaml": "^4.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "lodash.isplainobject": "^4.0.6",
     "lodash.merge": "^4.6.2",
     "lodash.toplainobject": "^4.2.0",
-    "ora": "^6.1.2",
     "prompts": "^2.4.2",
-    "spinnies": "^0.5.1"
+    "xml2js": "^0.5.0"
   },
   "publishConfig": {
     "access": "public",

@@ -19,7 +19,7 @@ program
   .enablePositionalOptions(true)
   .passThroughOptions(true)
   .showHelpAfterError(true)
-  .option('--debug <level>', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent")')
+  .option('--debug [level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
   .option('--tag-dirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
   .option('-ef, --env-files <path...>', 'environment variables files')
@@ -40,7 +40,9 @@ program
         const vl = keyValue.substring(idx + 1)
         process.env[key] = vl
       })
-    if (debug) globalDebug = debug
+    if (debug) {
+      globalDebug = debug === true ? 'debug' : debug
+    }
     const appLogger = new Logger(globalDebug)
     appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
     appLogger.log('')

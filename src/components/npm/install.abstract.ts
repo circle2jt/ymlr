@@ -7,6 +7,7 @@ import { Element } from '../element.interface'
 import { InstallProps } from './install.props'
 
 export abstract class InstallAbstract implements Element {
+  readonly hideName = true
   readonly proxy!: ElementProxy<this>
   protected get logger() { return this.proxy.logger }
 

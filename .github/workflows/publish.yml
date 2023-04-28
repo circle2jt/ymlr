@@ -28,6 +28,20 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
           GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}
+
+  publish-vscode:
+    needs: publish-npm
+    name: Publish to vscode marketplace
+    runs-on: ubuntu-latest
+    environment: ${{ vars.ENV_STAGE }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: current
+          cache: yarn
+      - run: yarn install --frozen-lockfile
       - name: Trigger to build other projects
         run: yarn ci:trigger
         env:

@@ -57,6 +57,10 @@ export class Logger {
     return MappingValue[this.level]
   }
 
+  get style() {
+    return chalk
+  }
+
   constructor(level: LoggerLevel | number, public context = '', public indent = 0) {
     this.setLevel(level)
     if (this.indent) this.updateIndent(this.indent)
@@ -89,27 +93,13 @@ export class Logger {
     return str && chalk.gray.dim(str)
   }
 
-  formatWithoutIndent(msg: string, level?: LoggerLevel) {
-    const sp = msg ? ' ' : ''
-    switch (level) {
-      case LoggerLevel.INFO:
-        return `${Icon.info}${sp}${msg} ${Logger._globalName}`
-      case LoggerLevel.WARN:
-        return `${Icon.warn}${sp}${msg} ${Logger._globalName}`
-      case LoggerLevel.ERROR:
-        return `${Icon.error}${sp}${msg} ${Logger._globalName}`
-      case LoggerLevel.FATAL:
-        return `${Icon.fatal}${sp}${msg} ${Logger._globalName}`
-      case LoggerLevel.TRACE:
-        return `${Icon.trace}${sp}${chalk.magenta(msg)} ${Logger._globalName}`
-      case LoggerLevel.DEBUG:
-        return `${Icon.debug}${chalk.gray(`${msg}`)} ${Logger._globalName}`
-    }
-    return `${msg}`
+  get prefix() {
+    return `${this.time} | ${chalk.blue(this.context)} | `
   }
 
-  format(msg: string, level?: LoggerLevel) {
-    return `${this.indentString}${this.formatWithoutIndent(msg, level)}`
+  get time() {
+    const date = new Date()
+    return chalk.gray(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${date.getMilliseconds()}`)
   }
 
   setLevel(level: LoggerLevel | number) {
@@ -121,28 +111,35 @@ export class Logger {
     console.log(...args)
   }
 
-  debugBlock(isStart: boolean, msg = this.context || '', ...prms: any) {
-    if (!this.is(LoggerLevel.DEBUG)) return
-    if (isStart) {
-      this.print(`${this.indentString}%s %s`, Icon.debugBlock.begin, chalk.bgRed.dim('▾ ' + msg), ...prms)
-      this.addIndent()
-    } else {
-      this.removeIndent()
-      this.print(`${this.indentString}%s`, Icon.debugBlock.end)
-    }
-  }
-
   log(msg: any, ...prms: any) {
     if (!this.is(LoggerLevel.SILENT)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string) => {
-          this.print(`${this.indentString}${msg}`, ...prms)
-        })
+        this.splitMsgThenPrint(msg, undefined, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.indentString}${msg}`, ...prms)
+        this.print(`${this.format('%j', undefined)}`, ...prms)
       }
+    }
+    return this
+  }
+
+  label(msg: string) {
+    if (this.is(LoggerLevel.INFO)) {
+      this.print(`${this.indentString}${chalk.green('✔')} ${msg} ${Logger._globalName} `)
+    }
+    return this
+  }
+
+  passed(msg: any, level = LoggerLevel.DEBUG) {
+    if (this.is(level)) {
+      this.print(`${this.indentString}${chalk.green('✔')} ${msg} ${Logger._globalName} `)
+    }
+    return this
+  }
+
+  failed(msg: any, level = LoggerLevel.DEBUG) {
+    if (this.is(level)) {
+      this.print(`${this.indentString}${chalk.red('✘')} ${msg} ${Logger._globalName} `)
     }
     return this
   }
@@ -150,14 +147,10 @@ export class Logger {
   info(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.INFO)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.INFO)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.INFO, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.INFO)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%j', LoggerLevel.INFO)}`, ...prms)
       }
     }
     return this
@@ -166,14 +159,10 @@ export class Logger {
   debug(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.DEBUG)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.DEBUG)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.DEBUG, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.DEBUG)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%j', LoggerLevel.DEBUG)}`, ...prms)
       }
     }
     return this
@@ -182,14 +171,10 @@ export class Logger {
   warn(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.WARN)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.WARN)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.WARN, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.WARN)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%o', LoggerLevel.WARN)}`, ...prms)
       }
     }
     return this
@@ -198,14 +183,10 @@ export class Logger {
   trace(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.TRACE)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.TRACE)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.TRACE, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.TRACE)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%o', LoggerLevel.TRACE)}`, ...prms)
       }
     }
     return this
@@ -214,14 +195,10 @@ export class Logger {
   error(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.ERROR)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.ERROR)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.ERROR, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.ERROR)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%o', LoggerLevel.ERROR)}`, ...prms)
       }
     }
     return this
@@ -230,16 +207,45 @@ export class Logger {
   fatal(msg: any, ...prms: any) {
     if (this.is(LoggerLevel.ERROR)) {
       if (typeof msg === 'string') {
-        msg.split('\n').forEach((msg: string, i: number) => {
-          msg = (i === 0 ? '' : '  ') + msg
-          this.print(`${this.format(msg, i !== 0 ? undefined : LoggerLevel.FATAL)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
-        })
+        this.splitMsgThenPrint(msg, LoggerLevel.FATAL, ...prms)
       } else {
         prms.splice(0, 0, msg)
-        msg = '%j'
-        this.print(`${this.format(msg, LoggerLevel.FATAL)}`, ...prms) //, (!this.context || !msg) ? '' : chalk.italic.gray.dim(`[${ this.context }]`))
+        this.print(`${this.format('%o', LoggerLevel.FATAL)}`, ...prms)
       }
     }
     return this
   }
+
+  private splitMsgThenPrint(msg: string, level: LoggerLevel | undefined, ...prms: any) {
+    msg.split('\n').forEach((msg: string, i: number) => {
+      msg = (i === 0 ? '' : '  ') + msg
+      this.print(`${this.format(msg, i !== 0 ? undefined : level)}`, ...prms)
+    })
+  }
+
+  private formatWithoutIndent(msg: string, level?: LoggerLevel) {
+    switch (level) {
+      case LoggerLevel.INFO:
+        return `${msg} ${Logger._globalName}`
+      case LoggerLevel.WARN:
+        return `${this.prefix}\t${chalk.yellow(`${msg}`)} ${Logger._globalName}`
+      case LoggerLevel.ERROR:
+        return `${this.prefix}\t${chalk.red(`${msg}`)} ${Logger._globalName}`
+      case LoggerLevel.FATAL:
+        return `${this.prefix}\t${chalk.red.bold(`${msg}`)} ${Logger._globalName}`
+      case LoggerLevel.TRACE:
+        return `${this.prefix}\t${chalk.magenta(`${msg}`)} ${Logger._globalName}`
+      case LoggerLevel.DEBUG:
+        return `${this.prefix}\t${chalk.gray(`${msg}`)} ${Logger._globalName}`
+    }
+    return `${msg}`
+  }
+
+  private format(msg: string, level?: LoggerLevel) {
+    return `${this.indentString}${this.formatWithoutIndent(msg, level)}`
+  }
+
+  // private formatWithIcon(msg: string, icon: string, level?: LoggerLevel) {
+  //   return `${this.indentString}${icon} ${this.formatWithoutIndent(msg, level)}`
+  // }
 }

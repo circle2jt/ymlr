@@ -3,6 +3,7 @@ import { createServer, IncomingMessage, Server, ServerResponse } from 'http'
 import merge from 'lodash.merge'
 import { parse } from 'querystring'
 import { Job } from 'src/components/.job/job'
+import { promisify } from 'util'
 import { BasicAuth } from './auth/BasicAuth'
 import { IVerify } from './auth/IVerify'
 import { SubJobData } from './sub-job-data.props'
@@ -53,6 +54,7 @@ import { SubProps } from './sub.props'
 */
 export class Sub extends Job {
   address: string = '0.0.0.0:8811'
+  type?: 'json' | 'xml' | 'any'
   secure?: {
     basic?: {
       username: string
@@ -64,9 +66,9 @@ export class Sub extends Job {
 
   private server?: Server
 
-  constructor({ address, secure, ...props }: SubProps) {
+  constructor({ address, secure, type, ...props }: SubProps) {
     super(props)
-    Object.assign(this, { address, secure })
+    Object.assign(this, { address, secure, type })
     this.ignoreEvalProps.push('server', 'auth')
   }
 
@@ -99,16 +101,25 @@ export class Sub extends Job {
         path,
         method: req.method as string,
         headers: req.headers,
-        query: parse(qstr)
+        query: parse(qstr),
+        body: undefined
       },
       jobData: {},
       jobRes: undefined
     }
-    jobData.jobData = jobData.jobInfo.query
+    jobData.jobData = JSON.parse(JSON.stringify(jobData.jobInfo.query))
     const logs = [this.auth ? 'secured' : 'unsecured']
     try {
-      const requestBodyText = await this.getRequestBody(req)
-      const requestBody = requestBodyText ? JSON.parse(requestBodyText) : requestBodyText
+      jobData.jobInfo.body = await this.getRequestBody(req)
+      let requestBody = {}
+      if (jobData.jobInfo.body) {
+        if (this.type === 'json' || !this.type) {
+          requestBody = JSON.parse(jobData.jobInfo.body)
+        } else if (this.type === 'xml') {
+          const { parseString } = require('xml2js')
+          requestBody = await promisify(parseString)(jobData.jobInfo.body)
+        }
+      }
       merge(jobData.jobData, requestBody)
 
       const isAuth = await this.auth?.verify(jobData)
