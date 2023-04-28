@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.1.11-alpha.4.md](#1682650031508)  -  _4/28/2023, 9:47:11 AM_
 - [1.1.11-alpha.2.md](#1682492077755)  -  _4/26/2023, 1:54:37 PM_
 - [1.1.11-alpha.0.md](#1681997869191)  -  _4/20/2023, 8:37:49 PM_
 - [1.1.10.md](#1681979885096)  -  _4/20/2023, 3:38:05 PM_
@@ -22,6 +23,14 @@
 
 ## Details
 
+<a id="1682650031508"></a>
+### 1.1.11-alpha.4
+
+* refactor(logger): change style log to display on console (7bc6306)
+* fix: npm install error when prefer offline (e76f9a1)
+* feat: add spinner for each step (4eafe59)
+* ci: Auto rebuild vscode extension when ymlr is upgraded (bf7d3ee)
+  
 <a id="1682492077755"></a>
 ### 1.1.11-alpha.2
 
