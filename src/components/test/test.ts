@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { LoggerLevel } from 'src/libs/logger'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { TestError } from './test-error'
@@ -29,11 +29,11 @@ export type TestProps = string | {
   ```
 */
 export class Test implements Element {
+  readonly hideName = true
   readonly ignoreEvalProps = ['script', 'defaultTestTitle']
   readonly proxy!: ElementProxy<this>
   private get logger() { return this.proxy.logger }
 
-  title?: string
   check?: string
   script?: string
 
@@ -46,38 +46,29 @@ export class Test implements Element {
       }
     }
     Object.assign(this, props)
-    if (!this.title) this.defaultTestTitle = this.check || this.script
+    this.defaultTestTitle = this.check || this.script || ''
   }
 
   failed(description = ''): never {
-    throw new TestError(description)
+    const err = new TestError(this.proxy.name)
+    err.cause = description || this.defaultTestTitle
+    throw err
   }
 
   async exec() {
-    try {
-      if (this.check !== undefined) {
-        const rs = this.check
-        if (!rs) this.failed('')
-      }
-      if (this.script) {
-        try {
-          await this.proxy.callFunctionScript(this.script)
-        } catch (err: any) {
-          this.failed(err?.message)
-        }
-      }
-      this.title && this.logger.info(this.title)
-      return {
-        passed: true
-      }
-    } catch (err: any) {
-      if (!(err instanceof TestError)) throw err
-      this.logger.error('%s\t%s', this.title || this.defaultTestTitle, chalk.gray(err?.message))
-      return {
-        passed: false,
-        error: err
+    if (this.check !== undefined) {
+      const rs = this.check
+      if (!rs) this.failed('')
+    }
+    if (this.script) {
+      try {
+        await this.proxy.callFunctionScript(this.script)
+      } catch (err: any) {
+        this.failed(err?.message)
       }
     }
+    this.proxy.name && this.logger.passed(this.proxy.name, LoggerLevel.INFO)
+    return true
   }
 
   dispose() { }

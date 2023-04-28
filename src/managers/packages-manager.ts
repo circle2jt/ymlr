@@ -5,7 +5,6 @@ import { join } from 'path'
 import { ElementProxy } from 'src/components/element-proxy'
 import { Exec } from 'src/components/exec/exec'
 import { Logger, LoggerLevel } from 'src/libs/logger'
-import { ProgressBar } from 'src/libs/progress-bar'
 import { nodeModulesDir } from './modules-manager'
 
 const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['yarn', 'npm', 'pnpm']) as Array<'npm' | 'yarn' | 'pnpm'>
@@ -96,17 +95,13 @@ export class PackagesManager {
     if (!packages.length) return
     const cmd = [...cmds, ...packages]
     const msg = `tags ${packages.map(e => `"${e}"`).join(', ')}`
-    const bar = !this.logger.is(LoggerLevel.SILENT) ? new ProgressBar(this.logger) : undefined
-    await bar?.start(`${des} ${msg}`)
     const exec = new ElementProxy(new Exec(cmd))
     exec.logger = this.logger
     try {
       await exec.exec()
-      await bar?.stop()
-      this.logger.info(`${des} ${msg} successfully`)
+      this.logger.passed(`${des} ${msg} successfully`, LoggerLevel.INFO)
     } catch (err) {
-      await bar?.stop()
-      this.logger.error(`${des} ${msg} failed`)
+      this.logger.failed(`${des} ${msg} failed`, LoggerLevel.ERROR)
       throw err
     } finally {
       await exec.dispose()

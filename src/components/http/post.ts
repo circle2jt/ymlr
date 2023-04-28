@@ -3,7 +3,6 @@ import FormData from 'form-data'
 import { createReadStream } from 'fs'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger'
-import { ProgressBar } from 'src/libs/progress-bar'
 import { Get } from './get'
 import { PostProps } from './post.props'
 import { RequestType, UploadFile } from './types'
@@ -65,29 +64,21 @@ export class Post extends Get {
 
   async send(moreOptions: any = {}) {
     const body = this.getRequestBody()
-    let bar: ProgressBar | undefined
     if (this.isUpload) {
       // eslint-disable-next-line no-case-declarations
-      bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
-      if (bar) {
-        if (this.proxy.name) bar.logger.addIndent()
-        await bar.start(chalk.gray.dim('Connecting ...'))
+      if (this.logger.is(LoggerLevel.TRACE)) {
+        this.logger.trace(chalk.gray.dim('Connecting ...'))
         moreOptions.onUploadProgress = (data: any) => {
           const { bytes, loaded } = data
-          bar?.update(chalk.gray(`Uploading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
+          this.logger.trace(chalk.gray(`Uploading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
         }
       }
     }
-    try {
-      const rs = await super.send({
-        data: body,
-        ...moreOptions
-      })
-      return rs
-    } finally {
-      if (this.proxy.name) bar?.logger.addIndent(-1)
-      await bar?.stop()
-    }
+    const rs = await super.send({
+      data: body,
+      ...moreOptions
+    })
+    return rs
   }
 
   protected getRequestBody() {

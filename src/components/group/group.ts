@@ -1,5 +1,4 @@
 import cloneDeep from 'lodash.clonedeep'
-import Spinnies from 'spinnies'
 import { AppEvent } from 'src/app-event'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
@@ -31,11 +30,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   protected get innerScene() {
     return this.scene
   }
-  spinnies: Spinnies
 
   constructor(props: GP | GIP[]) {
     this.lazyInitRuns(props)
-    this.spinnies = new Spinnies()
   }
 
   dispose() { }

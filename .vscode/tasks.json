@@ -35,7 +35,19 @@
 			"type": "npm",
 			"script": "doc",
 			"problemMatcher": [],
-			"label": "Generate guideline document"
+			"label": "Document"
+		},
+		{
+			"type": "npm",
+			"script": "v:patch",
+			"problemMatcher": [],
+			"label": "Create a patch version"
+		},
+		{
+			"type": "npm",
+			"script": "v:next",
+			"problemMatcher": [],
+			"label": "Create a next version"
 		}
 	]
 }

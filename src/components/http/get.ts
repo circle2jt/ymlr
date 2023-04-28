@@ -5,7 +5,6 @@ import { IncomingMessage } from 'http'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger'
-import { ProgressBar } from 'src/libs/progress-bar'
 import { finished } from 'stream/promises'
 import { GetProps } from './get.props'
 import { Head } from './head'
@@ -60,36 +59,28 @@ export class Get extends Head {
   async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
     if (this.responseType === 'stream') this.isDownload = true
-    let bar: ProgressBar | undefined
     if (this.isDownload) {
       // eslint-disable-next-line no-case-declarations
-      bar = this.logger.is(LoggerLevel.INFO) ? new ProgressBar(this.logger.clone()) : undefined
-      if (bar) {
-        if (this.proxy.name) bar.logger.addIndent()
-        await bar.start(chalk.gray.dim('Connecting ...'))
+      if (this.logger.is(LoggerLevel.TRACE)) {
+        this.logger.trace(chalk.gray.dim('Connecting ...'))
         moreOptions.onDownloadProgress = (data: any) => {
           const { bytes, loaded } = data
-          bar?.update(chalk.gray(`Downloading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
+          this.logger.trace(chalk.gray(`Downloading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
         }
       }
     }
-    try {
-      const rs = await axios({
-        responseType: this.responseType === 'none' ? 'stream' : this.responseType,
-        ...this.axiosOpts,
-        ...moreOptions
-      })
-      this.response = {
-        status: rs.status,
-        statusText: rs.statusText,
-        headers: this.getResponseHeader(rs),
-        data: await this.getResponseData(rs)
-      }
-      return this.response
-    } finally {
-      if (this.proxy.name) bar?.logger.addIndent(-1)
-      await bar?.stop()
+    const rs = await axios({
+      responseType: this.responseType === 'none' ? 'stream' : this.responseType,
+      ...this.axiosOpts,
+      ...moreOptions
+    })
+    this.response = {
+      status: rs.status,
+      statusText: rs.statusText,
+      headers: this.getResponseHeader(rs),
+      data: await this.getResponseData(rs)
     }
+    return this.response
   }
 
   // protected async handleCustomResponse() {

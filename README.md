@@ -15,45 +15,55 @@ Install via yarn
 ## Run a scene
 Run a scene file
 ```sh
-  r $PATH_TO_SCENE_FILE
+  ymlr $PATH_TO_SCENE_FILE
 ```
 
 Run a encrypted scene file with a password
 ```sh
-  r $PATH_TO_SCENE_FILE $PASSWORD
+  ymlr $PATH_TO_SCENE_FILE $PASSWORD
 ```
 
 Override env variables then run
 ```sh
-  r -e "port=80" -e "log=error" -- $PATH_TO_SCENE_FILE
+  ymlr -e "port=80" -e "log=error" -- $PATH_TO_SCENE_FILE
 ```
 
 ## CLI
 
 Show helps
 ```sh
-  r -h
+  ymlr -h
+```
+
+Show all tags version
+```sh
+  ymlr
 ```
 
 Add new external tags, libraries which is used in the scene
 ```sh
-  r add ymlr-telegram@latest
+  ymlr add ymlr-telegram@latest
 ```
 
 Upgrade external tags, libraries which is used in the scene
 ```sh
-  r up ymlr-telegram@latest
+  ymlr up ymlr-telegram@latest
 ```
 
 Remove external tags, libraries which is used in the scene
 ```sh
-  r rm ymlr-telegram@latest
+  ymlr rm ymlr-telegram@latest
 ```
 
-Customize source paths which are registed tags in application
+Customize source paths which are registed tags in your application
 
 ```sh
-  r --tag-dirs /myapp1 --tag-dirs /myapp2 -- myapp.yaml     # "/myapp1", "/myapp2" are includes source code
+  ymlr --tag-dirs /myapp1 --tag-dirs /myapp2 -- myapp.yaml     # "/myapp1", "/myapp2" are includes source code
+```
+
+Override show debug log for all of tags
+```sh
+  ymlr --debug=all -- myapp.yaml
 ```
 
 ## Docker
@@ -91,7 +101,7 @@ runs:
 
 2. Run
 ```sh
-  r test.yaml
+  ymlr test.yaml
 ```
 
 

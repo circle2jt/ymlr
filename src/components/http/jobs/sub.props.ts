@@ -4,6 +4,7 @@ import { SubItemProps } from './sub-item.props'
 
 export type SubProps = {
   address: string
+  type?: 'xml' | 'json' | 'any'
   secure?: {
     basic?: {
       username: string

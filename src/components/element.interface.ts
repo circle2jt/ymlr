@@ -1,6 +1,7 @@
 import { ElementProxy } from './element-proxy'
 
 export interface Element {
+  readonly hideName?: boolean
   readonly ignoreEvalProps?: string[]
   readonly proxy: ElementProxy<this>
 
