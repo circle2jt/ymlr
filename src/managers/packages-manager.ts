@@ -52,7 +52,7 @@ export class PackagesManager {
 
   async install(...packages: string[]) {
     const newPackages = this.getNotInstalledPackages(...packages)
-    newPackages.length && await this.exec('Installing', PackagesManager.CmdInstall, newPackages)
+    newPackages.length && await this.exec('Install', PackagesManager.CmdInstall, newPackages)
   }
 
   async upgrade(...packages: string[]) {
@@ -63,12 +63,12 @@ export class PackagesManager {
         return `${name}@${version || 'latest'}`
       })
     }
-    existsPackages.length && await this.exec('Upgrading', PackagesManager.CmdUpgrade, existsPackages)
+    existsPackages.length && await this.exec('Upgrade', PackagesManager.CmdUpgrade, existsPackages)
   }
 
   async uninstall(...packages: string[]) {
     const existsPackages = this.getInstalledPackages(...packages)
-    existsPackages.length && await this.exec('Uninstalling', PackagesManager.CmdUninstall, existsPackages)
+    existsPackages.length && await this.exec('Uninstall', PackagesManager.CmdUninstall, existsPackages)
   }
 
   async clean() {
@@ -98,10 +98,11 @@ export class PackagesManager {
     const exec = new ElementProxy(new Exec(cmd))
     exec.logger = this.logger
     try {
+      this.logger.label(`${des} ${msg}`)
       await exec.exec()
-      this.logger.passed(`${des} ${msg} successfully`, LoggerLevel.INFO)
+      this.logger.passed(`${des}ed ${msg} successfully`, LoggerLevel.INFO)
     } catch (err) {
-      this.logger.failed(`${des} ${msg} failed`, LoggerLevel.ERROR)
+      this.logger.failed(`${des}ed ${msg} failed`, LoggerLevel.ERROR)
       throw err
     } finally {
       await exec.dispose()

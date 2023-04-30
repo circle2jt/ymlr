@@ -2,6 +2,15 @@ export function formatNumber(n: number, opts?: Intl.NumberFormatOptions) {
   return Number(n).toLocaleString(undefined, opts)
 }
 
+export function formatFixLengthNumber(n: number, length = 2) {
+  const strNum = n.toString()
+  const numLength = strNum.length
+  if (numLength < length) {
+    return new Array(length - numLength).fill('0').join('') + strNum
+  }
+  return strNum
+}
+
 export function kebabToCamelCase(snake: string) {
   return snake?.replace(/-./g, (txt) => txt[1].toUpperCase())
 }

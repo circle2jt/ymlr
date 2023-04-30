@@ -1,4 +1,4 @@
-import { formatDuration, formatFileName, formatNumber, formatTextToMs, kebabToCamelCase, tryToParseObject } from './format'
+import { formatDuration, formatFileName, formatFixLengthNumber, formatNumber, formatTextToMs, kebabToCamelCase, tryToParseObject } from './format'
 
 test('kebabToCamelCase', () => {
   expect(kebabToCamelCase('test-name')).toBe('testName')
@@ -52,4 +52,12 @@ test.each([
   { title: 'File with a extension', input: 'author  - (!@#thanh).mp3', output: 'author - thanh.mp3' }
 ])('format file name $title', ({ input, output }) => {
   expect(formatFileName(input)).toEqual(output)
+})
+
+test.each([
+  { input: 3, length: 2, output: '03' },
+  { input: 3, length: 3, output: '003' },
+  { input: 33, length: 3, output: '033' }
+])('format numver with fix length is $length', ({ input, length, output }) => {
+  expect(formatFixLengthNumber(input, length)).toEqual(output)
 })

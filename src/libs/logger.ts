@@ -1,4 +1,6 @@
 import chalk from 'chalk'
+import EventEmitter from 'events'
+import { formatFixLengthNumber } from './format'
 
 export enum LoggerLevel {
   ALL = 'trace',
@@ -44,15 +46,34 @@ const MappingValue = Object.keys(Mapping).reduce<Record<number, LoggerLevel>>((s
 }, {})
 
 export class Logger {
-  private static _globalName = ''
+  private static _GlobalName = ''
+  private static _MaxContextLength = 0
+  private static readonly _Event = new EventEmitter().setMaxListeners(0)
 
   // eslint-disable-next-line accessor-pairs
   static set globalName(gname: string) {
-    this._globalName = chalk.gray(` \t#${gname}`)
+    this._GlobalName = chalk.gray(` \t#${gname}`)
   }
 
   level = Mapping.all
   indentString = ''
+  tab = ''
+  private _context = ''
+
+  set context(ctx: string) {
+    this._context = ctx
+    if (this._context.length > Logger._MaxContextLength) {
+      Logger._MaxContextLength = this._context.length
+      Logger._Event.emit('update-tab')
+    } else {
+      this.syncTab()
+    }
+  }
+
+  get context() {
+    return this._context
+  }
+
   get levelName() {
     return MappingValue[this.level]
   }
@@ -61,9 +82,15 @@ export class Logger {
     return chalk
   }
 
-  constructor(level: LoggerLevel | number, public context = '', public indent = 0) {
+  constructor(level: LoggerLevel | number, context = '', public indent = 0) {
+    this.context = context
     this.setLevel(level)
     if (this.indent) this.updateIndent(this.indent)
+    Logger._Event.on('update-tab', () => this.syncTab())
+  }
+
+  private syncTab() {
+    this.tab = chalk.gray(new Array(Logger._MaxContextLength - this._context.length).fill('⊸').join(''))
   }
 
   is(level: LoggerLevel) {
@@ -94,12 +121,12 @@ export class Logger {
   }
 
   get prefix() {
-    return `${this.time} | ${chalk.blue(this.context)} | `
+    return `${this.time} ${chalk.blue(this.context)}`
   }
 
   get time() {
     const date = new Date()
-    return chalk.gray(`${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${date.getMilliseconds()}`)
+    return chalk.gray(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
   }
 
   setLevel(level: LoggerLevel | number) {
@@ -125,21 +152,21 @@ export class Logger {
 
   label(msg: string) {
     if (this.is(LoggerLevel.INFO)) {
-      this.print(`${this.indentString}${chalk.green('✔')} ${msg} ${Logger._globalName} `)
+      this.print(`${this.indentString}${chalk.green('○')} ${msg} ${Logger._GlobalName} `)
     }
     return this
   }
 
   passed(msg: any, level = LoggerLevel.DEBUG) {
     if (this.is(level)) {
-      this.print(`${this.indentString}${chalk.green('✔')} ${msg} ${Logger._globalName} `)
+      this.print(`${this.indentString}${chalk.green('✔')} ${msg} ${Logger._GlobalName} `)
     }
     return this
   }
 
   failed(msg: any, level = LoggerLevel.DEBUG) {
     if (this.is(level)) {
-      this.print(`${this.indentString}${chalk.red('✘')} ${msg} ${Logger._globalName} `)
+      this.print(`${this.indentString}${chalk.red('✘')} ${msg} ${Logger._GlobalName} `)
     }
     return this
   }
@@ -226,17 +253,17 @@ export class Logger {
   private formatWithoutIndent(msg: string, level?: LoggerLevel) {
     switch (level) {
       case LoggerLevel.INFO:
-        return `${msg} ${Logger._globalName}`
+        return `${msg} ${Logger._GlobalName}`
       case LoggerLevel.WARN:
-        return `${this.prefix}\t${chalk.yellow(`${msg}`)} ${Logger._globalName}`
+        return `${this.prefix} ${this.tab} ┆ ${chalk.yellow(`${msg}`)} ${Logger._GlobalName}`
       case LoggerLevel.ERROR:
-        return `${this.prefix}\t${chalk.red(`${msg}`)} ${Logger._globalName}`
+        return `${this.prefix} ${this.tab} ┆ ${chalk.red(`${msg}`)} ${Logger._GlobalName}`
       case LoggerLevel.FATAL:
-        return `${this.prefix}\t${chalk.red.bold(`${msg}`)} ${Logger._globalName}`
+        return `${this.prefix} ${this.tab} ┆ ${chalk.red.bold(`${msg}`)} ${Logger._GlobalName}`
       case LoggerLevel.TRACE:
-        return `${this.prefix}\t${chalk.magenta(`${msg}`)} ${Logger._globalName}`
+        return `${this.prefix} ${this.tab} ┆ ${chalk.magenta(`${msg}`)} ${Logger._GlobalName}`
       case LoggerLevel.DEBUG:
-        return `${this.prefix}\t${chalk.gray(`${msg}`)} ${Logger._globalName}`
+        return `${this.prefix} ${this.tab} ┆ ${chalk.gray(`${msg}`)} ${Logger._GlobalName}`
     }
     return `${msg}`
   }

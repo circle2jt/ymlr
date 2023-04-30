@@ -477,7 +477,7 @@ export class ElementProxy<T extends Element> {
         await this.callFunctionScript(this.postScript)
       }
       if (this.name && !this.$.hideName) {
-        this.logger.passed(this.name)
+        this.logger.passed(this.name, LoggerLevel.DEBUG)
       }
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
