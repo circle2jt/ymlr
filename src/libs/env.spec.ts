@@ -1,6 +1,7 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Env } from './env'
-import { Logger, LoggerLevel } from './logger'
+import { Logger } from './logger'
+import { LoggerLevel } from './logger/logger-level'
 
 const logger = new Logger(LoggerLevel.SILENT)
 

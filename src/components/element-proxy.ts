@@ -1,7 +1,9 @@
 import { RootScene } from 'src/components/root-scene'
 import { Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
-import { Logger, LoggerLevel } from 'src/libs/logger'
+import { Logger } from 'src/libs/logger'
+import { Level } from 'src/libs/logger/level'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Element } from './element.interface'
 import { Group } from './group/group'
@@ -328,8 +330,8 @@ export class ElementProxy<T extends Element> {
   }
 
   private _logger?: Logger
-  private get loggerLevel(): LoggerLevel {
-    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.levelName || LoggerLevel.ALL
+  private get loggerLevel(): Level | LoggerLevel {
+    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level || LoggerLevel.ALL
   }
 
   get logger(): Logger {
@@ -364,7 +366,7 @@ export class ElementProxy<T extends Element> {
 
   setDebug(debug: LoggerLevel) {
     this.debug = debug
-    this._logger?.setLevel(this.debug)
+    this._logger?.setLevelFromName(this.debug)
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {

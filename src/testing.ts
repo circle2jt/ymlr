@@ -3,7 +3,8 @@ import 'src/managers/modules-manager'
 import { RootScene } from 'src/components/root-scene'
 import { ElementProxy } from './components/element-proxy'
 import { Element, ElementClass } from './components/element.interface'
-import { Logger, LoggerLevel } from './libs/logger'
+import { Logger } from './libs/logger'
+import { LoggerLevel } from './libs/logger/logger-level'
 
 export class Testing {
   static rootScene: RootScene

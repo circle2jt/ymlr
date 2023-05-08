@@ -6,7 +6,8 @@ import { resolve } from 'path'
 import 'src/managers/modules-manager'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
-import { Logger, LoggerLevel } from './libs/logger'
+import { Logger } from './libs/logger'
+import { LoggerLevel } from './libs/logger/logger-level'
 import { PackagesManager } from './managers/packages-manager'
 
 program
@@ -65,6 +66,7 @@ program
     .description('add external tags version')
     .argument('[package_name...]', 'packages in npm registry')
     .action(async (packages: string[]) => {
+      assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
       await new PackagesManager(appLogger).install(...packages)
       process.exit(0)
@@ -76,6 +78,7 @@ program
     .description('upgrade external tags version')
     .argument('[package_name...]', 'packages in npm registry')
     .action(async (packages: string[]) => {
+      assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
       await new PackagesManager(appLogger).upgrade(...packages)
       process.exit(0)

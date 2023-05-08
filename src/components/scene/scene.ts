@@ -48,6 +48,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   localVars: Record<string, any> = {}
   isRoot = false
 
+  private updateGlobalVarsListener: any
+
   protected get innerScene() {
     return this
   }
@@ -65,10 +67,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   async asyncConstructor() {
     this.setupVars()
     await this.handleFile()
-    this.proxy.rootScene.event.on('update/global-vars', (name: string) => {
+    this.updateGlobalVarsListener = (name: string) => {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
-    })
+    }
+    this.proxy.rootScene.event.on('update/global-vars', this.updateGlobalVarsListener)
   }
 
   async handleFile() {
@@ -101,6 +104,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async dispose() {
+    this.proxy.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
     await super.dispose()
   }
 

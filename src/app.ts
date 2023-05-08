@@ -4,7 +4,8 @@ import { RootScene } from 'src/components/root-scene'
 import { Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
 import { RootSceneProps } from './components/root-scene.props'
-import { Logger, LoggerLevel } from './libs/logger'
+import { Logger } from './libs/logger'
+import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
   private readonly rootSceneProxy: ElementProxy<RootScene>

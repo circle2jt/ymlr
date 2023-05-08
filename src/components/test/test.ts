@@ -1,4 +1,4 @@
-import { LoggerLevel } from 'src/libs/logger'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { TestError } from './test-error'

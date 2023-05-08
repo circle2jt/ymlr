@@ -1,4 +1,5 @@
-import { Logger, LoggerLevel } from '../logger'
+import { Logger } from '../logger'
+import { LoggerLevel } from '../logger/logger-level'
 import { sleep } from '../time'
 import { Job } from './job'
 import { JobsManager } from './jobs-manager'

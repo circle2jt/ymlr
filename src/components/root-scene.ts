@@ -38,7 +38,7 @@ export class RootScene extends Scene {
   readonly globalUtils = new UtilityFunctionManager()
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
-  readonly event = new EventEmitter({ captureRejections: false })
+  readonly event = new EventEmitter({ captureRejections: false }).setMaxListeners(0)
   rootDir = ''
 
   constructor({ globalVars, ...props }: RootSceneProps) {
@@ -47,7 +47,6 @@ export class RootScene extends Scene {
     if (!this.scope) this.scope = 'local'
     if (globalVars) merge(this.localVars, globalVars)
     this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
-    this.event.setMaxListeners(0)
   }
 
   async asyncConstructor() {
@@ -76,6 +75,7 @@ export class RootScene extends Scene {
       await Promise.all(proms)
     } finally {
       this.event.emit('scene/dispose:end')
+      this.event.removeAllListeners()
     }
   }
 

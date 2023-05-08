@@ -33,6 +33,12 @@
 		},
 		{
 			"type": "npm",
+			"script": "ci:lint",
+			"problemMatcher": [],
+			"label": "Lint"
+		},
+		{
+			"type": "npm",
 			"script": "doc",
 			"problemMatcher": [],
 			"label": "Document"

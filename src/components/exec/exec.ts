@@ -1,7 +1,7 @@
 import assert from 'assert'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
-import { LoggerLevel } from 'src/libs/logger'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 
