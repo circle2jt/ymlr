@@ -22,8 +22,7 @@ export class ElementProxy<T extends Element> {
     @example
     ```yaml
       - id: echo1
-        skip: true
-        echo: Hello               # Not run
+        echo: Hello
 
       - exec'js: |
           this.logger.debug($vars.echo1.content)
@@ -104,20 +103,38 @@ export class ElementProxy<T extends Element> {
   */
   template?: any
   /** |**  skip
-    Only init but not execute
+    No run this
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - ->: helloTemplate
-        skip: true
-        echo: Hello                # Not run
+      - echo: Hi                   # Print "hi"
 
-      - <-: helloTemplate
-        echo: Hi                   # => Hi
+      - skip: true
+        echo: Hello                # No print "Hello"
+
+      - echo: world                # Print "world"
     ```
   */
   skip?: boolean
+  /** |**  only
+    Only run this
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - echo: Hi                   # No print "hi"
+
+      - only: true
+        echo: Hello                # Only print "Hello"
+
+      - echo: world                # No print "world"
+
+      - only: true
+        echo: Bye                  # Only print "Bye"
+    ```
+  */
+  only?: boolean
   /** |**  force
     Try to execute and ignore error in the running
     @position top
@@ -453,7 +470,9 @@ export class ElementProxy<T extends Element> {
         await this.evalPropsBeforeExec()
 
         isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
-        if (isAddIndent) this.logger.addIndent()
+        if (isAddIndent) {
+          this.logger.addIndent()
+        }
 
         if (this.name && !this.$.hideName) {
           this.logger.label(this.name)
@@ -471,8 +490,6 @@ export class ElementProxy<T extends Element> {
         }
         this.logger.warn('%o', err)
         return
-      } finally {
-        if (isAddIndent) this.logger.removeIndent()
       }
       await this.setVarsAfterExec()
       if (this.postScript) {
@@ -483,6 +500,9 @@ export class ElementProxy<T extends Element> {
       }
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
+      if (isAddIndent) {
+        this.logger.removeIndent()
+      }
     }
     return this.result
   }

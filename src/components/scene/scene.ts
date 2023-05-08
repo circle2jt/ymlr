@@ -48,7 +48,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   localVars: Record<string, any> = {}
   isRoot = false
 
-  private updateGlobalVarsListener: any
+  private updateGlobalVarsListener?: any
 
   protected get innerScene() {
     return this
@@ -104,7 +104,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async dispose() {
-    this.proxy.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
+    if (this.updateGlobalVarsListener) this.proxy.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
     await super.dispose()
   }
 

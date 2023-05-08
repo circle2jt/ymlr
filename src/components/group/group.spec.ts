@@ -100,3 +100,86 @@ test('test preScript and postScript', async () => {
   await group.exec()
   expect(Testing.vars.vl).toBe('012')
 })
+
+test('skip', async () => {
+  group = await Testing.createElementProxy(Group, {
+    name: 'Test group',
+    runs: [
+      {
+        echo: 0
+      },
+      {
+        skip: true,
+        echo: 1
+      },
+      {
+        echo: 2
+      },
+      {
+        skip: true,
+        echo: 3
+      }
+    ]
+  })
+  await group.exec()
+  expect(group.result).toHaveLength(2)
+  expect(group.result[0].result).toBe(0)
+  expect(group.result[1].result).toBe(2)
+})
+
+test('only', async () => {
+  group = await Testing.createElementProxy(Group, {
+    name: 'Test group',
+    runs: [
+      {
+        echo: 0
+      },
+      {
+        only: true,
+        echo: 1
+      },
+      {
+        echo: 2
+      },
+      {
+        only: true,
+        echo: 3
+      }
+    ]
+  })
+  await group.exec()
+  expect(group.result).toHaveLength(2)
+  expect(group.result[0].result).toBe(1)
+  expect(group.result[1].result).toBe(3)
+})
+
+test('execute template', async () => {
+  group = await Testing.createElementProxy(Group, {
+    name: 'Test group',
+    runs: [
+      {
+        '->': 'echo0',
+        template: true,
+        echo: 0
+      },
+      {
+        '<-': 'echo0'
+      },
+      {
+        '<-': 'echo0',
+        echo: 1
+      },
+      {
+        '<-': 'echo0',
+        echo: {
+          content: 2
+        }
+      }
+    ]
+  })
+  await group.exec()
+  expect(group.result).toHaveLength(3)
+  expect(group.result[0].result).toBe(0)
+  expect(group.result[1].result).toBe(1)
+  expect(group.result[2].result).toBe(2)
+})

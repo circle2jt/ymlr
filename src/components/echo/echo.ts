@@ -54,7 +54,7 @@ export class Echo implements Element {
   }
 
   async exec() {
-    this.logger.info(this.format())
+    this.logger.log(this.format())
     return this.content
   }
 

@@ -2,8 +2,9 @@ import chalk from 'chalk'
 
 export class Indent {
   indentString = ''
+  indent = 0
 
-  constructor(private indent = 0) {
+  constructor(indent = 0) {
     if (indent) {
       this.add(indent)
     }
@@ -27,7 +28,7 @@ export class Indent {
   }
 
   private getIndentString(indent: number) {
-    const str = new Array(indent).fill('╎').join('')
+    const str = new Array(indent).fill('╎ ').join('')
     return str && chalk.gray.dim(str)
   }
 }

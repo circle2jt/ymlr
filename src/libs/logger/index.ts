@@ -63,21 +63,19 @@ export class Logger {
   }
 
   log(msg: any, ...prms: any) {
-    if (this.level && !this.level.is(LevelNumber.silent)) {
+    if (this.level?.is(LevelNumber.info)) {
       if (typeof msg === 'string') {
-        this.splitMsgThenPrint(msg, undefined, ...prms)
+        this.splitRawMsgThenPrint(msg, LevelFactory.GetLogInstance(), ...prms)
       } else {
         prms.splice(0, 0, msg)
-        this.print(`${this.format('%j', undefined)}`, ...prms)
+        this.print(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, ...prms)
       }
     }
     return this
   }
 
   label(msg: string) {
-    if (this.level?.is(LevelNumber.info)) {
-      this.print(this.indent.format(`${chalk.green('○')} ${msg} ${Logger._GlobalName} `))
-    }
+    this.log(`${chalk.green('○')} ${msg} ${Logger._GlobalName} `)
     return this
   }
 
@@ -192,6 +190,20 @@ export class Logger {
 
   private print(...args: any) {
     console.log(...args)
+  }
+
+  private splitRawMsgThenPrint(msg: string, level: Level | undefined, ...prms: any) {
+    msg.split('\n').forEach((msg: string, i: number) => {
+      msg = (i === 0 ? '' : '  ') + msg
+      this.print(`${this.formatRaw(msg, i !== 0 ? undefined : level)}`, ...prms)
+    })
+  }
+
+  private formatRaw(msg: string, level?: Level) {
+    if (level) {
+      return this.indent.format(level.format(msg))
+    }
+    return this.indent.format(msg)
   }
 
   private splitMsgThenPrint(msg: string, level: Level | undefined, ...prms: any) {
