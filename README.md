@@ -405,6 +405,25 @@ Example:
 ```  
 
 
+## <a id="only"></a>only  
+`It's a property in a tag`  
+Only run this  
+
+Example:  
+
+```yaml
+  - echo: Hi                   # No print "hi"
+  
+  - only: true
+    echo: Hello                # Only print "Hello"
+
+  - echo: world                # No print "world"
+
+  - only: true
+    echo: Bye                  # Only print "Bye"
+```  
+
+
 ## <a id="postScript"></a>postScript  
 `It's a property in a tag`  
 Execute a script before run  
@@ -434,17 +453,17 @@ Example:
 
 ## <a id="skip"></a>skip  
 `It's a property in a tag`  
-Only init but not execute  
+No run this  
 
 Example:  
 
 ```yaml
-  - ->: helloTemplate
-    skip: true
-    echo: Hello                # Not run
+  - echo: Hi                   # Print "hi"
+  
+  - skip: true
+    echo: Hello                # No print "Hello"
 
-  - <-: helloTemplate
-    echo: Hi                   # => Hi
+  - echo: world                # Print "world"
 ```  
 
 

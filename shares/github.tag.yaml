@@ -10,7 +10,6 @@ vars:
 runs:
   - ->: git-http
     force: true
-    skip: true
     template:
       baseURL: https://api.github.com
       headers:

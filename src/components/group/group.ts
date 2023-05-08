@@ -82,7 +82,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async runEachOfElements(parentState?: Record<string, any>) {
     const asyncJobs = new Array<Promise<any>>()
     const result = new Array<ElementProxy<Element>>()
-    const newRuns = cloneDeep(this.runs)
+    let newRuns = cloneDeep(this.runs)
+    const onlyRuns = newRuns.filter(r => r.only === true)
+    if (onlyRuns.length) {
+      newRuns = onlyRuns
+    } else {
+      newRuns = newRuns.filter(r => !r.skip)
+    }
     for (const allProps of newRuns) {
       // Init props
       const props: any = allProps || {}
@@ -93,8 +99,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
         props.runs = undefined
       }
-      let { '<-': inheritKeys, '->': exposeKey, skip, ...eProps } = props
+      let { '<-': inheritKeys, '->': exposeKey, skip, only, ...eProps } = props
       let tagName = this.getTagName(eProps)
+      const isTemplate = !!eProps.template
 
       // Only support template or tag name. Prefer tag name
       if (tagName && eProps.template) eProps.template = undefined
@@ -102,11 +109,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (inheritKeys) eProps = this.rootScene.extend(tagName, eProps, inheritKeys)
       if (exposeKey) this.rootScene.export(tagName, eProps, exposeKey)
 
+      // Skip this if it's a template
+      if (isTemplate) continue
+
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
-
-      // Skip when skip=true or it's a template
-      if (skip || eProps.template) continue
 
       let { if: condition, force, debug, vars, async, loop, name, id, preScript, postScript } = eProps
       let elemProps: any

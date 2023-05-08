@@ -22,8 +22,7 @@ export class ElementProxy<T extends Element> {
     @example
     ```yaml
       - id: echo1
-        skip: true
-        echo: Hello               # Not run
+        echo: Hello
 
       - exec'js: |
           this.logger.debug($vars.echo1.content)
@@ -104,20 +103,38 @@ export class ElementProxy<T extends Element> {
   */
   template?: any
   /** |**  skip
-    Only init but not execute
+    No run this
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - ->: helloTemplate
-        skip: true
-        echo: Hello                # Not run
+      - echo: Hi                   # Print "hi"
 
-      - <-: helloTemplate
-        echo: Hi                   # => Hi
+      - skip: true
+        echo: Hello                # No print "Hello"
+
+      - echo: world                # Print "world"
     ```
   */
   skip?: boolean
+  /** |**  only
+    Only run this
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - echo: Hi                   # No print "hi"
+
+      - only: true
+        echo: Hello                # Only print "Hello"
+
+      - echo: world                # No print "world"
+
+      - only: true
+        echo: Bye                  # Only print "Bye"
+    ```
+  */
+  only?: boolean
   /** |**  force
     Try to execute and ignore error in the running
     @position top

@@ -40,14 +40,14 @@
     "typescript": "^4.9.4"
   },
   "scripts": {
-    "v:next": "yarn doc && yarn ci:build && node dist -e preid=alpha -e VERSIONNAME=prerelease -- ./scripts/up-version.yaml",
-    "v:patch": "yarn doc && yarn ci:build && node dist -e preid=latest -e VERSIONNAME=patch -- ./scripts/up-version.yaml",
+    "v:next": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=alpha -e VERSIONNAME=prerelease -- ./scripts/up-version.yaml",
+    "v:patch": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=latest -e VERSIONNAME=patch -- ./scripts/up-version.yaml",
     "clean": "rm -rf dist",
     "doc": "yarn start ./scripts/doc.yaml",
     "start": "node --require ts-node/register src/index.ts",
     "dev": "nodemon --require ts-node/register --inspect-brk src/index.ts",
     "test": "node --trace-warnings --expose-gc --inspect node_modules/jest/bin/jest --config=.jest/dev.config.js --runInBand",
-    "fix:lint": "eslint --fix --ext .ts ./src",
+    "lint": "eslint --fix --ext .ts ./src",
     "ci:prebuild": "yarn clean",
     "ci:build": "yarn ci:prebuild && tsc --project tsconfig.build.json && node bin/tsconfig && yarn ci:postbuild",
     "ci:postbuild": "cp src/package.json ./dist/src/ && cp README.md ./dist/",
