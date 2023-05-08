@@ -153,10 +153,6 @@ runs:
 | [vars](#vars) | Declare and set value to variables to reused in the scene/global scope
 - If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
 - If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene |
-| [view](#view) | View data in a pretty format |
-| [view'json](#view'json) | View data in a json format |
-| [view'table](#view'table) | View data in a table format |
-| [view'yaml](#view'yaml) | View data in a yaml format |
 
 
 ## <a id="Root scene"></a>Root scene  
@@ -1515,69 +1511,6 @@ A scene file `child.scene.yaml` is:
   - echo: ${$vars.mainName}      # => undefined
   - echo: ${$vars.name}          # => scene name here
   - echo: ${$vars.Name}          # => global name here
-```  
-
-
-## <a id="view"></a>view  
-  
-View data in a pretty format  
-
-Example:  
-
-```yaml
-  - name: Pretty Viewer
-    view:
-      data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
-
-  - view: ${$vars.TEST_DATA}
-```  
-
-
-## <a id="view'json"></a>view'json  
-  
-View data in a json format  
-
-Example:  
-
-```yaml
-  - name: JSON Viewer
-    view'json:
-      data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
-
-  - view'json: ${$vars.TEST_DATA}
-```  
-
-
-## <a id="view'table"></a>view'table  
-  
-View data in a table format  
-
-Example:  
-
-```yaml
-  - name: Table viewer
-    view'table:
-      headers:            # Pick some headers to show. Default is all
-        - name
-        - age
-      data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
-
-  - view'table: ${$vars.TEST_DATA}
-```  
-
-
-## <a id="view'yaml"></a>view'yaml  
-  
-View data in a yaml format  
-
-Example:  
-
-```yaml
-  - view'yaml:
-      name: Yaml Viewer
-      data: [{ name: "name 2", age: 2 }, { name: "name 2", age: 3 }]
-
-  - view'yaml: ${$vars.TEST_DATA}
 ```  
 
 
