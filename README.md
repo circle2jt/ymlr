@@ -308,8 +308,7 @@ Example:
 
 ```yaml
   - id: echo1
-    skip: true
-    echo: Hello               # Not run
+    echo: Hello
 
   - exec'js: |
       this.logger.debug($vars.echo1.content)
@@ -413,7 +412,7 @@ Example:
 
 ```yaml
   - echo: Hi                   # No print "hi"
-  
+
   - only: true
     echo: Hello                # Only print "Hello"
 
@@ -459,7 +458,7 @@ Example:
 
 ```yaml
   - echo: Hi                   # Print "hi"
-  
+
   - skip: true
     echo: Hello                # No print "Hello"
 
