@@ -1,6 +1,7 @@
 import assert from 'assert'
 import toPlainObject from 'lodash.toplainobject'
 import { removeCircleRef } from 'src/libs/format'
+import { Logger } from 'src/libs/logger'
 import { Worker } from 'src/managers/worker'
 import { Scene } from './scene'
 import { SceneProcessProps } from './scene-process.props'
@@ -55,7 +56,9 @@ export class SceneProcess extends Scene {
     }, {
       id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
-      templates: this.rootScene.templatesManager.cached
+      templates: this.rootScene.templatesManager.cached,
+      loggerDebugContexts: Logger.DEBUG_CONTEXTS,
+      loggerDebug: Logger.DEBUG
     })
   }
 

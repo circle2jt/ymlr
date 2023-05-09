@@ -264,6 +264,36 @@ Example:
 ```  
 
 
+## <a id="context"></a>context  
+`It's a property in a tag`  
+Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"  
+
+Example:  
+
+```yaml
+  - name: Get list user
+    context: userapi
+    debug: warn
+    http'get: ...
+
+  - name: Get user details
+    context: userapi
+    debug: warn
+    http'get: ...
+
+  - name: Get product details
+    context: productapi
+    debug: warn
+    http'get: ...
+```
+Now, we have 2 choices to debug all of user APIs and product APIs
+1. Replace all "debug: warn" to "debug: debug"
+2. Only run cli as below
+```sh
+  ymlr --debug-context userapi=debug --debug-context productapi=trace -- $SCENE_FILE.yaml
+```  
+
+
 ## <a id="debug"></a>debug  
 `It's a property in a tag`  
 How to print log details for each of item.

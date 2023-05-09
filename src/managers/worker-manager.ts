@@ -1,6 +1,7 @@
 import { ElementBaseProps } from 'src/components/element.interface'
 import { RootSceneProps } from 'src/components/root-scene.props'
 import { Logger } from 'src/libs/logger'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Worker } from './worker'
 
 export class WorkerManager {
@@ -27,7 +28,13 @@ export class WorkerManager {
     }))
   }
 
-  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: { id: string, tagDirs?: string[], templates?: Record<string, any> }) {
+  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: {
+    id: string
+    tagDirs?: string[]
+    templates?: Record<string, any>
+    loggerDebugContexts?: Record<string, LoggerLevel>
+    loggerDebug?: LoggerLevel
+  }) {
     const wk = new Worker(props, baseProps, this.logger.clone(`worker:${others.id}`), others)
     this.workers.add(wk)
     return wk

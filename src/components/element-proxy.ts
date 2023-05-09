@@ -148,6 +148,35 @@ export class ElementProxy<T extends Element> {
     ```
   */
   force?: boolean | string
+  /** |**  context
+    Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - name: Get list user
+        context: userapi
+        debug: warn
+        http'get: ...
+
+      - name: Get user details
+        context: userapi
+        debug: warn
+        http'get: ...
+
+      - name: Get product details
+        context: productapi
+        debug: warn
+        http'get: ...
+    ```
+    Now, we have 2 choices to debug all of user APIs and product APIs
+    1. Replace all "debug: warn" to "debug: debug"
+    2. Only run cli as below
+    ```sh
+      ymlr --debug-context userapi=debug --debug-context productapi=trace -- $SCENE_FILE.yaml
+    ```
+  */
+  context?: string
   /** |**  name
     Step name
     @position top
@@ -346,13 +375,17 @@ export class ElementProxy<T extends Element> {
     return this.element
   }
 
+  get contextName() {
+    return this.context || this.tag
+  }
+
   private _logger?: Logger
   private get loggerLevel(): Level | LoggerLevel {
     return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level || LoggerLevel.ALL
   }
 
   get logger(): Logger {
-    return this._logger || (this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.tag, this.loggerLevel))
+    return this._logger || (this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.loggerLevel))
   }
 
   set logger(logger: Logger) {
@@ -469,7 +502,7 @@ export class ElementProxy<T extends Element> {
       try {
         await this.evalPropsBeforeExec()
 
-        isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined
+        isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined && this.parentProxy?.logger.is(LoggerLevel.INFO)
         if (isAddIndent) {
           this.logger.addIndent()
         }
@@ -495,9 +528,9 @@ export class ElementProxy<T extends Element> {
       if (this.postScript) {
         await this.callFunctionScript(this.postScript)
       }
-      if (this.name && !this.$.hideName) {
-        this.logger.passed(this.name, LoggerLevel.DEBUG)
-      }
+      // if (this.name && !this.$.hideName) {
+      //   this.logger.passed(this.name, LoggerLevel.DEBUG)
+      // }
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
       if (isAddIndent) {

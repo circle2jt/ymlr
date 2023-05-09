@@ -7,13 +7,16 @@ import { LevelNumber } from './level-number'
 import { LoggerLevel } from './logger-level'
 
 export class Logger {
-  private static _GlobalName = ''
+  private static _PROCESS_ID = ''
   private static MaxContextLength = 0
 
   // eslint-disable-next-line accessor-pairs
-  static set GlobalName(gname: string) {
-    this._GlobalName = chalk.gray(` \t#${gname}`)
+  static set PROCESS_ID(gname: string) {
+    this._PROCESS_ID = chalk.gray(` \t#${gname}`)
   }
+
+  static DEBUG?: LoggerLevel
+  static DEBUG_CONTEXTS?: Record<string, LoggerLevel>
 
   level?: Level
   indent: Indent
@@ -37,10 +40,16 @@ export class Logger {
 
   constructor(level: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
     this.context = context
-    if (typeof level === 'string') {
-      this.setLevelFromName(level)
+    if (Logger.DEBUG_CONTEXTS?.[this.context]) {
+      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG_CONTEXTS[this.context]])
+    } else if (Logger.DEBUG) {
+      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG])
     } else {
-      this.level = level
+      if (typeof level === 'string') {
+        this.setLevelFromName(level)
+      } else {
+        this.level = level
+      }
     }
     this.indent = indent || new Indent()
   }
@@ -55,7 +64,9 @@ export class Logger {
   }
 
   setLevelFromName(level: LoggerLevel) {
-    this.level = LevelFactory.GetInstance(LevelNumber[level])
+    if (!Logger.DEBUG_CONTEXTS?.[this.context] && !Logger.DEBUG) {
+      this.level = LevelFactory.GetInstance(LevelNumber[level])
+    }
   }
 
   is(levelName: LoggerLevel) {
@@ -75,20 +86,20 @@ export class Logger {
   }
 
   label(msg: string) {
-    this.log(`${chalk.green('○')} ${msg} ${Logger._GlobalName} `)
+    this.log(`${chalk.green('○')} ${msg} ${Logger._PROCESS_ID} `)
     return this
   }
 
   passed(msg: any, level?: LoggerLevel) {
     if (this.level?.is(!level ? LevelNumber.debug : LevelNumber[level])) {
-      this.print(this.indent.format(`${chalk.green('✔')} ${msg} ${Logger._GlobalName} `))
+      this.print(this.indent.format(`${chalk.green('✔')} ${msg} ${Logger._PROCESS_ID} `))
     }
     return this
   }
 
   failed(msg: any, level?: LoggerLevel) {
     if (this.level?.is(!level ? LevelNumber.debug : LevelNumber[level])) {
-      this.print(this.indent.format(`${chalk.red('✘')} ${msg} ${Logger._GlobalName} `))
+      this.print(this.indent.format(`${chalk.red('✘')} ${msg} ${Logger._PROCESS_ID} `))
     }
     return this
   }

@@ -115,7 +115,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
 
-      let { if: condition, force, debug, vars, async, loop, name, id, preScript, postScript } = eProps
+      let { if: condition, force, debug, vars, async, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -140,7 +140,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         async,
         loop,
         preScript,
-        postScript
+        postScript,
+        context
       }
       // Execute
       if (loop === undefined) {

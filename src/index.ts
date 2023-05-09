@@ -7,6 +7,7 @@ import 'src/managers/modules-manager'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import { Logger } from './libs/logger'
+import { LevelNumber } from './libs/logger/level-number'
 import { LoggerLevel } from './libs/logger/logger-level'
 import { PackagesManager } from './managers/packages-manager'
 
@@ -20,14 +21,14 @@ program
   .enablePositionalOptions(true)
   .passThroughOptions(true)
   .showHelpAfterError(true)
-  .option('--debug [level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
+  .option('--debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
+  .option('--debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
   .option('--tag-dirs <path...>', 'path to folder which includes external tags')
   .option('-e, --env <key=value...>', 'environment variables')
-  .option('-ef, --env-files <path...>', 'environment variables files')
+  .option('-ef, --env-file <path...>', 'environment variables files')
   .action(async (path: string, password?: string, opts: any = {}) => {
-    let globalDebug: LoggerLevel = (process.env.DEBUG as LoggerLevel) || LoggerLevel.INFO
-    const { debug, env = [], tagDirs, envFiles = [] } = opts
-    envFiles.forEach((envFile: string) => {
+    const { debug, env = [], tagDirs, envFile = [], debugContext } = opts
+    envFile.forEach((envFile: string) => {
       const envFileContent = readFileSync(resolve(envFile)).toString()
       env.splice(0, 0, ...envFileContent
         .split('\n')
@@ -41,10 +42,33 @@ program
         const vl = keyValue.substring(idx + 1)
         process.env[key] = vl
       })
-    if (debug) {
-      globalDebug = debug === true ? 'debug' : debug
+    const appLogger = new Logger(LoggerLevel.INFO)
+
+    // Validate --debug
+    const globalDebug = process.env.DEBUG as LoggerLevel | undefined
+    if (globalDebug) {
+      if (!LevelNumber[globalDebug]) {
+        appLogger.warn(`--debug "${globalDebug}", Log level is not valid`)
+      }
     }
-    const appLogger = new Logger(globalDebug)
+    Logger.DEBUG = (debug === true ? LoggerLevel.DEBUG : debug) || globalDebug
+
+    // Validate --debug-context
+    const globalDebugContext: string[] | undefined = process.env.DEBUG_CONTEXTS?.split(',').map(e => e.trim())
+    const debugCtx = (debugContext || globalDebugContext)?.filter((keyValue: string) => keyValue.includes('='))
+      .reduce((sum: Record<string, LoggerLevel>, keyValue: string) => {
+        const idx = keyValue.indexOf('=')
+        const key = keyValue.substring(0, idx)
+        const vl = keyValue.substring(idx + 1) as LoggerLevel
+        if (!LevelNumber[vl]) {
+          appLogger.warn(`--debug-context "${key}=${vl}", Log level is not valid`)
+        } else {
+          sum[key] = vl
+        }
+        return sum
+      }, {})
+    if (debugCtx && Object.keys(debugCtx).length > 0) Logger.DEBUG_CONTEXTS = debugCtx
+
     appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
     appLogger.log('')
     const app = new App(appLogger, {
