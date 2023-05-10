@@ -17,5 +17,7 @@ void (async () => {
     parentPort?.postMessage(JSON.stringify({ state: 'done' }))
   } catch (err: any) {
     parentPort?.postMessage(JSON.stringify({ state: 'error', data: err.message }))
+  } finally {
+    Logger.Dispose()
   }
 })()

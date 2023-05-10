@@ -38,6 +38,7 @@ export class App {
     } finally {
       await this.rootSceneProxy.dispose()
       summary?.print()
+      Logger.Dispose()
     }
   }
 }

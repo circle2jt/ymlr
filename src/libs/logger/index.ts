@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import EventEmitter from 'events'
 import { formatFixLengthNumber } from '../format'
 import { Indent } from './indent'
 import { Level } from './level'
@@ -9,14 +10,29 @@ import { LoggerLevel } from './logger-level'
 export class Logger {
   private static _PROCESS_ID = ''
   private static MaxContextLength = 0
+  private static Event?: EventEmitter
+
+  static DEBUG?: LoggerLevel
+  static DEBUG_CONTEXTS?: Record<string, LoggerLevel>
 
   // eslint-disable-next-line accessor-pairs
   static set PROCESS_ID(gname: string) {
     this._PROCESS_ID = chalk.gray(` \t#${gname}`)
   }
 
-  static DEBUG?: LoggerLevel
-  static DEBUG_CONTEXTS?: Record<string, LoggerLevel>
+  static On(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => {}) {
+    if (!this.Event) this.Event = new EventEmitter().setMaxListeners(0)
+    eventNames.forEach(eventName => this.Event?.on(eventName, cb))
+  }
+
+  static Off(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => {}) {
+    this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
+  }
+
+  static Dispose() {
+    this.Event?.removeAllListeners()
+    this.Event = undefined
+  }
 
   level?: Level
   indent: Indent
@@ -132,6 +148,7 @@ export class Logger {
 
   warn(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.warn)) {
+      Logger.Event?.emit(LoggerLevel.WARN)
       if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.warn), ...prms)
@@ -158,6 +175,7 @@ export class Logger {
 
   error(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.error)) {
+      Logger.Event?.emit(LoggerLevel.ERROR)
       if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.error), ...prms)
@@ -171,6 +189,7 @@ export class Logger {
 
   fatal(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.fatal)) {
+      Logger.Event?.emit(LoggerLevel.FATAL)
       if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.fatal), ...prms)
