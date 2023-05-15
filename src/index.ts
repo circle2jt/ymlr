@@ -43,15 +43,19 @@ program
         process.env[key] = vl
       })
     const appLogger = new Logger(LoggerLevel.INFO)
-
+    let globalDebug = process.env.DEBUG as LoggerLevel | undefined | boolean
+    if (debug) {
+      globalDebug = debug
+    }
     // Validate --debug
-    const globalDebug = process.env.DEBUG as LoggerLevel | undefined
-    if (globalDebug) {
+    if (globalDebug === true) {
+      globalDebug = LoggerLevel.DEBUG
+    } else if (globalDebug) {
       if (!LevelNumber[globalDebug]) {
         appLogger.warn(`--debug "${globalDebug}", Log level is not valid`)
       }
     }
-    Logger.DEBUG = (debug === true ? LoggerLevel.DEBUG : debug) || globalDebug
+    Logger.DEBUG = globalDebug as LoggerLevel | undefined
 
     // Validate --debug-context
     const globalDebugContext: string[] | undefined = process.env.DEBUG_CONTEXTS?.split(',').map(e => e.trim())

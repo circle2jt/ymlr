@@ -299,6 +299,7 @@ Now, we have 2 choices to debug all of user APIs and product APIs
 How to print log details for each of item.
 Default is `info`
 Value must be in:
+- `true`: is `debug`
 - `all`: Print all of debug message
 - `trace`: Print all of debug message
 - `debug`: Print short of debug

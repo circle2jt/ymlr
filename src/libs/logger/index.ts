@@ -20,12 +20,12 @@ export class Logger {
     this._PROCESS_ID = chalk.gray(` \t#${gname}`)
   }
 
-  static On(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => {}) {
+  static On(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => any) {
     if (!this.Event) this.Event = new EventEmitter().setMaxListeners(0)
     eventNames.forEach(eventName => this.Event?.on(eventName, cb))
   }
 
-  static Off(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => {}) {
+  static Off(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => any) {
     this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
   }
 

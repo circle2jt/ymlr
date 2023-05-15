@@ -1,5 +1,6 @@
 import cloneDeep from 'lodash.clonedeep'
 import { AppEvent } from 'src/app-event'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
 import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
@@ -130,6 +131,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
+      if (debug === true) debug = LoggerLevel.DEBUG
       const baseProps: ElementBaseProps = {
         id,
         name,
