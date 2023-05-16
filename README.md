@@ -214,7 +214,7 @@ Example:
 
 ```yaml
   - name: This is a main file
-  
+
   - !include ./task1.yaml
   # Content of "task1.yaml" will be loaded and replace this tag
 
@@ -1346,7 +1346,7 @@ Example:
       name: Scene name
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
-      vars:                             # They will only overrides vars in the parents to this scene 
+      vars:                             # They will only overrides vars in the parents to this scene
                                         # - Global variables is always passed into this scene
         foo: scene bar                  # First is lowercase is vars which is used in scenes
         Foo: Global bar                 # First is uppercase is global vars which is used in the program
@@ -1368,7 +1368,7 @@ Example:
       name: Scene name
       path: https://.../another.yaml    # path can be URL or local path
       password:                         # password to decode when the file is encrypted
-      vars:                             # They will only overrides vars in the parents to this scene 
+      vars:                             # They will only overrides vars in the parents to this scene
                                         # - Global variables is always passed into this scene
         foo: scene bar                  # First is lowercase is vars which is used in scenes
         Foo: Global bar                 # First is uppercase is global vars which is used in the program

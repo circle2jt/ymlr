@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.0.md](#1684213395289)  -  _5/16/2023, 12:03:15 PM_
 - [1.1.12-alpha.3.md](#1683696498088)  -  _5/10/2023, 12:28:18 PM_
 - [1.1.12-alpha.2.md](#1683624531037)  -  _5/9/2023, 4:28:51 PM_
 - [1.1.12-alpha.1.md](#1683531906718)  -  _5/8/2023, 2:45:06 PM_
@@ -27,6 +28,82 @@
 
 ## Details
 
+<a id="1684213395289"></a>
+### 1.2.0
+
+* refactor(scene)!: Remove scope, scene now is only got "local" scope (b8733de)
+* feat(scene): Allow to load a file into a scene (ee2fb33)
+* feat(scene): Support "env" attribute in root scene (19d9db2)
+* feat: support debug is boolean value (6330f0d)
+* chore: prerelease 1.1.12-alpha.3 (cadc2b2)
+* feat(logger): Allow listen logger event (07e578a)
+* chore: prerelease 1.1.12-alpha.2 (91ec0b2)
+* feat(logger): Allow filter log by tag context (efd0a07)
+* chore: prerelease 1.1.12-alpha.1 (4d4b7bc)
+* feat(eproxy): support skip, only run for specific step (295e26e)
+* chore: patch 1.1.11 (9a9594a)
+* perf: optimize logger and update logger formatter (2a563df)
+* refactor!: Remove tag "view" (96c23d7)
+* perf: optimize logger (dceb527)
+* chore: prerelease 1.1.11-alpha.4 (acd72ae)
+* refactor(logger): change style log to display on console (7bc6306)
+* fix: npm install error when prefer offline (e76f9a1)
+* feat: add spinner for each step (4eafe59)
+* ci: Auto rebuild vscode extension when ymlr is upgraded (bf7d3ee)
+* chore: prerelease 1.1.11-alpha.0 (aa3736f)
+* fix: path in scene not replace by expression (fb27533)
+* chore: patch 1.1.10 (1103b4d)
+* feat: add "js", "sh" tags (4172b26)
+* test: add new test to test async task in http'job (d0655ce)
+* fix(upgrade): not save new version in package.json when upgrade packages (432e8c3)
+* chore: prerelease 1.1.10-alpha.0 (ec3f1e9)
+* fix(scene'process): could not pass circle refs global vars (68b12b2)
+* feat(scene'process): allow clone template (6322819)
+* chore: patch 1.1.9 (0dfb598)
+* fix(scene): scope is not working (328e936)
+* fix(scene-process): not share variable (baf7d05)
+* chore: patch 1.1.8 (890b57a)
+* feat: Support pass multiple env-files (235f55d)
+* fix: ymlr cli could not executed (d0475e5)
+* refactor: Replace pnpm to yarn (920326c)
+* chore: patch 1.1.6 (3db4af7)
+* feat: add "id" props to ref to elementProxy (ee9bbec)
+* feat: allow change default package manager priority (d05741a)
+* ci: fix pnpm new version is error (406509e)
+* chore: patch 1.1.5 (672c678)
+* feat: add YAML type "!regex" (5267a70)
+* feat: support preScript, postScript in proxy (a17dc2c)
+* fix(ssh.yaml): tput: No value for $TERM and no -T specified (f32ca79)
+* chore: patch 1.1.4 (af27161)
+* feat: add new tag scene'returns (24a7640)
+* doc(share/ssh): show log debug (b2b2d94)
+* chore: patch 1.1.3 (c042c42)
+* doc: add a new utils scene to connect to ssh (640b4aa)
+* feat: auto pass $parentState from parent (2edf64f)
+* feat(exec'sh): Support timeout and exec in a new process (bb23ccf)
+* feat: Handle on app exit event, event global (96e1b4b)
+* chore: patch 1.1.2 (abbb44f)
+* doc: share a scene to upload a file to tmpfiles server (81a8d5a)
+* refactor: Replace fetch to axios (50777ac)
+* refactor(http): Replace fetch native to node-fetch (0ffb512)
+* fix(scene): Allow pass string in scene'process (e525a64)
+* fix(docker): Update example scene (0345c3c)
+* chore: patch 1.1.1 (1915638)
+* refactor(echo)!: Remove quick print color tag (bd6102e)
+* refactor: replace yaml to js-yaml libs (97a5397)
+* fix(scene): $parentState miss & pass input string (7b40db6)
+* chore: prerelease 1.1.1-alpha.3 (87e2b93)
+* feat(scene): separate scene to scene-process (01025e0)
+* feat(scene): add "scope" in scene (4ce6bfc)
+* fix(debug): debug is not overrided (d69750e)
+* fix(FileTemp): replace to sync create function (6d4e592)
+* fix(scene): pass env, tagDirs to new process (5e4c90f)
+* feat: support run a scene as a child process (b1b968b)
+* chore: patch 1.1.0 (c3be755)
+* refactor!: change "vars", "utils", "parentState"... (4642674)
+* refactor: remove inject default properties in element (e75528b)
+* feat!: separate element proxy (95acbb9)
+  
 <a id="1683696498088"></a>
 ### 1.1.12-alpha.3
 
