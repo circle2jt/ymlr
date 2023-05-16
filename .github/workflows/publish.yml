@@ -88,7 +88,7 @@ jobs:
           build-args: |
             VERSION=${{ vars.VERSION || github.ref_name }}
             NODE_VERSION=${{ vars.NODE_VERSION }}
-          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}
+          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Publish to docker hub - alpine
@@ -102,5 +102,5 @@ jobs:
             VERSION=${{ vars.VERSION || github.ref_name }}
             NODE_VERSION=${{ vars.NODE_VERSION }}
             ALPINE_VERSION=${{ vars.ALPINE_VERSION }}
-          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-alpine, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-alpine, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine
           labels: ${{ steps.meta.outputs.labels }}
