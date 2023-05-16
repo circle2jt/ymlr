@@ -313,3 +313,24 @@ test('should NOT share vars when scope is "local"', async () => {
   expect(Testing.vars.GlobalVar).toBe('Global var')
   expect(Testing.vars.sceneVar).toBe(undefined)
 })
+
+test('should load content file when use "include"', async () => {
+  const task1 = new FileTemp()
+  try {
+    task1.create(`- echo: This is a task1`)
+
+    scene = await Testing.createElementProxy(Scene, {
+      scope: 'local',
+      content: `
+  - echo: This is a main
+  - !include ${task1.file}
+    `
+    })
+    const rs = await scene.exec() as Array<ElementProxy<Vars>>
+    expect(rs[0].result).toBe('This is a main')
+    expect(rs[1].result).toBe('This is a task1')
+
+  } finally {
+    task1.remove()
+  }
+})

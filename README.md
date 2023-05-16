@@ -174,10 +174,6 @@ Example:
     NODE_ENV: production
     env: dev                        # It overrides to $vars.env
     # - NODE_ENV=production
-  // envFile: file
-  // envFile:
-  //   - .file1.env
-  //   - .file2.env
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props
@@ -207,6 +203,23 @@ Use `template`
 
   - <-: hiTemplate            # => Hi
     echo:
+```  
+
+
+## <a id="!include"></a>!include  
+`It's a yaml type`  
+Include the content file to current position  
+
+Example:  
+
+```yaml
+  - name: This is a main file
+  
+  - !include ./task1.yaml
+  # Content of "task1.yaml" will be loaded and replace this tag
+
+  - !include ./task2.yaml
+  # Content of "task2.yaml" will be loaded and replace this tag
 ```  
 
 

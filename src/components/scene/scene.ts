@@ -5,11 +5,13 @@ import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
+import { Logger } from 'src/libs/logger'
 import { getVars, setVars } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { Element } from '../element.interface'
 import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
+import { RootScene } from '../root-scene'
 import { prefixPassword } from './constants'
 import { SceneProps, SceneScope } from './scene.props'
 import { YamlType } from './yaml-type'
@@ -79,7 +81,21 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (Array.isArray(remoteFileRawProps)) {
       this.lazyInitRuns(remoteFileRawProps)
     } else {
-      const { password, ...remoteFileProps } = remoteFileRawProps
+      const { password, env, ...remoteFileProps } = remoteFileRawProps
+      if (env && this instanceof RootScene) {
+        this.logger.debug('Loading env')
+        if (Array.isArray(env)) {
+          env.forEach(e => {
+            const idx = e.indexOf('=')
+            process.env[e.substring(0, idx)] = e.substring(idx + 1)
+          })
+        } else if (typeof env === 'object') {
+          Object.keys(env).forEach(e => {
+            process.env[e] = env[e]
+          })
+        }
+      }
+      Logger.LoadFromEnv()
       if (password) {
         await this.generateEncryptedFile(remoteFileProps, password)
       }
@@ -192,7 +208,41 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       return JSON.parse(this.content)
     }
     const yamlType = new YamlType(this)
+    this.content = await this.prehandleFile(this.content)
     return load(this.content, { schema: yamlType.spaceSchema })
+  }
+
+  /** |**  !include
+    Include the content file to current position
+    @position top
+    @tag It's a yaml type
+    @example
+    ```yaml
+      - name: This is a main file
+      
+      - !include ./task1.yaml
+      # Content of "task1.yaml" will be loaded and replace this tag
+
+      - !include ./task2.yaml
+      # Content of "task2.yaml" will be loaded and replace this tag
+    ```
+  */
+  private async prehandleFile(content: string) {
+    const cnt = await Promise.all(content
+      .split('\n')
+      .map(async (cnt: string) => {
+        const m = cnt.match(/^([\s\t]*)-?\s*\!include\s*(.+)/)
+        if (m) {
+          const f = new FileRemote(m[2].trim(), this.scene || this)
+          const cnt = await f.getTextContent()
+          return cnt
+            .split('\n')
+            .map((c: string) => `${m[1]}${c}`)
+        }
+        return cnt
+      })
+    )
+    return cnt.flat().join('\n')
   }
 
   private async decryptContent(content: string, password?: string) {
