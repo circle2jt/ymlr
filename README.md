@@ -162,12 +162,22 @@ Root scene file includes all of steps to run
 Example:  
 
 ```yaml
-  name: Scene name                 # Scene name
+  name: Scene name                  # Scene name
   description: Scene description    # Scene description
   log: info                         # Show log when run. Default is info. [silent, error, warn, info, debug, trace, all]
   password:                         # Encrypted this file with the password. To run this file, need to provides a password in the command line
   vars:                             # Declare global variables which are used in the program.
-    env: production                 # |- Only the variables which are declared at here just can be overrided by environment variables
+    env: production                 # |- Only the variables which are declared in the top of root scene just can be overrided by environment variables
+  env:                              # Set value to environment variable (process.env)
+    DEBUG: all
+    DEBUG_CONTEXTS: test=debug
+    NODE_ENV: production
+    env: dev                        # It overrides to $vars.env
+    # - NODE_ENV=production
+  // envFile: file
+  // envFile:
+  //   - .file1.env
+  //   - .file2.env
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props

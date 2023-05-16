@@ -29,6 +29,35 @@ export class Logger {
     this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
   }
 
+  static LoadFromEnv() {
+    const DEBUG = process.env.DEBUG as LoggerLevel | undefined | 'true'
+    // Validate --debug
+    if (DEBUG === 'true') {
+      Logger.DEBUG = LoggerLevel.DEBUG
+    } else if (DEBUG) {
+      if (!LevelNumber[DEBUG]) {
+        console.warn(`--debug "${DEBUG}", Log level is not valid`)
+      } else {
+        Logger.DEBUG = DEBUG
+      }
+    }
+    // Validate --debug-context
+    const globalDebugContext: string[] | undefined = process.env.DEBUG_CONTEXTS?.split(',').map(e => e.trim())
+    const debugCtx = globalDebugContext?.filter((keyValue: string) => keyValue.includes('='))
+      .reduce((sum: Record<string, LoggerLevel>, keyValue: string) => {
+        const idx = keyValue.indexOf('=')
+        const key = keyValue.substring(0, idx)
+        const vl = keyValue.substring(idx + 1) as LoggerLevel
+        if (!LevelNumber[vl]) {
+          console.warn(`--debug-context "${key}=${vl}", Log level is not valid`)
+        } else {
+          sum[key] = vl
+        }
+        return sum
+      }, {})
+    if (debugCtx && Object.keys(debugCtx).length > 0) Logger.DEBUG_CONTEXTS = debugCtx
+  }
+
   static Dispose() {
     this.Event?.removeAllListeners()
     this.Event = undefined

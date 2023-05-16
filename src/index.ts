@@ -7,7 +7,6 @@ import 'src/managers/modules-manager'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import { Logger } from './libs/logger'
-import { LevelNumber } from './libs/logger/level-number'
 import { LoggerLevel } from './libs/logger/logger-level'
 import { PackagesManager } from './managers/packages-manager'
 
@@ -43,36 +42,13 @@ program
         process.env[key] = vl
       })
     const appLogger = new Logger(LoggerLevel.INFO)
-    let globalDebug = process.env.DEBUG as LoggerLevel | undefined | boolean
     if (debug) {
-      globalDebug = debug
+      process.env.DEBUG = debug
     }
-    // Validate --debug
-    if (globalDebug === true) {
-      globalDebug = LoggerLevel.DEBUG
-    } else if (globalDebug) {
-      if (!LevelNumber[globalDebug]) {
-        appLogger.warn(`--debug "${globalDebug}", Log level is not valid`)
-      }
+    if (debugContext?.length > 0) {
+      Logger.DEBUG_CONTEXTS = debugContext
     }
-    Logger.DEBUG = globalDebug as LoggerLevel | undefined
-
-    // Validate --debug-context
-    const globalDebugContext: string[] | undefined = process.env.DEBUG_CONTEXTS?.split(',').map(e => e.trim())
-    const debugCtx = (debugContext || globalDebugContext)?.filter((keyValue: string) => keyValue.includes('='))
-      .reduce((sum: Record<string, LoggerLevel>, keyValue: string) => {
-        const idx = keyValue.indexOf('=')
-        const key = keyValue.substring(0, idx)
-        const vl = keyValue.substring(idx + 1) as LoggerLevel
-        if (!LevelNumber[vl]) {
-          appLogger.warn(`--debug-context "${key}=${vl}", Log level is not valid`)
-        } else {
-          sum[key] = vl
-        }
-        return sum
-      }, {})
-    if (debugCtx && Object.keys(debugCtx).length > 0) Logger.DEBUG_CONTEXTS = debugCtx
-
+    Logger.LoadFromEnv()
     appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
     appLogger.log('')
     const app = new App(appLogger, {
