@@ -13,7 +13,7 @@ import { Group } from '../group/group'
 import { GroupItemProps, GroupProps } from '../group/group.props'
 import { RootScene } from '../root-scene'
 import { prefixPassword } from './constants'
-import { SceneProps, SceneScope } from './scene.props'
+import { SceneProps } from './scene.props'
 import { YamlType } from './yaml-type'
 
 const REGEX_FIRST_UPPER = /^[A-Z]/
@@ -28,20 +28,16 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
-        varsFiles: [.env1, .env2]         # Load env file to variable
-        scope: local                      # Value in [local, share]. Default is local
-                                          # - local: Don't pass parent scene variables
-                                          # - share: Pass parent scene variables
-                                          # Note: Global variables are always updated
-        vars:                             # They will only overrides "vars" in the scene
-          foo: scene bar                  # First is lowercase is vars in scenes
+        vars:                             # They will only overrides vars in the parents to this scene
+                                          # - Global variables is always passed into this scene
+          foo: scene bar                  # First is lowercase is vars which is used in scenes
           Foo: Global bar                 # First is uppercase is global vars which is used in the program
+          localVars: ${ $vars.parentVar } # This will get value of "$vars.parentVar" in the parent then pass it into "$vars.localVars" which is used in this scene
   ```
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
   name?: string
   path?: string
-  scope?: SceneScope
   encryptedPath?: string
   password?: string
   vars?: Record<string, any>
@@ -60,10 +56,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (typeof eProps === 'string') {
       eProps = { path: eProps }
     }
-    const { path, content, password, vars, scope, ...props } = eProps
+    const { path, content, password, vars, ...props } = eProps
     super(props)
-    Object.assign(this, { path, content, password, vars, scope })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'scope', 'event')
+    Object.assign(this, { path, content, password, vars })
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'event')
   }
 
   async asyncConstructor() {
@@ -85,12 +81,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (env && this instanceof RootScene) {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
-          env.forEach(e => {
+          (env as string[]).forEach(e => {
             const idx = e.indexOf('=')
             process.env[e.substring(0, idx)] = e.substring(idx + 1)
           })
         } else if (typeof env === 'object') {
-          Object.keys(env).forEach(e => {
+          Object.keys(env).forEach((e: string) => {
             process.env[e] = env[e]
           })
         }
@@ -160,22 +156,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private setupVars() {
-    if (this.scope === 'share') {
-      const newVars = this.localVars
-      this.localVars = this.scene.localVars
-      this.mergeVars(newVars)
-      if (Object.keys(newVars).length) {
-        this.copyVarsToGlobal()
-      }
-    } else {
-      this.copyVarsToGlobal(this.scene.localVars)
-      this.copyGlobalVarsToLocal()
-      const newVars = this.localVars
-      this.localVars = {}
-      this.mergeVars(newVars)
-      if (Object.keys(newVars).length) {
-        this.copyVarsToGlobal()
-      }
+    this.copyVarsToGlobal(this.scene.localVars)
+    this.copyGlobalVarsToLocal()
+    const newVars = this.localVars
+    this.localVars = {}
+    this.mergeVars(newVars)
+    if (Object.keys(newVars).length) {
+      this.copyVarsToGlobal()
     }
   }
 
@@ -219,7 +206,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     @example
     ```yaml
       - name: This is a main file
-      
+
       - !include ./task1.yaml
       # Content of "task1.yaml" will be loaded and replace this tag
 
@@ -231,7 +218,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     const cnt = await Promise.all(content
       .split('\n')
       .map(async (cnt: string) => {
-        const m = cnt.match(/^([\s\t]*)-?\s*\!include\s*(.+)/)
+        const m = cnt.match(/^([\s\t]*)-?\s*!include\s*(.+)/)
         if (m) {
           const f = new FileRemote(m[2].trim(), this.scene || this)
           const cnt = await f.getTextContent()
