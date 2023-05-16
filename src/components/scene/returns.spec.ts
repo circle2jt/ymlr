@@ -25,7 +25,6 @@ afterEach(async () => {
 
 test('should exports variables to result of scene', async () => {
   scene = await Testing.createElementProxy(Scene, {
-    scope: 'local',
     content: `
 vars:
   name: My result

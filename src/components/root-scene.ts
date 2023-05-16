@@ -50,7 +50,6 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     this.isRoot = true
-    if (!this.scope) this.scope = 'local'
     if (globalVars) merge(this.localVars, globalVars)
     this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
   }

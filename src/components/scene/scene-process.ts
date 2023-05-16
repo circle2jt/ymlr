@@ -17,13 +17,11 @@ import { SceneProcessProps } from './scene-process.props'
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
         password:                         # password to decode when the file is encrypted
-        scope: local                      # Value in [local, share]. Default is local
-                                          # - Global vars is always share, but scene vars is
-                                          #   - local: Variables in the scene only apply in the scene
-                                          #   - share: Variabes in the scene will be updated to all of scene
-        vars:                             # They will only overrides "vars" in the scene
-          foo: scene bar                  # First is lowercase is vars in scenes
+        vars:                             # They will only overrides vars in the parents to this scene
+                                          # - Global variables is always passed into this scene
+          foo: scene bar                  # First is lowercase is vars which is used in scenes
           Foo: Global bar                 # First is uppercase is global vars which is used in the program
+          localVars: ${ $vars.parentVar } # This will get value of "$vars.parentVar" in the parent then pass it into "$vars.localVars" which is used in this scene
   ```
 */
 export class SceneProcess extends Scene {
@@ -47,7 +45,6 @@ export class SceneProcess extends Scene {
     this.path = this.scene.getPath(this.path)
     this.processor = this.rootScene.workerManager.createWorker({
       path: this.path,
-      scope: this.scope,
       password: this.password,
       globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
       vars: this.vars

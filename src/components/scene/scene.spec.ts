@@ -282,27 +282,8 @@ test('Should run echo element', async () => {
   expect(echo.result).toBe('ok')
 })
 
-test('should share vars when scope is "share" 1', async () => {
-  await Testing.reset(`
-- vars:
-    GlobalVar: Global var
-    sceneVar: scene var in root scene
-`)
+test('should NOT share vars', async () => {
   scene = await Testing.createElementProxy(Scene, {
-    scope: 'share',
-    content: `
-- vars:
-    sceneVar: scene var in scene
-`
-  })
-  await scene.exec() as Array<ElementProxy<Vars>>
-  expect(Testing.vars.GlobalVar).toBe('Global var')
-  expect(Testing.vars.sceneVar).toBe('scene var in scene')
-})
-
-test('should NOT share vars when scope is "local"', async () => {
-  scene = await Testing.createElementProxy(Scene, {
-    scope: 'local',
     content: `
 - vars:
     GlobalVar: Global var
@@ -317,10 +298,9 @@ test('should NOT share vars when scope is "local"', async () => {
 test('should load content file when use "include"', async () => {
   const task1 = new FileTemp()
   try {
-    task1.create(`- echo: This is a task1`)
+    task1.create('- echo: This is a task1')
 
     scene = await Testing.createElementProxy(Scene, {
-      scope: 'local',
       content: `
   - echo: This is a main
   - !include ${task1.file}
@@ -329,7 +309,6 @@ test('should load content file when use "include"', async () => {
     const rs = await scene.exec() as Array<ElementProxy<Vars>>
     expect(rs[0].result).toBe('This is a main')
     expect(rs[1].result).toBe('This is a task1')
-
   } finally {
     task1.remove()
   }
