@@ -33,7 +33,7 @@
 		},
 		{
 			"type": "npm",
-			"script": "ci:lint",
+			"script": "lint",
 			"problemMatcher": [],
 			"label": "Lint"
 		},

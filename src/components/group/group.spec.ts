@@ -1,3 +1,4 @@
+import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { Echo } from '../echo/echo'
 import { ElementProxy } from '../element-proxy'
@@ -182,4 +183,36 @@ test('execute template', async () => {
   expect(group.result[0].result).toBe(0)
   expect(group.result[1].result).toBe(1)
   expect(group.result[2].result).toBe(2)
+})
+
+test('should include a file to execute', async () => {
+  const f = new FileTemp()
+  try {
+    f.create(`
+- echo: 1
+- echo: 2
+`)
+    group = await Testing.createElementProxy(Group, {
+      name: 'Test group',
+      runs: [
+        {
+          echo: 0
+        },
+        {
+          include: f.file
+        },
+        {
+          echo: 3
+        }
+      ]
+    })
+    await group.exec()
+    expect(group.result).toHaveLength(4)
+    expect(group.result[0].result).toBe(0)
+    expect(group.result[1].result).toBe(1)
+    expect(group.result[2].result).toBe(2)
+    expect(group.result[3].result).toBe(3)
+  } finally {
+    f.remove()
+  }
 })

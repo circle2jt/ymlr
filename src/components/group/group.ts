@@ -4,6 +4,7 @@ import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
 import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
+import { Include } from '../include/include'
 import { RootScene } from '../root-scene'
 import { GroupItemProps, GroupProps } from './group.props'
 
@@ -90,7 +91,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     } else {
       newRuns = newRuns.filter(r => !r.skip)
     }
-    for (const allProps of newRuns) {
+    let i = 0
+    for (; i < newRuns.length; i++) {
+      const allProps = newRuns[i]
       // Init props
       const props: any = allProps || {}
       if (props.runs) {
@@ -149,6 +152,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
+          if (elemProxy.$ instanceof Include) {
+            newRuns.splice(i--, 1, ...elemProxy.result)
+            continue
+          }
           result.push(elemProxy)
           if (elemProxy.element instanceof Continue) break
         }
@@ -163,6 +170,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition[i]
               })
               if (elemProxy) {
+                if (elemProxy.$ instanceof Include) {
+                  newRuns.splice(i--, 1, ...elemProxy.result)
+                  continue
+                }
                 result.push(elemProxy)
                 if (elemProxy.element instanceof Continue) break
               }
@@ -175,6 +186,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition[key]
               })
               if (elemProxy) {
+                if (elemProxy.$ instanceof Include) {
+                  newRuns.splice(i--, 1, ...elemProxy.result)
+                  continue
+                }
                 result.push(elemProxy)
                 if (elemProxy.element instanceof Continue) break
               }
@@ -186,6 +201,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition
               })
               if (elemProxy) {
+                if (elemProxy.$ instanceof Include) {
+                  newRuns.splice(i--, 1, ...elemProxy.result)
+                  continue
+                }
                 result.push(elemProxy)
                 if (elemProxy.element instanceof Continue) break
               }
