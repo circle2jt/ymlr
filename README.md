@@ -221,7 +221,7 @@ Example:
 
 ## <a id="# @include"></a># @include  
 `It's a yaml comment type`  
-Include the content file to current position. 
+Include the content file to current position.
 This is will be read a file then copy file content into current position
 If you want to use expresion ${}, you can use tag "include".
 Useful for import var file ....  
