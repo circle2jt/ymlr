@@ -131,6 +131,7 @@ runs:
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
+| [include](#include) | Include a scene file |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
 | [input'number](#input'number) | Get user input from keyboard then convert to number |
@@ -206,23 +207,6 @@ Use `template`
 ```  
 
 
-## <a id="!include"></a>!include  
-`It's a yaml type`  
-Include the content file to current position  
-
-Example:  
-
-```yaml
-  - name: This is a main file
-
-  - !include ./task1.yaml
-  # Content of "task1.yaml" will be loaded and replace this tag
-
-  - !include ./task2.yaml
-  # Content of "task2.yaml" will be loaded and replace this tag
-```  
-
-
 ## <a id="!regex"></a>!regex  
 `It's a yaml type`  
 Regex type  
@@ -232,6 +216,27 @@ Example:
 ```yaml
   - vars:
       myRegex: !regex /\d+/g        # ${ $vars.myRegex } is a RegExp type
+```  
+
+
+## <a id="# @include"></a># @include  
+`It's a yaml comment type`  
+Include the content file to current position. 
+This is will be read a file then copy file content into current position
+If you want to use expresion ${}, you can use tag "include".
+Useful for import var file ....  
+
+Example:  
+
+```yaml
+  - vars:
+      # @include ./.env
+```
+
+`.env` file is
+```text
+ENV: production
+APP: test
 ```  
 
 
@@ -1081,6 +1086,18 @@ Example:
       runs:                         # Steps to do a job
         - echo: Display then stop
         - http/jobs'stop:           # Stop job here
+```  
+
+
+## <a id="include"></a>include  
+  
+Include a scene file  
+
+Example:  
+
+```yaml
+  - include: ./scene1.yaml
+  - include: ./scene2.yaml
 ```  
 
 

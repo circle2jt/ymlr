@@ -303,7 +303,7 @@ test('should load content file when use "include"', async () => {
     scene = await Testing.createElementProxy(Scene, {
       content: `
   - echo: This is a main
-  - !include ${task1.file}
+  # @include ${task1.file}
     `
     })
     const rs = await scene.exec() as Array<ElementProxy<Vars>>

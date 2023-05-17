@@ -199,26 +199,30 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return load(this.content, { schema: yamlType.spaceSchema })
   }
 
-  /** |**  !include
-    Include the content file to current position
+  /** |**  # @include
+    Include the content file to current position.
+    This is will be read a file then copy file content into current position
+    If you want to use expresion ${}, you can use tag "include".
+    Useful for import var file ....
     @position top
-    @tag It's a yaml type
+    @tag It's a yaml comment type
     @example
     ```yaml
-      - name: This is a main file
+      - vars:
+          # @include ./.env
+    ```
 
-      - !include ./task1.yaml
-      # Content of "task1.yaml" will be loaded and replace this tag
-
-      - !include ./task2.yaml
-      # Content of "task2.yaml" will be loaded and replace this tag
+    `.env` file is
+    ```text
+    ENV: production
+    APP: test
     ```
   */
   private async prehandleFile(content: string) {
     const cnt = await Promise.all(content
       .split('\n')
       .map(async (cnt: string) => {
-        const m = cnt.match(/^([\s\t]*)-?\s*!include\s*(.+)/)
+        const m = cnt.match(/^([\s\t]*)#\s*@include\s*(.+)/)
         if (m) {
           const f = new FileRemote(m[2].trim(), this.scene || this)
           const cnt = await f.getTextContent()

@@ -84,13 +84,31 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const asyncJobs = new Array<Promise<any>>()
     const result = new Array<ElementProxy<Element>>()
     let newRuns = cloneDeep(this.runs)
+    // Handle includes tag
+    const includes = newRuns.map((e: any, i) => {
+      if (!e.include) return undefined
+      return { idx: i, file: e.include }
+    }).filter(e => e) as Array<{ idx: number, file: string }>
+    if (includes.length) {
+      const tagName = 'include'
+      for (let i = includes.length - 1; i >= 0; i--) {
+        const include = includes[i]
+        const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, {}, include.file)
+        const rs = elemProxy?.result
+        if (rs?.length) {
+          newRuns.splice(include.idx, 1, ...rs)
+        }
+      }
+    }
     const onlyRuns = newRuns.filter(r => r.only === true)
     if (onlyRuns.length) {
       newRuns = onlyRuns
     } else {
       newRuns = newRuns.filter(r => !r.skip)
     }
-    for (const allProps of newRuns) {
+    let i = 0
+    for (; i < newRuns.length; i++) {
+      const allProps = newRuns[i]
       // Init props
       const props: any = allProps || {}
       if (props.runs) {
