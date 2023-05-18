@@ -345,6 +345,27 @@ Example:
 ```  
 
 
+## <a id="detach"></a>detach  
+`It's a property in a tag`  
+Push the tag execution to background jobs to run async, the next steps will be run ASAP. But the program still wait it to be done before finish program  
+
+Example:  
+
+```yaml
+  - name: job1
+    detach: true
+    loop: ${[1,2,3]}
+    runs:
+      - echo: Hello ${$this.parentProxy.loopValue}
+      - sleep: 1s
+  - name: job2
+    echo: first
+  - name: job3
+    echo: second
+```
+In above example, job2, job3 will run step by step, but job1 run in background, the program will wait job1 done then finish the program  
+
+
 ## <a id="force"></a>force  
 `It's a property in a tag`  
 Try to execute and ignore error in the running  

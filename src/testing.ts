@@ -24,7 +24,7 @@ export class Testing {
     const proxy = new ElementProxy(new RootScene({ content }))
     proxy.logger = new Logger(LoggerLevel.SILENT)
     Testing.rootScene = proxy.scene = proxy.rootScene = proxy.element
-    await proxy.exec()
+    return await proxy.exec()
   }
 
   static async createElementProxy<T extends Element>(ElementClazz: ElementClass, props?: any, baseProps?: any) {

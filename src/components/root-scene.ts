@@ -39,6 +39,8 @@ export class RootScene extends Scene {
     return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
+  private readonly _backgroundJobs = new Array<Promise<any>>()
+
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
   readonly globalUtils = new UtilityFunctionManager()
@@ -59,11 +61,18 @@ export class RootScene extends Scene {
     await super.asyncConstructor()
   }
 
+  pushToBackgroundJob(task: Promise<any>) {
+    this._backgroundJobs.push(task)
+  }
+
   async exec() {
     this.event.emit('scene/exec:before')
     try {
       const rs = await super.exec()
       await this._workerManager?.exec()
+      if (this._backgroundJobs.length) {
+        await Promise.all(this._backgroundJobs.map(async job => await job))
+      }
       return rs
     } finally {
       this.event.emit('scene/exec:end')

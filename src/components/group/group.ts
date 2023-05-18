@@ -100,7 +100,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
       }
     }
-    const onlyRuns = newRuns.filter(r => r.only === true)
+    const onlyRuns = newRuns.filter(r => {
+      return (r.only === true) || (r.template)
+    })
     if (onlyRuns.length) {
       newRuns = onlyRuns
     } else {
@@ -134,7 +136,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
 
-      let { if: condition, force, debug, vars, async, loop, name, id, preScript, postScript, context } = eProps
+      let { if: condition, force, debug, vars, async, detach, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -157,6 +159,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         force,
         debug,
         vars,
+        detach,
         async,
         loop,
         preScript,
@@ -230,13 +233,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       await elemProxy.scene.setVars(baseProps.id, elemProxy)
     }
 
+    const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
     const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
     if (asyncJobs.length && !async) {
       await Promise.all(asyncJobs)
       asyncJobs.splice(0, asyncJobs.length)
     }
     const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
-    if (!async) {
+    if (detach) {
+      this.rootScene.pushToBackgroundJob(p)
+    } else if (!async) {
       await p
     } else {
       asyncJobs.push(p)

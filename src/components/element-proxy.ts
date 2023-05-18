@@ -296,6 +296,26 @@ export class ElementProxy<T extends Element> {
     ```
   */
   if?: boolean | string
+  /** |**  detach
+    Push the tag execution to background jobs to run async, the next steps will be run ASAP. But the program still wait it to be done before finish program
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - name: job1
+        detach: true
+        loop: ${[1,2,3]}
+        runs:
+          - echo: Hello ${$this.parentProxy.loopValue}
+          - sleep: 1s
+      - name: job2
+        echo: first
+      - name: job3
+        echo: second
+    ```
+    In above example, job2, job3 will run step by step, but job1 run in background, the program will wait job1 done then finish the program
+  */
+  detach?: boolean | string
   /** |**  async
     Execute parallel tasks
     @position top

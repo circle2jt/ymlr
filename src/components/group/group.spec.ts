@@ -5,14 +5,14 @@ import { ElementProxy } from '../element-proxy'
 import { Group } from './group'
 import { GroupItemProps, GroupProps } from './group.props'
 
-let group: ElementProxy<Group<GroupProps, GroupItemProps>>
+let group: ElementProxy<Group<GroupProps, GroupItemProps>> | undefined
 
 beforeEach(async () => {
   await Testing.reset()
 })
 
 afterEach(async () => {
-  await group.dispose()
+  await group?.dispose()
 })
 
 test('if - condition', async () => {
@@ -215,4 +215,22 @@ test('should include a file to execute', async () => {
   } finally {
     f.remove()
   }
+})
+
+test('should detach a tag to run in background', async () => {
+  const result = await Testing.reset(`
+- name: background job
+  detach: true
+  runs:
+    - loop: \${[1, 2, 3]}
+      runs:
+        - sleep: 1s
+    - echo: hehe
+    - vars:
+        done: \${Date.now()}
+- name: task 1
+- name: task 2
+  echo: \${Date.now()}
+  `)
+  expect(result[2].result).toBeLessThan(Testing.vars.done)
 })
