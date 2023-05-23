@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.1-alpha.2.md](#1684810589863)  -  _5/23/2023, 9:56:29 AM_
 - [1.2.1-alpha.1.md](#1684315645559)  -  _5/17/2023, 4:27:25 PM_
 - [1.2.0.md](#1684214082216)  -  _5/16/2023, 12:14:42 PM_
 - [1.1.12-alpha.3.md](#1683696498088)  -  _5/10/2023, 12:28:18 PM_
@@ -29,6 +30,13 @@
 
 ## Details
 
+<a id="1684810589863"></a>
+### 1.2.1-alpha.2
+
+* fix(scene): step with only run always ignore others (0b3ac38)
+* fix: Update command in docker file (61566b3)
+* feat(elementProxy): add "detach" props (aecf413)
+  
 <a id="1684315645559"></a>
 ### 1.2.1-alpha.1
 
