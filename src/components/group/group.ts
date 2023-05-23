@@ -100,11 +100,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
       }
     }
-    const onlyRuns = newRuns.filter(r => {
-      return (r.only === true) || (r.template)
+    const hasRunOnly = newRuns.some(r => {
+      return r.only === true
     })
-    if (onlyRuns.length) {
-      newRuns = onlyRuns
+    if (hasRunOnly) {
+      newRuns = newRuns.filter(r => {
+        return (r.only === true) || (r.template)
+      })
     } else {
       newRuns = newRuns.filter(r => !r.skip)
     }
