@@ -114,7 +114,6 @@ runs:
 | [md'doc](#md'doc) | Generate comment in a file to document |
 | [echo](#echo) | Print to console screen |
 | [clear](#clear) | Clear console screen |
-| [continue](#continue) | Ignore the next steps in the same parent |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -546,6 +545,24 @@ Example:
 ```  
 
 
+## <a id="skipNext"></a>skipNext  
+`It's a property in a tag`  
+Skip the next steps in the same parent group when done this  
+
+Example:  
+
+```yaml
+  - loop: ${ [1,2,3] }
+    runs:
+      - echo: begin                                          # Always print begin
+
+      - echo: ${ this.parentProxy.loopValue }
+        skipNext: ${ this.parentProxy.loopValue === 2 }      # When $loopValue is 2, skip the next step
+
+      - echo: end                                            # Only print end when $loopValue is not equals 2
+```  
+
+
 ## <a id="template"></a>template  
 `It's a property in a tag`  
 Declare a template to extends later  
@@ -645,25 +662,6 @@ Example:
 
 ```yaml
   - clear:
-```  
-
-
-## <a id="continue"></a>continue  
-  
-Ignore the next steps in the same parent  
-
-Example:  
-
-```yaml
-  - name: group 1
-    runs:
-      - echo: 1             # => 1
-      - continue:           # => Stop here then ignore the next steps in the same parent
-      - echo: 2
-      - echo: 3
-  - name: group 1
-    runs:                    # Still run the next group
-      - echo: 2             # => 2
 ```  
 
 

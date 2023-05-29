@@ -316,6 +316,23 @@ export class ElementProxy<T extends Element> {
     In above example, job2, job3 will run step by step, but job1 run in background, the program will wait job1 done then finish the program
   */
   detach?: boolean | string
+  /** |**  skipNext
+    Skip the next steps in the same parent group when done this
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - loop: ${ [1,2,3] }
+        runs:
+          - echo: begin                                          # Always print begin
+
+          - echo: ${ this.parentProxy.loopValue }
+            skipNext: ${ this.parentProxy.loopValue === 2 }      # When $loopValue is 2, skip the next step
+
+          - echo: end                                            # Only print end when $loopValue is not equals 2
+    ```
+  */
+  skipNext?: boolean | string
   /** |**  async
     Execute parallel tasks
     @position top
@@ -505,6 +522,10 @@ export class ElementProxy<T extends Element> {
       ...others
     })
     return rs
+  }
+
+  isSkipNext() {
+    return this.skipNext === null || !!this.skipNext
   }
 
   async exec(parentState?: any) {

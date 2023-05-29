@@ -1,7 +1,6 @@
 import cloneDeep from 'lodash.clonedeep'
 import { AppEvent } from 'src/app-event'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
-import { Continue } from '../continue/continue'
 import { ElementProxy } from '../element-proxy'
 import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
 import { RootScene } from '../root-scene'
@@ -138,7 +137,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
 
-      let { if: condition, force, debug, vars, async, detach, loop, name, id, preScript, postScript, context } = eProps
+      let { if: condition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -166,14 +165,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         loop,
         preScript,
         postScript,
-        context
+        context,
+        skipNext
       }
       // Execute
       if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           result.push(elemProxy)
-          if (elemProxy.element instanceof Continue) break
+          if (elemProxy.isSkipNext()) break
         }
       } else {
         let loopCondition = await this.innerScene.getVars(loop, this.proxy)
@@ -187,7 +187,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.element instanceof Continue) break
+                if (elemProxy.isSkipNext()) break
               }
             }
           } else if (typeof loopCondition === 'object') {
@@ -199,7 +199,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.element instanceof Continue) break
+                if (elemProxy.isSkipNext()) break
               }
             }
           } else if (loopCondition === true) {
@@ -210,7 +210,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.element instanceof Continue) break
+                if (elemProxy.isSkipNext()) break
               }
               loopCondition = await this.innerScene.getVars(loop, this.proxy)
             }
