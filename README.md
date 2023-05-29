@@ -365,6 +365,29 @@ Example:
 In above example, job2, job3 will run step by step, but job1 run in background, the program will wait job1 done then finish the program  
 
 
+## <a id="elseif"></a>elseif  
+`It's a property in a tag`  
+Check condition before run the item and skip the next cases when it passed  
+
+Example:  
+
+```yaml
+  - vars:
+      number: 11
+
+  - if: ${$vars.number === 11}
+    echo: Value is 11                   # => Value is 11
+
+  - elseif: ${$vars.number > 10}
+    echo: Value is greater than 10      # => 
+
+  - elseif: ${$vars.number < 10}
+    echo: Value is lessthan than 10     # =>
+
+  - echo: Done                          # => Done
+```  
+
+
 ## <a id="force"></a>force  
 `It's a property in a tag`  
 Try to execute and ignore error in the running  
@@ -404,11 +427,17 @@ Example:
 ```yaml
   - vars:
       number: 11
+
+  - if: ${$vars.number === 11}
+    echo: Value is 11                   # => Value is 11
+
   - if: ${$vars.number > 10}
     echo: Value is greater than 10      # => Value is greater than 10
 
   - if: ${$vars.number < 10}
-    echo: Value is lessthan than 10     # No print
+    echo: Value is lessthan than 10     # =>
+
+  - echo: Done                          # => Done
 ```  
 
 

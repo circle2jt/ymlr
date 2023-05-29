@@ -11,7 +11,7 @@ import { Returns } from './scene/returns'
 import { VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
-  'name', 'id', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript'
+  'name', 'id', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript', 'skipNext'
 ]
 
 export class ElementProxy<T extends Element> {
@@ -280,6 +280,28 @@ export class ElementProxy<T extends Element> {
     ```
   */
   loop?: string | object[] | object
+  /** |**  elseif
+    Check condition before run the item and skip the next cases when it passed
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - vars:
+          number: 11
+
+      - if: ${$vars.number === 11}
+        echo: Value is 11                   # => Value is 11
+
+      - elseif: ${$vars.number > 10}
+        echo: Value is greater than 10      # =>
+
+      - elseif: ${$vars.number < 10}
+        echo: Value is lessthan than 10     # =>
+
+      - echo: Done                          # => Done
+    ```
+  */
+  elseif?: boolean | string
   /** |**  if
     Check condition before run the item
     @position top
@@ -288,11 +310,17 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - vars:
           number: 11
+
+      - if: ${$vars.number === 11}
+        echo: Value is 11                   # => Value is 11
+
       - if: ${$vars.number > 10}
         echo: Value is greater than 10      # => Value is greater than 10
 
       - if: ${$vars.number < 10}
-        echo: Value is lessthan than 10     # No print
+        echo: Value is lessthan than 10     # =>
+
+      - echo: Done                          # => Done
     ```
   */
   if?: boolean | string
@@ -417,6 +445,10 @@ export class ElementProxy<T extends Element> {
     return this.context || this.tag
   }
 
+  get isSkipNext() {
+    return this.skipNext === null || !!this.skipNext
+  }
+
   private _logger?: Logger
   private get loggerLevel(): Level | LoggerLevel {
     return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level || LoggerLevel.ALL
@@ -522,10 +554,6 @@ export class ElementProxy<T extends Element> {
       ...others
     })
     return rs
-  }
-
-  isSkipNext() {
-    return this.skipNext === null || !!this.skipNext
   }
 
   async exec(parentState?: any) {

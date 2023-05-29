@@ -110,6 +110,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       newRuns = newRuns.filter(r => !r.skip)
     }
     let i = 0
+    let isUsingElseif = false
     for (; i < newRuns.length; i++) {
       const allProps = newRuns[i]
       // Init props
@@ -137,7 +138,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
 
-      let { if: condition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
+      let { if: condition, elseif: elseIfCondition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -152,11 +153,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
+      if (isUsingElseif) {
+        if (elseIfCondition) continue
+        isUsingElseif = false
+      }
       if (debug === true) debug = LoggerLevel.DEBUG
       const baseProps: ElementBaseProps = {
         id,
         name,
         if: condition,
+        elseif: elseIfCondition,
         force,
         debug,
         vars,
@@ -173,7 +179,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           result.push(elemProxy)
-          if (elemProxy.isSkipNext()) break
+          if (elemProxy.isSkipNext) break
+          isUsingElseif = !!(baseProps.elseif ?? baseProps.if)
         }
       } else {
         let loopCondition = await this.innerScene.getVars(loop, this.proxy)
@@ -187,7 +194,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.isSkipNext()) break
               }
             }
           } else if (typeof loopCondition === 'object') {
@@ -199,7 +205,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.isSkipNext()) break
               }
             }
           } else if (loopCondition === true) {
@@ -210,7 +215,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               })
               if (elemProxy) {
                 result.push(elemProxy)
-                if (elemProxy.isSkipNext()) break
               }
               loopCondition = await this.innerScene.getVars(loop, this.proxy)
             }
@@ -228,7 +232,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     elemProxy.parentState = parentState
 
-    const isContinue = (baseProps.if === undefined) || await this.innerScene.getVars(baseProps.if, elemProxy)
+    const condition = baseProps.elseif ?? baseProps.if
+    const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
     if (baseProps.id) {

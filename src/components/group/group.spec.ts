@@ -33,6 +33,45 @@ test('if - condition', async () => {
   expect(Testing.vars.name).toBe('name 01')
 })
 
+test('elseif - condition', async () => {
+  group = await Testing.createElementProxy(Group, [
+    {
+      vars: {
+        i: 8
+      }
+    },
+    {
+      if: '${ $vars.i > 10 }',
+      echo: '>10'
+    },
+    {
+      elseif: '${ $vars.i > 6 }',
+      echo: '>6'
+    },
+    {
+      elseif: '${ $vars.i > 2 }',
+      echo: '>2'
+    },
+    {
+      if: '${ $vars.i < 8 }',
+      echo: '<8'
+    },
+    {
+      elseif: '${ $vars.i < 10 }',
+      echo: '<10'
+    },
+    {
+      echo: 'done'
+    }
+  ])
+  const rs = await group.exec() as Array<ElementProxy<Echo>>
+  expect(rs).toHaveLength(4)
+  expect(rs[0].tag).toBe('vars')
+  expect(rs[1].result).toBe('>6')
+  expect(rs[2].result).toBe('<10')
+  expect(rs[3].result).toBe('done')
+})
+
 test('loop', async () => {
   group = await Testing.createElementProxy(Group, [
     {
@@ -126,6 +165,31 @@ test('skip', async () => {
   expect(group.result).toHaveLength(2)
   expect(group.result[0].result).toBe(0)
   expect(group.result[1].result).toBe(2)
+})
+
+test('skipNext', async () => {
+  group = await Testing.createElementProxy(Group, {
+    name: 'Test group',
+    runs: [
+      {
+        echo: 0
+      },
+      {
+        echo: 1,
+        skipNext: true
+      },
+      {
+        echo: 2
+      },
+      {
+        echo: 3
+      }
+    ]
+  })
+  await group.exec()
+  expect(group.result).toHaveLength(2)
+  expect(group.result[0].result).toBe(0)
+  expect(group.result[1].result).toBe(1)
 })
 
 test('only', async () => {
