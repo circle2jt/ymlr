@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.1.md](#1685333127165)  -  _5/29/2023, 11:05:27 AM_
 - [1.2.1-alpha.2.md](#1684810589863)  -  _5/23/2023, 9:56:29 AM_
 - [1.2.1-alpha.1.md](#1684315645559)  -  _5/17/2023, 4:27:25 PM_
 - [1.2.0.md](#1684214082216)  -  _5/16/2023, 12:14:42 PM_
@@ -30,6 +31,19 @@
 
 ## Details
 
+<a id="1685333127165"></a>
+### 1.2.1
+
+* feat: add new "elseif" tag (c0c7259)
+* feat!: replace "continue" tag to "continue" attribute (3d2136f)
+* chore: prerelease 1.2.1-alpha.2 (c197d66)
+* fix(scene): step with only run always ignore others (0b3ac38)
+* fix: Update command in docker file (61566b3)
+* feat(elementProxy): add "detach" props (aecf413)
+* chore: prerelease 1.2.1-alpha.1 (767e59d)
+* feat: add include tag to include a scene file (10b14bc)
+* ci: Chagne latest image to node, not alpine (97a1908)
+  
 <a id="1684810589863"></a>
 ### 1.2.1-alpha.2
 

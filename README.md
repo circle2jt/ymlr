@@ -379,7 +379,7 @@ Example:
     echo: Value is 11                   # => Value is 11
 
   - elseif: ${$vars.number > 10}
-    echo: Value is greater than 10      # => 
+    echo: Value is greater than 10      # =>
 
   - elseif: ${$vars.number < 10}
     echo: Value is lessthan than 10     # =>
