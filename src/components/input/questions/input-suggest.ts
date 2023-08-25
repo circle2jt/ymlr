@@ -40,10 +40,7 @@ export class InputSuggest extends InputAbstract<InputSuggestInterface> {
   limit?: number
   style?: string
   suggestType?: keyof SuggestType
-
-  get suggest() {
-    return (this.suggestType && SuggestFunction[this.suggestType]) || SuggestFunction.INCLUDE_AND_ALLOW_NEW
-  }
+  suggest!: Function
 
   constructor({ choices, limit, style, suggestType, ...props }: Partial<InputSuggestInterface>) {
     super(props)
@@ -56,6 +53,7 @@ export class InputSuggest extends InputAbstract<InputSuggestInterface> {
         this.default = +i
       }
     })
+    this.suggest = (this.suggestType && SuggestFunction[this.suggestType]) || SuggestFunction.INCLUDE_AND_ALLOW_NEW
     return await super.exec()
   }
 }
