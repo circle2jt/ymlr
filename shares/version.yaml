@@ -146,4 +146,4 @@ runs:
           git add ${$vars.changeFile}
           git add ${$vars.changeDir}
           ${$vars.gitCommitFiles}
-          git commit -m "${$vars.lastCommit}${$vars.lastCommitContent}"
+          git commit -m "${$vars.lastCommit}${$vars.lastCommitContent.replace(/"/g, '\\"')}"
