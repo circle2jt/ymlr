@@ -3,7 +3,7 @@ import { load } from 'js-yaml'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { FileWrite } from './file-write'
 
 let writer: ElementProxy<FileWrite>

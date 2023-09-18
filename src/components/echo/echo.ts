@@ -1,8 +1,8 @@
 import chalk from 'chalk'
 import { format } from 'util'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { EchoProps } from './echo.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type EchoProps } from './echo.props'
 
 /** |**  echo
   Print to console screen
@@ -59,7 +59,7 @@ export class Echo implements Element {
   }
 
   private format() {
-    let styles: Function = (msg: any) => msg
+    let styles = (msg: any) => msg
     if (this.styles?.length) {
       styles = this.styles
         .reduce((sum: any, method: string) => {

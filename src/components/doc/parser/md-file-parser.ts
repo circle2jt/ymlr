@@ -63,28 +63,28 @@ export class MDFileParser {
       if (m) {
         cur = m[1]
         line = m[3] || ''
-        // @ts-expect-error
+        // @ts-expect-error never mind
         mdBlock[cur] = line
         continue
       }
       if (cur === 'des') {
-        // @ts-expect-error
+        // @ts-expect-error never mind
         if (!mdBlock.description) mdBlock.description = ''
-        // @ts-expect-error
+        // @ts-expect-error never mind
         else mdBlock.description += '\n'
-        // @ts-expect-error
+        // @ts-expect-error never mind
         mdBlock.description += line.trimStart()
         continue
       }
       if (line.trimStart().startsWith('*/')) {
         isStart = false
         space = undefined
-        // @ts-expect-error
+        // @ts-expect-error never mind
         this.result.push(mdBlock)
         continue
       }
       if (cur) {
-        // @ts-expect-error
+        // @ts-expect-error never mind
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
         mdBlock[cur] += '\n' + line
       }

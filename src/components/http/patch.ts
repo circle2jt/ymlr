@@ -1,4 +1,4 @@
-import { PatchProps } from './patch.props'
+import { type PatchProps } from './patch.props'
 import { Post } from './post'
 
 /** |**  http'patch

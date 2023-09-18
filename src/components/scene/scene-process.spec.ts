@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { SceneProcess } from './scene-process'
 
 let sceneProcess: ElementProxy<SceneProcess>

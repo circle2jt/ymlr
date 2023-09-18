@@ -1,12 +1,12 @@
 import EventEmitter from 'events'
 import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
-import { AppEvent } from 'src/app-event'
+import { type AppEvent } from 'src/app-event'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
-import { RootSceneProps } from './root-scene.props'
+import { type RootSceneProps } from './root-scene.props'
 import { Scene } from './scene/scene'
 
 /** |** Root scene

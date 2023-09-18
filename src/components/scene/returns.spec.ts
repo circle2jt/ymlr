@@ -1,7 +1,7 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
-import { Vars } from '../vars/vars'
+import { type ElementProxy } from '../element-proxy'
+import { type Vars } from '../vars/vars'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>

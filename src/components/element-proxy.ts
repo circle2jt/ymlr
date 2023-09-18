@@ -1,14 +1,14 @@
-import { RootScene } from 'src/components/root-scene'
-import { Scene } from 'src/components/scene/scene'
+import { type RootScene } from 'src/components/root-scene'
+import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
-import { Logger } from 'src/libs/logger'
-import { Level } from 'src/libs/logger/level'
+import { type Logger } from 'src/libs/logger'
+import { type Level } from 'src/libs/logger/level'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
-import { Element } from './element.interface'
-import { Group } from './group/group'
+import { type Element } from './element.interface'
+import { type Group } from './group/group'
 import { Returns } from './scene/returns'
-import { VarsProps } from './vars/vars.props'
+import { type VarsProps } from './vars/vars.props'
 
 const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
   'name', 'id', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript', 'skipNext'
@@ -280,6 +280,28 @@ export class ElementProxy<T extends Element> {
     ```
   */
   loop?: string | object[] | object
+  /** |**  else
+    Check condition before run the item and skip the next cases when it passed
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - vars:
+          number: 11
+
+      - if: ${$vars.number === 11}
+        echo: Value is 11                   # => Value is 11
+
+      - elseif: ${$vars.number > 10}
+        echo: Value is greater than 10      # =>
+
+      - else:
+        echo: Value is lessthan than 10     # =>
+
+      - echo: Done                          # => Done
+    ```
+  */
+  else?: null
   /** |**  elseif
     Check condition before run the item and skip the next cases when it passed
     @position top
@@ -517,20 +539,20 @@ export class ElementProxy<T extends Element> {
     const proms = props
       .filter(key => {
         return !this.ignoreEvalPropsKeys?.includes(key) &&
-          // @ts-expect-error
+          // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {
-        // @ts-expect-error
+        // @ts-expect-error never mind
         elem[key] = await this.scene.getVars(elem[key], this)
       })
     const baseProps = Object.keys(this)
     proms.push(...baseProps
       .filter(key => {
         return IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
-          // @ts-expect-error
+          // @ts-expect-error never mind
           isGetEvalExp(this[key])
       }).map(async key => {
-        // @ts-expect-error
+        // @ts-expect-error never mind
         this[key] = await this.scene.getVars(this[key], this)
       }))
     proms.length && await Promise.all(proms)

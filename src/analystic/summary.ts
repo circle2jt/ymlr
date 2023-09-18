@@ -1,6 +1,6 @@
 import chalk from 'chalk'
-import { ElementProxy } from 'src/components/element-proxy'
-import { RootScene } from 'src/components/root-scene'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type RootScene } from 'src/components/root-scene'
 import { formatDuration } from 'src/libs/format'
 
 export class Summary {

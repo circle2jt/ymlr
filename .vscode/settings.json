@@ -15,5 +15,6 @@
         "source.organizeImports": true,
     },
     "typescript.tsc.autoDetect": "off",
-    "npm.autoDetect": "off"
+    "npm.autoDetect": "off",
+    "typescript.tsdk": "node_modules/typescript/lib"
 }

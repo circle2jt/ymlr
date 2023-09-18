@@ -1,11 +1,13 @@
-import { InputSuggestInterface } from './input-suggest.interface'
+import { type InputSuggestInterface } from './input-suggest.interface'
 import { InputAbstract } from './input.abstract'
 
+export type SuggestHandler = (inp: string, choices: Array<{ title: string, value: any }>) => any
+
 export interface SuggestType {
-  STARTSWITH_AND_ALLOW_NEW: Function
-  STARTSWITH: Function
-  INCLUDE_AND_ALLOW_NEW: Function
-  INCLUDE: Function
+  STARTSWITH_AND_ALLOW_NEW: SuggestHandler
+  STARTSWITH: SuggestHandler
+  INCLUDE_AND_ALLOW_NEW: SuggestHandler
+  INCLUDE: SuggestHandler
 }
 const SuggestFunction: SuggestType = {
   STARTSWITH_AND_ALLOW_NEW(inp: string, choices: Array<{ title: string, value: any }> = []) {
@@ -40,7 +42,7 @@ export class InputSuggest extends InputAbstract<InputSuggestInterface> {
   limit?: number
   style?: string
   suggestType?: keyof SuggestType
-  suggest!: Function
+  suggest!: SuggestHandler
 
   constructor({ choices, limit, style, suggestType, ...props }: Partial<InputSuggestInterface>) {
     super(props)

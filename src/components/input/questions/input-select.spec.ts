@@ -9,7 +9,7 @@ test('user input select with default value', async () => {
       { title: '2', value: 2 }
     ]
   })
-  setImmediate(() => input.answer(''))
+  setImmediate(() => { input.answer('') })
   const value = await input.exec()
   expect(value).toBe(2)
 })

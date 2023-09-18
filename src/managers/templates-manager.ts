@@ -1,4 +1,3 @@
-
 export class TemplatesManager {
   cached: Record<string, any> = {}
 

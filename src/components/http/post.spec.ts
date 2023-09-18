@@ -3,7 +3,7 @@ import Koa from 'koa'
 import koaBody from 'koa-body'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Post } from './post'
 
 const server = new MockServer({

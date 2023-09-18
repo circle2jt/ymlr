@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { AES } from '../encrypt/aes'
-import { Logger } from '../logger'
-import { StorageInterface } from './storage.interface'
+import { type Logger } from '../logger'
+import { type StorageInterface } from './storage.interface'
 
 export class FileStorage implements StorageInterface {
   private readonly secure?: AES

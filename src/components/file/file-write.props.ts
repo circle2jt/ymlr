@@ -1,4 +1,3 @@
-
 export interface FileWriteProps {
   path: string
   content: any

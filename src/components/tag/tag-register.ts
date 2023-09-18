@@ -1,6 +1,6 @@
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { TagRegisterProps } from './tag-register.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type TagRegisterProps } from './tag-register.props'
 
 /** |**  tag'register
   Register custom tags from code or npm module, github....

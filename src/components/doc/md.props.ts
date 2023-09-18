@@ -1,4 +1,3 @@
-
 export interface MDDocProps {
   saveTo: string
   includeDirs: string[]

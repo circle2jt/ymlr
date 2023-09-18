@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs'
 import { writeFile } from 'fs/promises'
-import { MDFileParser, MDFileProps } from './md-file-parser'
+import { type MDFileParser, type MDFileProps } from './md-file-parser'
 
 export class MDFileOutput {
   mdFileParsers = [] as MDFileParser[]
@@ -46,7 +46,7 @@ export class MDFileOutput {
   }
 
   appendFile(file: string) {
-    return this.appendContent(readFileSync(file).toString('utf8'))
+    this.appendContent(readFileSync(file).toString('utf8'))
   }
 
   prependContent(...content: string[]) {
@@ -54,7 +54,7 @@ export class MDFileOutput {
   }
 
   prependFile(file: string) {
-    return this.prependContent(readFileSync(file).toString('utf8'))
+    this.prependContent(readFileSync(file).toString('utf8'))
   }
 
   async save(path: string) {

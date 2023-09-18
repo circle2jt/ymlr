@@ -1,6 +1,6 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { TagRegister } from './tag-register'
 
 beforeEach(async () => {

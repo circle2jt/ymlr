@@ -1,13 +1,13 @@
 import assert from 'assert'
-import { createServer, IncomingMessage, Server, ServerResponse } from 'http'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import merge from 'lodash.merge'
 import { parse } from 'querystring'
 import { Job } from 'src/components/.job/job'
 import { promisify } from 'util'
 import { BasicAuth } from './auth/BasicAuth'
-import { IVerify } from './auth/IVerify'
-import { SubJobData } from './sub-job-data.props'
-import { SubProps } from './sub.props'
+import { type IVerify } from './auth/IVerify'
+import { type SubJobData } from './sub-job-data.props'
+import { type SubProps } from './sub.props'
 
 /** |**  http/jobs
   Create a jobs queue to do something step by step
@@ -80,7 +80,7 @@ export class Sub extends Job {
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.server = createServer(async (req, res) => await this.handleRequest(req, res))
+      this.server = createServer(async (req, res) => { await this.handleRequest(req, res) })
         .on('error', reject)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         .on('close', async () => {

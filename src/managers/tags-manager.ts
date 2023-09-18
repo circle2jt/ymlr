@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { join } from 'path'
-import { ElementProxy } from 'src/components/element-proxy'
-import { Element } from 'src/components/element.interface'
-import { Scene } from 'src/components/scene/scene'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type Element } from 'src/components/element.interface'
+import { type Scene } from 'src/components/scene/scene'
 import { sleep } from 'src/libs/time'
 import { PackagesManager } from './packages-manager'
 

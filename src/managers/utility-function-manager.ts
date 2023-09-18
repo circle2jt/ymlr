@@ -1,6 +1,6 @@
-import { AES } from 'src/libs/encrypt/aes'
-import { Base64 } from 'src/libs/encrypt/base64'
-import { MD5 } from 'src/libs/encrypt/md5'
+import { type AES } from 'src/libs/encrypt/aes'
+import { type Base64 } from 'src/libs/encrypt/base64'
+import { type MD5 } from 'src/libs/encrypt/md5'
 
 export class UtilityFunctionManager {
   /** |**  $utils.base64

@@ -1,5 +1,5 @@
 import { DEFAULT_SCHEMA, Type } from 'js-yaml'
-import { Scene } from './scene'
+import { type Scene } from './scene'
 
 export class YamlType {
   private readonly types = [

@@ -1,6 +1,6 @@
 import { PackagesManager } from 'src/managers/packages-manager'
 import { InstallAbstract } from './install.abstract'
-import { UninstallProps } from './uninstall.props'
+import { type UninstallProps } from './uninstall.props'
 
 /** |**  npm'uninstall
   Uninstall librarries to use in the scene.

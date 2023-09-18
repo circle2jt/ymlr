@@ -2,10 +2,10 @@ import { existsSync, unlinkSync } from 'fs'
 import { dump } from 'js-yaml'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { Echo } from '../echo/echo'
+import { type Echo } from '../echo/echo'
 import { ElementProxy } from '../element-proxy'
 import { RootScene } from '../root-scene'
-import { Vars } from '../vars/vars'
+import { type Vars } from '../vars/vars'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>

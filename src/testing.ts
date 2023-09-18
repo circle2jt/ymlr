@@ -2,7 +2,7 @@ import 'src/managers/modules-manager'
 
 import { RootScene } from 'src/components/root-scene'
 import { ElementProxy } from './components/element-proxy'
-import { Element, ElementClass } from './components/element.interface'
+import { type Element, type ElementClass } from './components/element.interface'
 import { Logger } from './libs/logger'
 import { LoggerLevel } from './libs/logger/logger-level'
 

@@ -1,4 +1,4 @@
-import { GroupProps } from '../group/group.props'
+import { type GroupProps } from '../group/group.props'
 
 export type SceneProps = {
   path?: string

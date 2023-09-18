@@ -23,9 +23,9 @@
     "@types/node": "^18.11.9",
     "@types/prompts": "^2.4.1",
     "@types/spinnies": "^0.5.0",
-    "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "eslint": "^8.30.0",
-    "eslint-config-standard-with-typescript": "^24.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "eslint": "^8.49.0",
+    "eslint-config-standard-with-typescript": "^39.0.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.6.0",
     "eslint-plugin-promise": "^6.1.1",
@@ -37,7 +37,7 @@
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
-    "typescript": "^4.9.4"
+    "typescript": "^5.2.2"
   },
   "scripts": {
     "v:next": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=alpha -e VERSIONNAME=prerelease -- ./scripts/up-version.yaml",

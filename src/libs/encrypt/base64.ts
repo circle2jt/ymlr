@@ -1,4 +1,4 @@
-import { Encrypt } from './encrypt.interface'
+import { type Encrypt } from './encrypt.interface'
 
 export class Base64 implements Encrypt {
   encrypt(data: any) {

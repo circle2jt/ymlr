@@ -1,4 +1,4 @@
-import { InputProps } from './input.props'
+import { type InputProps } from './input.props'
 
 export type InputSelectProps = {
   default?: any

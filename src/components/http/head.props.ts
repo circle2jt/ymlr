@@ -1,4 +1,3 @@
-
 export interface HeadProps {
   baseURL?: string
   timeout?: number | string

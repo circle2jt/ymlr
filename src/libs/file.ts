@@ -1,4 +1,4 @@
-import { Scene } from 'src/components/scene/scene'
+import { type Scene } from 'src/components/scene/scene'
 
 export class File {
   constructor(private readonly path: string, scene: Scene) {

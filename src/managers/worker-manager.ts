@@ -1,7 +1,7 @@
-import { ElementBaseProps } from 'src/components/element.interface'
-import { RootSceneProps } from 'src/components/root-scene.props'
-import { Logger } from 'src/libs/logger'
-import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { type ElementBaseProps } from 'src/components/element.interface'
+import { type RootSceneProps } from 'src/components/root-scene.props'
+import { type Logger } from 'src/libs/logger'
+import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { Worker } from './worker'
 
 export class WorkerManager {

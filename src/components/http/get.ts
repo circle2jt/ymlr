@@ -1,14 +1,14 @@
-import axios, { AxiosResponse } from 'axios'
+import axios, { type AxiosResponse } from 'axios'
 import chalk from 'chalk'
 import { createWriteStream } from 'fs'
-import { IncomingMessage } from 'http'
+import { type IncomingMessage } from 'http'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { finished } from 'stream/promises'
-import { GetProps } from './get.props'
+import { type GetProps } from './get.props'
 import { Head } from './head'
-import { ResponseType } from './types'
+import { type ResponseType } from './types'
 
 /** |**  http'get
   Send a http request with GET method

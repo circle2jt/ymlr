@@ -1,6 +1,6 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Js } from './js'
 
 let js: ElementProxy<Js>

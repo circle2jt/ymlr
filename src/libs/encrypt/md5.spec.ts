@@ -10,5 +10,5 @@ test('encrypt', () => {
 
 test('decrypt', () => {
   const md5 = new MD5()
-  expect(() => md5.decrypt(encrypt)).toThrowError(new Error('Could not decode md5'))
+  expect(() => { md5.decrypt(encrypt) }).toThrowError(new Error('Could not decode md5'))
 })

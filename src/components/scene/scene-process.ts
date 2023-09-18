@@ -2,9 +2,9 @@ import assert from 'assert'
 import toPlainObject from 'lodash.toplainobject'
 import { removeCircleRef } from 'src/libs/format'
 import { Logger } from 'src/libs/logger'
-import { Worker } from 'src/managers/worker'
+import { type Worker } from 'src/managers/worker'
 import { Scene } from './scene'
-import { SceneProcessProps } from './scene-process.props'
+import { type SceneProcessProps } from './scene-process.props'
 
 /** |**  scene'process
   Same "scene" but it run as a child process

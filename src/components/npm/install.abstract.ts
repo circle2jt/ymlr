@@ -2,9 +2,9 @@ import assert from 'assert'
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { nodeModulesDir } from 'src/managers/modules-manager'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { InstallProps } from './install.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type InstallProps } from './install.props'
 
 export abstract class InstallAbstract implements Element {
   readonly hideName = true

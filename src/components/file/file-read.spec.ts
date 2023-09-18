@@ -1,7 +1,7 @@
 import { dump } from 'js-yaml'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { FileRead } from './file-read'
 
 let reader: ElementProxy<FileRead>

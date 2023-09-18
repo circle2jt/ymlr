@@ -1,9 +1,9 @@
 import assert from 'assert'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { InputInterface } from './input.interface'
-import { InputProps } from './input.props'
-import { InputAbstract } from './questions/input.abstract'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type InputInterface } from './input.interface'
+import { type InputProps } from './input.props'
+import { type InputAbstract } from './questions/input.abstract'
 
 export class Input<T extends InputProps> implements Element {
   readonly ignoreEvalProps = ['input', 'InputClass']

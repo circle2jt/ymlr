@@ -1,5 +1,5 @@
 import { Testing } from 'src/testing'
-import { ElementProxy } from './element-proxy'
+import { type ElementProxy } from './element-proxy'
 import { Scene } from './scene/scene'
 
 let scene: ElementProxy<Scene>

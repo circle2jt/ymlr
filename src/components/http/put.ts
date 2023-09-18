@@ -1,5 +1,5 @@
 import { Post } from './post'
-import { PutProps } from './put.props'
+import { type PutProps } from './put.props'
 
 /** |**  http'put
   Send a http request with PUT method

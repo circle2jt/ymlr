@@ -1,6 +1,6 @@
 import { PackagesManager } from 'src/managers/packages-manager'
 import { InstallAbstract } from './install.abstract'
-import { InstallProps } from './install.props'
+import { type InstallProps } from './install.props'
 
 /** |**  npm'install
   Install librarries to use in the scene.

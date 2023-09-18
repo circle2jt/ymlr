@@ -1,6 +1,6 @@
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { VarsProps } from './vars.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type VarsProps } from './vars.props'
 
 /** |**  vars
   Declare and set value to variables to reused in the scene/global scope

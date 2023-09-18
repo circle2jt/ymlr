@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { FileRemote } from 'src/libs/file-remote'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { JsProps } from './js.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type JsProps } from './js.props'
 
 /** |**  js
   Execute a nodejs code

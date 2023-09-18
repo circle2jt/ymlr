@@ -1,7 +1,7 @@
 import { Logger } from '../logger'
 import { LoggerLevel } from '../logger/logger-level'
 import { sleep } from '../time'
-import { Job } from './job'
+import { type Job } from './job'
 import { JobsManager } from './jobs-manager'
 
 const logger = new Logger(LoggerLevel.SILENT)
@@ -48,7 +48,7 @@ test('Test jobs run successfully', async () => {
   await jm.add(new MyJob('job 2', 1000))
   await jm.add(new MyJob('job 3', 2000))
   await jm.add(new MyJob('job 4', 2000))
-  setTimeout(() => jm.stop(), 1000)
+  setTimeout(() => { jm.stop() }, 1000)
   await jm.start()
   expect(countRunningJob).toBe(0)
   expect(countDoneJob).toBe(3)
@@ -83,7 +83,7 @@ test('Test jobs run failed', async () => {
   await jm.add(new MyFailedJob('job 2', 1000))
   await jm.add(new MyJob('job 3', 2000))
   await jm.add(new MyJob('job 4', 2000))
-  setTimeout(() => jm.stop(), 1000)
+  setTimeout(() => { jm.stop() }, 1000)
   await jm.start()
   expect(countRunningJob).toBe(0)
   expect(countDoneJob).toBe(3)
@@ -104,7 +104,7 @@ test('Test jobs run failed then stop', async () => {
   await jm.add(new MyFailedJob('job 2', 1000))
   await jm.add(new MyJob('job 3', 2000))
   await jm.add(new MyJob('job 4', 2000))
-  setTimeout(() => jm.stop(), 1000)
+  setTimeout(() => { jm.stop() }, 1000)
   try {
     await jm.start()
   } catch (err) {

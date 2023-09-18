@@ -10,7 +10,7 @@ test('user input suggest with default value', async () => {
       { title: 'name 3', value: 'NAME 3' }
     ]
   })
-  setImmediate(() => input.answer('NAME 2'))
+  setImmediate(() => { input.answer('NAME 2') })
   const value = await input.exec()
   expect(value).toBe('NAME 2')
 })

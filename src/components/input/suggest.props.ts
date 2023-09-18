@@ -1,5 +1,5 @@
-import { InputProps } from './input.props'
-import { SuggestType } from './questions/input-suggest'
+import { type InputProps } from './input.props'
+import { type SuggestType } from './questions/input-suggest'
 
 export type InputSuggestProps = {
   default?: any

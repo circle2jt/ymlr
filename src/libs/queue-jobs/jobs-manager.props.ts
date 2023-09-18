@@ -1,5 +1,5 @@
-import { StorageInterface } from '../storage/storage.interface'
-import { JobHandler } from './job-handler.interface'
+import { type StorageInterface } from '../storage/storage.interface'
+import { type JobHandler } from './job-handler.interface'
 
 export interface JobsManagerOption {
   concurrent?: number

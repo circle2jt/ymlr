@@ -1,4 +1,3 @@
-
 export enum LoggerLevel {
   ALL = 'trace',
   TRACE = 'trace',

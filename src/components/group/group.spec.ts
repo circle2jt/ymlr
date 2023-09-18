@@ -1,9 +1,9 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { Echo } from '../echo/echo'
-import { ElementProxy } from '../element-proxy'
+import { type Echo } from '../echo/echo'
+import { type ElementProxy } from '../element-proxy'
 import { Group } from './group'
-import { GroupItemProps, GroupProps } from './group.props'
+import { type GroupItemProps, type GroupProps } from './group.props'
 
 let group: ElementProxy<Group<GroupProps, GroupItemProps>> | undefined
 
@@ -70,6 +70,36 @@ test('elseif - condition', async () => {
   expect(rs[1].result).toBe('>6')
   expect(rs[2].result).toBe('<10')
   expect(rs[3].result).toBe('done')
+})
+
+test('else - condition', async () => {
+  group = await Testing.createElementProxy(Group, [
+    {
+      vars: {
+        i: 3
+      }
+    },
+    {
+      if: '${ $vars.i > 10 }',
+      echo: '>10'
+    },
+    {
+      elseif: '${ $vars.i > 6 }',
+      echo: '>6'
+    },
+    {
+      else: null,
+      echo: '>2'
+    },
+    {
+      echo: 'done'
+    }
+  ])
+  const rs = await group.exec() as Array<ElementProxy<Echo>>
+  expect(rs).toHaveLength(3)
+  expect(rs[0].tag).toBe('vars')
+  expect(rs[1].result).toBe('>2')
+  expect(rs[2].result).toBe('done')
 })
 
 test('loop', async () => {

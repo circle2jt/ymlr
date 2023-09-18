@@ -2,9 +2,9 @@ import chalk from 'chalk'
 import { statSync } from 'fs'
 import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { MDDocProps } from './md.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type MDDocProps } from './md.props'
 import { MDFileOutput } from './parser/md-file-output'
 import { MDFileParser } from './parser/md-file-parser'
 
@@ -64,7 +64,7 @@ export class MDDoc implements Element {
       this.saveTo = this.scene.getPath(this.saveTo)
       const mdFileOutput = new MDFileOutput(this.title)
 
-      await Promise.all(this.includeDirs.map(async dirPath => await this.scanDir(dirPath, mdFileOutput)))
+      await Promise.all(this.includeDirs.map(async dirPath => { await this.scanDir(dirPath, mdFileOutput) }))
       mdFileOutput.scanDone()
 
       const preContents = await Promise.all<string>(this.prependMDs?.map(async opt => {
@@ -104,7 +104,7 @@ export class MDDoc implements Element {
       }
     } else {
       const items = await readdir(dirPath)
-      await Promise.all(items.map(async itemPath => await this.scanDir(join(dirPath, itemPath), mdFileOutput)))
+      await Promise.all(items.map(async itemPath => { await this.scanDir(join(dirPath, itemPath), mdFileOutput) }))
     }
   }
 

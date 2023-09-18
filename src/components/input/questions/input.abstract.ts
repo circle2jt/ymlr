@@ -1,11 +1,11 @@
 import chalk from 'chalk'
 import { stdin } from 'process'
-import prompts, { Answers, PromptType } from 'prompts'
-// @ts-expect-error
+import prompts, { type Answers, type PromptType } from 'prompts'
+// @ts-expect-error Missed ".d.ts" file
 import figures from 'prompts/lib/util/figures'
-// @ts-expect-error
+// @ts-expect-error Missed ".d.ts" file
 import styles from 'prompts/lib/util/style'
-import { InputInterface } from '../input.interface'
+import { type InputInterface } from '../input.interface'
 
 const symbols = Object.freeze({
   get aborted() {

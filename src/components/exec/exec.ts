@@ -2,8 +2,8 @@ import assert from 'assert'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
 
 /** |**  exec
   Execute a program
@@ -46,7 +46,7 @@ export class Exec implements Element {
         this.logger.trace(chalk.yellow(msg))
       })
       c.on('close', (code: number, signal: NodeJS.Signals) => {
-        if (signal) return reject(new Error(`Error code ${code}, signal: ${signal}`))
+        if (signal) { reject(new Error(`Error code ${code}, signal: ${signal}`)); return }
         resolve({ code, signal })
       })
       c.on('error', reject)

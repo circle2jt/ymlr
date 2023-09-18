@@ -1,4 +1,4 @@
-import { HeadProps } from './head.props'
+import { type HeadProps } from './head.props'
 
 export type GetProps = HeadProps & {
   responseType?: ResponseType

@@ -1,5 +1,4 @@
-
-const AsyncFunction = async function () { }.constructor as new (...args: any) => Function
+const AsyncFunction = async function () { }.constructor as new (...args: any) => (...args: any[]) => any
 
 export async function callFunctionScript(script: string, ctx: any, others: Record<string, any> = {}) {
   const args = Object.assign({ require }, others)

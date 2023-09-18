@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { InputConfirm } from 'src/components/input/questions/input-confirm'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
 
 /** |**  pause
   Pause the program then wait to user enter to continue
@@ -29,8 +29,8 @@ export class Pause implements Element {
     if (!isContinue) process.exit(1)
   }
 
-  async continue() {
-    await this.confirm?.answer('')
+  continue() {
+    this.confirm?.answer('')
   }
 
   dispose() { }

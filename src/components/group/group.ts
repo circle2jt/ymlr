@@ -1,10 +1,10 @@
 import cloneDeep from 'lodash.clonedeep'
-import { AppEvent } from 'src/app-event'
+import { type AppEvent } from 'src/app-event'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { ElementProxy } from '../element-proxy'
-import { Element, ElementBaseKeys, ElementBaseProps, ElementClass } from '../element.interface'
-import { RootScene } from '../root-scene'
-import { GroupItemProps, GroupProps } from './group.props'
+import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
+import { type RootScene } from '../root-scene'
+import { type GroupItemProps, type GroupProps } from './group.props'
 
 /** |**  runs
   Group elements
@@ -35,7 +35,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.lazyInitRuns(props)
   }
 
-  dispose() { }
+  async dispose() { }
 
   lazyInitRuns(props: GP | GIP[]) {
     if (Array.isArray(props)) {
@@ -110,7 +110,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       newRuns = newRuns.filter(r => !r.skip)
     }
     let i = 0
-    let isUsingElseif = false
+    let isPassedCondition = false
     for (; i < newRuns.length; i++) {
       const allProps = newRuns[i]
       // Init props
@@ -138,7 +138,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Retry to get tagName which is override by keys
       if (!tagName) tagName = this.getTagName(eProps)
 
-      let { if: condition, elseif: elseIfCondition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
+      let { if: condition, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -153,9 +153,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
-      if (isUsingElseif) {
-        if (elseIfCondition) continue
-        isUsingElseif = false
+      if (isPassedCondition) {
+        if (elseIfCondition || elseCondition === null) continue
+        isPassedCondition = false
       }
       if (debug === true) debug = LoggerLevel.DEBUG
       const baseProps: ElementBaseProps = {
@@ -163,6 +163,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         name,
         if: condition,
         elseif: elseIfCondition,
+        else: elseCondition,
         force,
         debug,
         vars,
@@ -179,8 +180,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           result.push(elemProxy)
+          isPassedCondition = !!baseProps.if || !!baseProps.elseif || baseProps.else === null
           if (elemProxy.isSkipNext) break
-          isUsingElseif = !!(baseProps.elseif ?? baseProps.if)
         }
       } else {
         let loopCondition = await this.innerScene.getVars(loop, this.proxy)
@@ -240,19 +241,20 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       await elemProxy.scene.setVars(baseProps.id, elemProxy)
     }
 
-    const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
-    const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
-    if (asyncJobs.length && !async) {
-      await Promise.all(asyncJobs)
-      asyncJobs.splice(0, asyncJobs.length)
-    }
     const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
+
+    const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
     if (detach) {
       this.rootScene.pushToBackgroundJob(p)
-    } else if (!async) {
-      await p
     } else {
-      asyncJobs.push(p)
+      const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
+      if (async) {
+        asyncJobs.push(p)
+      } else {
+        await Promise.all(asyncJobs)
+        asyncJobs = []
+        await p
+      }
     }
     return elemProxy
   }

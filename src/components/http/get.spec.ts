@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import { MockServer } from 'jest-mock-server'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Get } from './get'
 
 const server = new MockServer()

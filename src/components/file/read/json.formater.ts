@@ -1,4 +1,4 @@
-import { Formater } from './formater.interface'
+import { type Formater } from './formater.interface'
 
 export class JSONFormater implements Formater {
   format(content: string) {

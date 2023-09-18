@@ -1,7 +1,7 @@
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Test } from './test'
-import { TestError } from './test-error'
+import { type TestError } from './test-error'
 
 let testElem: ElementProxy<Test>
 

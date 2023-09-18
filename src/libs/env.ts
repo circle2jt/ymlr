@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from 'fs'
 import merge from 'lodash.merge'
-import { Logger } from './logger'
+import { type Logger } from './logger'
 
 export class Env {
   constructor(private readonly logger: Logger) { }

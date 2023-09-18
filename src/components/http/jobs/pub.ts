@@ -1,9 +1,9 @@
 import assert from 'assert'
 import axios from 'axios'
 import chalk from 'chalk'
-import { ElementProxy } from 'src/components/element-proxy'
-import { Element } from 'src/components/element.interface'
-import { PubProps } from './pub.props'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type Element } from 'src/components/element.interface'
+import { type PubProps } from './pub.props'
 
 /** |**  http/jobs'add
   Add a job to the queue

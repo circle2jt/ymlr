@@ -1,8 +1,8 @@
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
-import { Number } from './number'
+import { type ElementProxy } from '../element-proxy'
+import { Number as NumberInput } from './number'
 
-let input: ElementProxy<Number>
+let input: ElementProxy<NumberInput>
 
 beforeEach(async () => {
   await Testing.reset()
@@ -12,7 +12,7 @@ afterEach(async () => {
 })
 
 test('Input number data', async () => {
-  input = await Testing.createElementProxy(Number, {
+  input = await Testing.createElementProxy(NumberInput, {
     title: 'How old are you ?',
     default: 1
   })

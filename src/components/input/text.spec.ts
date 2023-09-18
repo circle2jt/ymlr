@@ -1,5 +1,5 @@
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Text } from './text'
 
 let input: ElementProxy<Text>

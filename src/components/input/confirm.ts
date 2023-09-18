@@ -1,4 +1,4 @@
-import { InputConfirmProps } from './confirm.props'
+import { type InputConfirmProps } from './confirm.props'
 import { Input } from './input'
 import { InputConfirm } from './questions/input-confirm'
 

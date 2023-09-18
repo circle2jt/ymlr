@@ -1,6 +1,6 @@
 import { Input } from './input'
 import { InputSelect } from './questions/input-select'
-import { InputSelectProps } from './select.props'
+import { type InputSelectProps } from './select.props'
 
 /** |**  input'select
   Suggest a list of choices for user then allow pick a choice

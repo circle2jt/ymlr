@@ -1,6 +1,6 @@
 import { Base64 } from 'src/libs/encrypt/base64'
-import { SubJobData } from '../sub-job-data.props'
-import { IVerify } from './IVerify'
+import { type SubJobData } from '../sub-job-data.props'
+import { type IVerify } from './IVerify'
 
 export class BasicAuth implements IVerify {
   hash: string

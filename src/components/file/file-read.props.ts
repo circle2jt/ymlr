@@ -1,4 +1,3 @@
-
 export interface FileReadProps {
   path: string
   vars: any

@@ -1,7 +1,7 @@
 import { unlinkSync } from 'fs'
 import { Testing } from 'src/testing'
-import { Echo } from '../echo/echo'
-import { ElementProxy } from '../element-proxy'
+import { type Echo } from '../echo/echo'
+import { type ElementProxy } from '../element-proxy'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>

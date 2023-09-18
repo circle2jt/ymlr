@@ -1,6 +1,6 @@
 import { Input } from './input'
 import { InputSuggest } from './questions/input-suggest'
-import { InputSuggestProps } from './suggest.props'
+import { type InputSuggestProps } from './suggest.props'
 
 /** |**  input'suggest
   Suggest a list of choices for user then allow pick a choice or create a new one

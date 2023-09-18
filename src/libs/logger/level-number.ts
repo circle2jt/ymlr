@@ -1,4 +1,3 @@
-
 export enum LevelNumber {
   all = 1,
   trace = 2,

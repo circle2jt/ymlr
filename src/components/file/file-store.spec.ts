@@ -2,7 +2,7 @@ import { readFileSync } from 'fs'
 import { AES } from 'src/libs/encrypt/aes'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { FileStore } from './file-store'
 
 let storage: ElementProxy<FileStore>

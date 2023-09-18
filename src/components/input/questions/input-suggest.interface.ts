@@ -1,5 +1,5 @@
-import { InputInterface } from '../input.interface'
-import { SuggestType } from './input-suggest'
+import { type InputInterface } from '../input.interface'
+import { type SuggestType } from './input-suggest'
 
 export interface InputSuggestInterface extends InputInterface {
   readonly type: 'autocomplete'

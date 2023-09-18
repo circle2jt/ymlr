@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { writeFile } from 'fs'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { FileWriteProps } from './file-write.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type FileWriteProps } from './file-write.props'
 import { JSONFormater } from './write/json.formater'
 import { YAMLFormater } from './write/yaml.formater'
 
@@ -59,7 +59,7 @@ export class FileWrite implements Element {
         if (formater) {
           this.content = formater.format(this.content)
         }
-        writeFile(this.path, this.content, (err: any) => err ? reject(err) : resolve(this.path))
+        writeFile(this.path, this.content, (err: any) => { err ? reject(err) : resolve(this.path) })
       } catch (err) {
         reject(err)
       }

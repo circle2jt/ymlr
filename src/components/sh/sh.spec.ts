@@ -2,7 +2,7 @@ import { existsSync, unlinkSync } from 'fs'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatFileName } from 'src/libs/format'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Sh } from './sh'
 
 let sh: ElementProxy<Sh>

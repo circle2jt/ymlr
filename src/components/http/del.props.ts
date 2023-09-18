@@ -1,3 +1,3 @@
-import { PostProps } from './post.props'
+import { type PostProps } from './post.props'
 
-export type DelProps = {} & PostProps
+export type DelProps = PostProps

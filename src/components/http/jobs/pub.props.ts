@@ -1,4 +1,3 @@
-
 export interface PubProps {
   address: string
   data?: any

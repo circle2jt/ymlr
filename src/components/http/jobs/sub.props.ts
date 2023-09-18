@@ -1,6 +1,6 @@
-import { GroupItemProps, GroupProps } from 'src/components/group/group.props'
-import { QuitItemProps } from './quit-item.props'
-import { SubItemProps } from './sub-item.props'
+import { type GroupItemProps, type GroupProps } from 'src/components/group/group.props'
+import { type QuitItemProps } from './quit-item.props'
+import { type SubItemProps } from './sub-item.props'
 
 export type SubProps = {
   address: string

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { ElementProxy } from 'src/components/element-proxy'
 import { Exec } from 'src/components/exec/exec'
-import { Logger } from 'src/libs/logger'
+import { type Logger } from 'src/libs/logger'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { nodeModulesDir } from './modules-manager'
 

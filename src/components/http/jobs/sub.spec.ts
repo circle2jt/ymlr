@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { escape } from 'querystring'
-import { ElementProxy } from 'src/components/element-proxy'
+import { type ElementProxy } from 'src/components/element-proxy'
 import { FileStore } from 'src/components/file/file-store'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'

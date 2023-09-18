@@ -1,4 +1,4 @@
-import { InputMultiSelectInterface } from './input-multiselect.interface'
+import { type InputMultiSelectInterface } from './input-multiselect.interface'
 import { InputAbstract } from './input.abstract'
 
 export class InputMultiSelect extends InputAbstract<InputMultiSelectInterface> {

@@ -1,5 +1,5 @@
 import { createHash } from 'crypto'
-import { Encrypt } from './encrypt.interface'
+import { type Encrypt } from './encrypt.interface'
 
 export class MD5 implements Encrypt {
   encrypt(data: any) {

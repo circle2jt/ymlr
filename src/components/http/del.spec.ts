@@ -1,6 +1,6 @@
 import { MockServer } from 'jest-mock-server'
 import { Testing } from 'src/testing'
-import { ElementProxy } from '../element-proxy'
+import { type ElementProxy } from '../element-proxy'
 import { Del } from './del'
 
 const server = new MockServer()

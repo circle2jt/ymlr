@@ -1,4 +1,4 @@
-import { InputInterface } from '../input.interface'
+import { type InputInterface } from '../input.interface'
 
 export interface InputConfirmInterface extends InputInterface {
   readonly type: 'confirm'

@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
 import { Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
-import { RootSceneProps } from './components/root-scene.props'
+import { type RootSceneProps } from './components/root-scene.props'
 import { Logger } from './libs/logger'
 import { LoggerLevel } from './libs/logger/logger-level'
 

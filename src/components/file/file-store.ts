@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { FileStorage } from 'src/libs/storage/file-storage'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { FileStoreProps } from './file-store.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type FileStoreProps } from './file-store.props'
 
 /** |**  file'store
   Store data to file

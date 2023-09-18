@@ -1,4 +1,4 @@
-import { ElementProxy } from 'src/components/element-proxy'
+import { type ElementProxy } from 'src/components/element-proxy'
 import { Testing } from 'src/testing'
 import { Pub } from './pub'
 import { Sub } from './sub'

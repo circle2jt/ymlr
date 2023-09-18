@@ -1,4 +1,4 @@
-import { StopProps } from './stop.props'
+import { type StopProps } from './stop.props'
 
 export interface QuitItemProps {
   "http/jobs'stop": StopProps

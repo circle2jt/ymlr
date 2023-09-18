@@ -1,5 +1,5 @@
 import { Input } from './input'
-import { InputPasswordProps } from './password.props'
+import { type InputPasswordProps } from './password.props'
 import { InputPassword } from './questions/input-password'
 
 /** |**  input'password

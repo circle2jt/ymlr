@@ -2,7 +2,7 @@ import assert from 'assert'
 import axios from 'axios'
 import { existsSync } from 'fs'
 import { readFile } from 'fs/promises'
-import { Scene } from 'src/components/scene/scene'
+import { type Scene } from 'src/components/scene/scene'
 
 export class FileRemote {
   get isRemote() {

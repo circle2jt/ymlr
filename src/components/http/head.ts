@@ -1,13 +1,13 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, type AxiosResponse } from 'axios'
 import chalk from 'chalk'
 import { Agent } from 'http'
 import { Agent as Agents } from 'https'
 import { decode, encode } from 'querystring'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { HeadProps } from './head.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type HeadProps } from './head.props'
 import { HttpError } from './http-error'
-import { Response } from './types'
+import { type Response } from './types'
 
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 axios.defaults.maxRedirects = Number.MAX_SAFE_INTEGER

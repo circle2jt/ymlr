@@ -1,6 +1,6 @@
 import { Input } from './input'
 import { InputText } from './questions/input-text'
-import { InputTextProps } from './text.props'
+import { type InputTextProps } from './text.props'
 
 /** |**  input'text
   Get user input from keyboard then convert to text

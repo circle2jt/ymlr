@@ -1,13 +1,13 @@
-import { Logger } from '../logger'
-import { StorageInterface } from '../storage/storage.interface'
-import { Job } from './job'
-import { JobHandler } from './job-handler.interface'
-import { JobsManagerOption } from './jobs-manager.props'
+import { type Logger } from '../logger'
+import { type StorageInterface } from '../storage/storage.interface'
+import { type Job } from './job'
+import { type JobHandler } from './job-handler.interface'
+import { type JobsManagerOption } from './jobs-manager.props'
 
 export class JobsManager {
   private concurrent = 1
-  private resolve?: Function
-  private reject?: Function
+  private resolve?: (data?: any) => any
+  private reject?: (error: Error) => any
   private runningJobsCount = 0
   private error?: any
 
@@ -86,7 +86,7 @@ export class JobsManager {
       this.reject = reject
       new Array(this.concurrent)
         .fill(null)
-        .forEach(() => this.pullJobToRun())
+        .forEach(() => { this.pullJobToRun() })
     })
   }
 

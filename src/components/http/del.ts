@@ -1,4 +1,4 @@
-import { DelProps } from './del.props'
+import { type DelProps } from './del.props'
 import { Post } from './post'
 
 /** |**  http'del

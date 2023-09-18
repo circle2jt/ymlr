@@ -13,7 +13,7 @@ export async function loadESModule(name: string) {
 
 function registerModulePlatform() {
   const _require = Module.prototype.require
-  // @ts-expect-error
+  // @ts-expect-error Overrided to load custimize modules
   Module.prototype.require = function (basePath: string) {
     if (basePath.startsWith(libName)) {
       basePath = libDir + basePath.substring(name.length)

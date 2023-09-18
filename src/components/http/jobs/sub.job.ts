@@ -1,7 +1,7 @@
-import { Job } from 'src/libs/queue-jobs/job'
+import { type Job } from 'src/libs/queue-jobs/job'
 
 export class SubJob implements Job {
-  constructor(private readonly exec: Function, private readonly data: any) { }
+  constructor(private readonly exec: (data: any) => any, private readonly data: any) { }
 
   jobExecute() {
     return this.exec(this.data)

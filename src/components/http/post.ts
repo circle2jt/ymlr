@@ -4,8 +4,8 @@ import { createReadStream } from 'fs'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Get } from './get'
-import { PostProps } from './post.props'
-import { RequestType, UploadFile } from './types'
+import { type PostProps } from './post.props'
+import { type RequestType, type UploadFile } from './types'
 
 /** |**  http'post
   Send a http request with POST method

@@ -1,13 +1,13 @@
 import { join } from 'path'
-import { ElementBaseProps } from 'src/components/element.interface'
-import { RootSceneProps } from 'src/components/root-scene.props'
-import { Logger } from 'src/libs/logger'
+import { type ElementBaseProps } from 'src/components/element.interface'
+import { type RootSceneProps } from 'src/components/root-scene.props'
+import { type Logger } from 'src/libs/logger'
 import { Worker as WorkerThread } from 'worker_threads'
 
 export class Worker {
   private readonly worker: WorkerThread
-  private resolve!: Function
-  private reject!: Function
+  private resolve!: (data?: any) => void
+  private reject!: (error: Error) => void
   private proms?: Promise<any>
   private error?: any
 
@@ -58,6 +58,6 @@ export class Worker {
 
   onExit(code: number) {
     this.logger.trace(`exit: ${code}`)
-    return !code ? this.resolve() : this.reject(this.error || new Error(`Thread "${this.props.path}" exited with code "${code}"`))
+    !code ? this.resolve() : this.reject(this.error || new Error(`Thread "${this.props.path}" exited with code "${code}"`))
   }
 }

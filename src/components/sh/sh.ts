@@ -4,9 +4,9 @@ import { execFile, spawn } from 'child_process'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
-import { ShProps } from './sh.props'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import { type ShProps } from './sh.props'
 
 /** |**  sh
   Execute a shell script
@@ -85,7 +85,7 @@ export class Sh implements Element {
         this.logger.debug(chalk.red(msg))
       })
       c.on('close', (code: number) => {
-        if (code) return reject(new Error(logs.join('')))
+        if (code) { reject(new Error(logs.join(''))); return }
         resolve(logs.join(''))
       })
       c.on('error', reject)
@@ -95,7 +95,7 @@ export class Sh implements Element {
   private async ShortScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
       execFile(this.bin, [tmpFile.file], { env: process.env, cwd: this.scene.curDir, timeout }, (err, stdout, stderr) => {
-        if (err) return reject(err)
+        if (err) { reject(err); return }
         stdout && this.logger.debug(chalk.gray(stdout))
         stderr && this.logger.debug(chalk.red(stderr))
         resolve((stdout + '\r\n' + stderr).trim())

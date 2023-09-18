@@ -1,8 +1,8 @@
 import assert from 'assert'
 import { formatTextToMs } from 'src/libs/format'
 import { sleep } from 'src/libs/time'
-import { ElementProxy } from '../element-proxy'
-import { Element } from '../element.interface'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
 
 /** |**  sleep
   Sleep the program then wait to user enter to continue

@@ -1,4 +1,4 @@
-import { InputInterface } from '../input.interface'
+import { type InputInterface } from '../input.interface'
 
 export interface InputMultiSelectInterface extends InputInterface {
   readonly type: 'multiselect'

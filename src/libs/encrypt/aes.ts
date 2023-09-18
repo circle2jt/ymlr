@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto'
-import { Encrypt } from './encrypt.interface'
+import { type Encrypt } from './encrypt.interface'
 
 export class AES implements Encrypt {
   private readonly salt: Buffer

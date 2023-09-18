@@ -1,5 +1,5 @@
 import { Input } from './input'
-import { InputNumberProps } from './number.props'
+import { type InputNumberProps } from './number.props'
 import { InputNumber } from './questions/input-number'
 
 /** |**  input'number

@@ -1,5 +1,5 @@
 import { Input } from './input'
-import { InputMultiSelectProps } from './multiselect.props'
+import { type InputMultiSelectProps } from './multiselect.props'
 import { InputMultiSelect } from './questions/input-multiselect'
 
 /** |**  input'multiselect
