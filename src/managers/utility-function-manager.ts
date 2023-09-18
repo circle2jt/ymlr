@@ -55,10 +55,16 @@ export class UtilityFunctionManager {
     @tag Utility function
     @example
     ```yaml
-      # Format file name
-      - echo: ${ $utils.format.fileName('a@(*&#.jpg') }
+      - echo: ${ $utils.format.fileName('a@(*&#à.jpg', ' ') }       # => a a.jpg
 
-      - echo: ${ $utils.format.number(1000000) }
+      - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
+      
+      - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
+
+      - echo: ${ $utils.format.fixLengthNumber(1, 2) }              # => 001
+      - echo: ${ $utils.format.fixLengthNumber(10, 2) }             # => 010
+
+      - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }  # => 90061100
     ```
   */
   format = {
@@ -66,9 +72,21 @@ export class UtilityFunctionManager {
       const { formatFileName } = require('../libs/format')
       return formatFileName(fileName)
     },
+    fixLengthNumber(n: number, length?: number) {
+      const { formatFixLengthNumber } = require('../libs/format')
+      return formatFixLengthNumber(n, length)
+    },
     number(num: number, opts?: Intl.NumberFormatOptions) {
       const { formatNumber } = require('../libs/format')
       return formatNumber(num, opts)
+    },
+    duration(ms: number) {
+      const { formatDuration } = require('../libs/format')
+      return formatDuration(ms)
+    },
+    textToMs(time: string) {
+      const { formatTextToMs } = require('../libs/format')
+      return formatTextToMs(time)
     }
   }
 }
