@@ -72,7 +72,8 @@ export class Logger {
 
   set context(ctx: string) {
     this._context = ctx
-    if (Logger.MaxContextLength < this._context.length) Logger.MaxContextLength = this._context.length
+    const maxLength = this.indent.indentStringLength + this._context.length
+    if (Logger.MaxContextLength < maxLength) Logger.MaxContextLength = maxLength
   }
 
   get context() {
@@ -84,6 +85,7 @@ export class Logger {
   }
 
   constructor(level: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
+    this.indent = indent || new Indent()
     this.context = context
     if (Logger.DEBUG_CONTEXTS?.[this.context]) {
       this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG_CONTEXTS[this.context]])
@@ -96,7 +98,6 @@ export class Logger {
         this.level = level
       }
     }
-    this.indent = indent || new Indent()
   }
 
   get prefix() {
@@ -151,7 +152,7 @@ export class Logger {
 
   info(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.info)) {
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.info), ...prms)
       } else {
@@ -164,7 +165,7 @@ export class Logger {
 
   debug(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.debug)) {
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.debug), ...prms)
       } else {
@@ -178,7 +179,7 @@ export class Logger {
   warn(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.warn)) {
       Logger.Event?.emit(LoggerLevel.WARN)
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.warn), ...prms)
       } else {
@@ -191,7 +192,7 @@ export class Logger {
 
   trace(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.trace)) {
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.trace), ...prms)
       } else {
@@ -205,7 +206,7 @@ export class Logger {
   error(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.error)) {
       Logger.Event?.emit(LoggerLevel.ERROR)
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.error), ...prms)
       } else {
@@ -219,7 +220,7 @@ export class Logger {
   fatal(msg: any, ...prms: any) {
     if (this.level?.is(LevelNumber.fatal)) {
       Logger.Event?.emit(LoggerLevel.FATAL)
-      if (this.maxContextLength !== Logger.MaxContextLength) this.syncTab()
+      this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.fatal), ...prms)
       } else {
@@ -232,6 +233,8 @@ export class Logger {
 
   addIndent(indent = 1) {
     this.indent.add(indent)
+    const maxLength = this.indent.indentStringLength + this._context.length
+    if (Logger.MaxContextLength < maxLength) Logger.MaxContextLength = maxLength
   }
 
   removeIndent(indent = 1) {
@@ -243,8 +246,9 @@ export class Logger {
   }
 
   private syncTab() {
+    if (this.maxContextLength === Logger.MaxContextLength) return
     this.maxContextLength = Logger.MaxContextLength
-    this.tab = chalk.gray(new Array(this.maxContextLength - this.context.length).fill('⊸').join(''))
+    this.tab = chalk.gray(new Array(this.maxContextLength - this.context.length - this.indent.indentStringLength).fill(' ').join(''))
   }
 
   private print(...args: any) {

@@ -8,6 +8,6 @@ export class FatalLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.red('┆')} ${chalk.red(msg)}`
+    return `${chalk.bgRed('[F]')} ${chalk.red(msg)}`
   }
 }

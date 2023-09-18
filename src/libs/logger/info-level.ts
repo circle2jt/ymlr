@@ -8,6 +8,6 @@ export class InfoLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.green('┆')} ${chalk.green(msg)}`
+    return `${chalk.bgGreen('[I]')} ${chalk.green(msg)}`
   }
 }

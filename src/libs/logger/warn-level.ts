@@ -8,6 +8,6 @@ export class WarnLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.yellow('┆')} ${chalk.yellow(msg)}`
+    return `${chalk.bgYellow('[W]')} ${chalk.yellow(msg)}`
   }
 }

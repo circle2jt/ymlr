@@ -3,6 +3,7 @@ import chalk from 'chalk'
 export class Indent {
   indentString = ''
   indent = 0
+  indentStringLength = 0
 
   constructor(indent = 0) {
     if (indent) {
@@ -17,6 +18,7 @@ export class Indent {
   update(indent: number) {
     this.indent = indent
     this.indentString = this.getIndentString(this.indent)
+    this.indentStringLength = this.indent * 2
   }
 
   format(str: string) {

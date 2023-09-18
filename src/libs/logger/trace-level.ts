@@ -8,6 +8,6 @@ export class TraceLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.magenta('┆')} ${chalk.magenta(msg)}`
+    return `${chalk.bgMagenta('[T]')} ${chalk.magenta(msg)}`
   }
 }

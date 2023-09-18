@@ -8,6 +8,6 @@ export class ErrorLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.redBright('┆')} ${chalk.redBright(msg)}`
+    return `${chalk.bgRedBright('[E]')} ${chalk.redBright(msg)}`
   }
 }

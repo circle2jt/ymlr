@@ -8,6 +8,6 @@ export class DebugLevel extends Level {
   }
 
   format(msg: string) {
-    return `${chalk.gray('┆')} ${chalk.gray(msg)}`
+    return `${chalk.bgGray('[D]')} ${chalk.gray(msg)}`
   }
 }
