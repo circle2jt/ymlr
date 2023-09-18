@@ -7,7 +7,7 @@ export class ErrorLevel extends Level {
     super(LevelNumber.error)
   }
 
-  format(msg: string) {
+  override format(msg: string) {
     return `${chalk.bgRedBright('[E]')} ${chalk.redBright(msg)}`
   }
 }

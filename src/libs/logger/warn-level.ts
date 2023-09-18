@@ -7,7 +7,7 @@ export class WarnLevel extends Level {
     super(LevelNumber.warn)
   }
 
-  format(msg: string) {
+  override format(msg: string) {
     return `${chalk.bgYellow('[W]')} ${chalk.yellow(msg)}`
   }
 }

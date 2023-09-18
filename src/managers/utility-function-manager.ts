@@ -58,7 +58,7 @@ export class UtilityFunctionManager {
       - echo: ${ $utils.format.fileName('a@(*&#à.jpg', ' ') }       # => a a.jpg
 
       - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
-      
+
       - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
 
       - echo: ${ $utils.format.fixLengthNumber(1, 2) }              # => 001

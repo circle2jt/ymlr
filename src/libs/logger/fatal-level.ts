@@ -7,7 +7,7 @@ export class FatalLevel extends Level {
     super(LevelNumber.fatal)
   }
 
-  format(msg: string) {
+  override format(msg: string) {
     return `${chalk.bgRed('[F]')} ${chalk.red(msg)}`
   }
 }

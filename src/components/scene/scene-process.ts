@@ -40,7 +40,7 @@ export class SceneProcess extends Scene {
     this.ignoreEvalProps.push('processor', 'id')
   }
 
-  async handleFile() {
+  override async handleFile() {
     assert(this.path)
     this.path = this.scene.getPath(this.path)
     this.processor = this.rootScene.workerManager.createWorker({
@@ -59,7 +59,7 @@ export class SceneProcess extends Scene {
     })
   }
 
-  async exec() {
+  override async exec() {
     await this.processor.exec()
     return []
   }

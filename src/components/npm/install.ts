@@ -43,7 +43,7 @@ export class Install extends InstallAbstract {
     super(props)
   }
 
-  async action(...packsInstall: string[]) {
+  override async action(...packsInstall: string[]) {
     const packageManager = new PackagesManager(this.logger)
     await packageManager.install(...packsInstall)
   }

@@ -62,7 +62,7 @@ export class Post extends Get {
     Object.assign(this, { type, body })
   }
 
-  async send(moreOptions: any = {}) {
+  override async send(moreOptions: any = {}) {
     const body = this.getRequestBody()
     if (this.isUpload) {
       // eslint-disable-next-line no-case-declarations

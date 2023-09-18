@@ -104,7 +104,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
   }
 
-  async exec() {
+  override async exec() {
     if (this.name) this.logger.label(this.name)
     // if (this.isRoot) this.logger.debug('')
     try {
@@ -115,7 +115,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
   }
 
-  async dispose() {
+  override async dispose() {
     if (this.updateGlobalVarsListener) this.proxy.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
     await super.dispose()
   }

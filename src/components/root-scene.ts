@@ -56,7 +56,7 @@ export class RootScene extends Scene {
     this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
   }
 
-  async asyncConstructor() {
+  override async asyncConstructor() {
     this.proxy.scene = this.proxy.rootScene = this
     await super.asyncConstructor()
   }
@@ -65,7 +65,7 @@ export class RootScene extends Scene {
     this._backgroundJobs.push(task)
   }
 
-  async exec() {
+  override async exec() {
     this.event.emit('scene/exec:before')
     try {
       const rs = await super.exec()
@@ -79,7 +79,7 @@ export class RootScene extends Scene {
     }
   }
 
-  async dispose() {
+  override async dispose() {
     const proms = []
     this.event.emit('scene/dispose:before')
     try {

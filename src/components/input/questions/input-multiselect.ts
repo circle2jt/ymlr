@@ -10,7 +10,7 @@ export class InputMultiSelect extends InputAbstract<InputMultiSelectInterface> {
     Object.assign(this, { choices })
   }
 
-  async exec(): Promise<boolean | null | undefined> {
+  override async exec(): Promise<boolean | null | undefined> {
     if (this.default !== undefined && !Array.isArray(this.default)) {
       this.default = [this.default]
     }

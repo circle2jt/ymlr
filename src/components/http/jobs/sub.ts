@@ -72,7 +72,7 @@ export class Sub extends Job {
     this.ignoreEvalProps.push('server', 'auth')
   }
 
-  async execJob() {
+  override async execJob() {
     assert(this.address)
     if (this.secure?.basic) {
       this.auth = new BasicAuth(this.secure.basic.username, this.secure.basic.password)
@@ -161,12 +161,12 @@ export class Sub extends Job {
     })
   }
 
-  async stop() {
+  override async stop() {
     if (!this.server?.listening) return
     this.server?.close()
   }
 
-  async dispose() {
+  override async dispose() {
     await this.stop()
     await super.dispose()
   }

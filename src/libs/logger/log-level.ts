@@ -6,7 +6,7 @@ export class LogLevel extends Level {
     super(LevelNumber.info)
   }
 
-  format(msg: string) {
+  override format(msg: string) {
     return msg
   }
 }

@@ -35,7 +35,7 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
     }) || []
   }
 
-  async exec(input?: Record<string, any>) {
+  override async exec(input?: Record<string, any>) {
     let t: Promise<any> | undefined
     if (this.queue) {
       const opts: JobsManagerOption = {
@@ -81,7 +81,7 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
     this.jobsManager = undefined
   }
 
-  async dispose() {
+  override async dispose() {
     await this.stop()
   }
 }

@@ -7,7 +7,7 @@ export class InfoLevel extends Level {
     super(LevelNumber.info)
   }
 
-  format(msg: string) {
+  override format(msg: string) {
     return `${chalk.bgGreen('[I]')} ${chalk.green(msg)}`
   }
 }

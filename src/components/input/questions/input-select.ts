@@ -10,7 +10,7 @@ export class InputSelect extends InputAbstract<InputSelectInterface> {
     Object.assign(this, { choices })
   }
 
-  async exec(): Promise<boolean | null | undefined> {
+  override async exec(): Promise<boolean | null | undefined> {
     this.choices.forEach((choice, i) => {
       if (this.default !== undefined && this.default === choice.value) {
         this.default = +i

@@ -56,7 +56,7 @@ export class Get extends Head {
     Object.assign(this, { responseType, saveTo })
   }
 
-  async send(moreOptions: any = {}) {
+  override async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
     if (this.responseType === 'stream') this.isDownload = true
     if (this.isDownload) {

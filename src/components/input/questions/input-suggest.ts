@@ -49,7 +49,7 @@ export class InputSuggest extends InputAbstract<InputSuggestInterface> {
     Object.assign(this, { choices, limit, style, suggestType })
   }
 
-  async exec(): Promise<boolean | null | undefined> {
+  override async exec(): Promise<boolean | null | undefined> {
     this.choices.forEach((choice, i) => {
       if (this.default !== undefined && this.default === choice.value) {
         this.default = +i

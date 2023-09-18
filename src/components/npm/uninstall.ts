@@ -21,7 +21,7 @@ export class Uninstall extends InstallAbstract {
     super(props)
   }
 
-  async action(...packsInstall: string[]) {
+  override async action(...packsInstall: string[]) {
     const packageManager = new PackagesManager(this.logger)
     await packageManager.uninstall(...packsInstall)
   }
