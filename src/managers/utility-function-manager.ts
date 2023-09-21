@@ -55,19 +55,25 @@ export class UtilityFunctionManager {
     @tag Utility function
     @example
     ```yaml
-      - echo: ${ $utils.format.fileName('a@(*&#à.jpg', ' ') }       # => a a.jpg
+    - echo: ${ $utils.format.fileName('a@(*&#à.jpg', ' ') }                             # => a a.jpg
 
-      - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
+    - echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
 
-      - echo: ${ $utils.format.number(1000000) }                    # => 1,000,000
+    - echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
 
-      - echo: ${ $utils.format.fixLengthNumber(1, 2) }              # => 001
-      - echo: ${ $utils.format.fixLengthNumber(10, 2) }             # => 010
+    - echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
+    - echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
 
-      - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }  # => 90061100
+    - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
+
+    - echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
     ```
   */
   format = {
+    date(date: Date, format: string) {
+      const { formatDate } = require('../libs/format')
+      return formatDate(date, format)
+    },
     fileName(fileName: string) {
       const { formatFileName } = require('../libs/format')
       return formatFileName(fileName)
