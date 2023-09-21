@@ -1,4 +1,4 @@
-import { formatDuration, formatFileName, formatFixLengthNumber, formatNumber, formatTextToMs, kebabToCamelCase, tryToParseObject } from './format'
+import { formatDate, formatDuration, formatFileName, formatFixLengthNumber, formatNumber, formatTextToMs, kebabToCamelCase, tryToParseObject } from './format'
 
 test('kebabToCamelCase', () => {
   expect(kebabToCamelCase('test-name')).toBe('testName')
@@ -7,6 +7,14 @@ test('kebabToCamelCase', () => {
 
 test('format number', () => {
   expect(formatNumber(1000999)).toBe('1,000,999')
+})
+
+test.each([
+  [new Date(2023, 2, 3, 1, 2, 3, 999), 'DD/MM/YYYY hh:mm:ss.ms', '03/03/2023 01:02:03.999'],
+  [new Date(2023, 1, 1, 1, 2, 3, 1), 'D/M/YYYY h:m:s.ms', '1/2/2023 1:2:3.001'],
+  [new Date(2023, 8, 6, 8, 2, 3, 999), 'DD/MM/YYYY, h:m:s', '06/09/2023, 8:2:3']
+])('format date %d to %s', (date: Date, format: string, expected: string) => {
+  expect(formatDate(date, format)).toBe(expected)
 })
 
 test.each([

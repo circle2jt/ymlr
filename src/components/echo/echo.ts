@@ -3,6 +3,7 @@ import { format } from 'util'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type EchoProps } from './echo.props'
+import { type Formater } from './formater'
 
 /** |**  echo
   Print to console screen
@@ -36,7 +37,7 @@ import { type EchoProps } from './echo.props'
         content: Content is red and bold
   ```
 */
-export class Echo implements Element {
+export class Echo implements Element, Formater {
   readonly proxy!: ElementProxy<this>
 
   private get logger() { return this.proxy.logger }
@@ -54,11 +55,17 @@ export class Echo implements Element {
   }
 
   async exec() {
-    this.logger.log(this.format())
+    let input = ''
+    if (typeof this.content === 'object') {
+      input = format('%j', this.content)
+    } else {
+      input = this.content?.toString()
+    }
+    this.logger.log(this.format(input))
     return this.content
   }
 
-  private format() {
+  format(input: string) {
     let styles = (msg: any) => msg
     if (this.styles?.length) {
       styles = this.styles
@@ -67,10 +74,7 @@ export class Echo implements Element {
           return sum
         }, chalk)
     }
-    if (typeof this.content === 'object') {
-      return format(`${styles('%j')}`, this.content)
-    }
-    return styles(this.content?.toString())
+    return styles(input)
   }
 
   dispose() { }

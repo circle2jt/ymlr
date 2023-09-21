@@ -15,11 +15,11 @@ export class YamlType {
     */
     new Type('!regex', {
       kind: 'scalar',
-      resolve: function (data) {
+      resolve(data) {
         return data && typeof data === 'string'
       },
       instanceOf: RegExp,
-      construct: function (data: string) {
+      construct(data: string) {
         const m = data.match(/^\/(.*?)\/([a-zA-Z]*)$/)
         if (m) {
           return new RegExp(m[2], m[3] || undefined)

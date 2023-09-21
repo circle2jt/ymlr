@@ -113,6 +113,7 @@ runs:
 |---|---|
 | [md'doc](#md'doc) | Generate comment in a file to document |
 | [echo](#echo) | Print to console screen |
+| [echo'debug](#echo'debug) | Add more information when print to console screen |
 | [clear](#clear) | Clear console screen |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
@@ -363,6 +364,29 @@ Example:
     echo: second
 ```
 In above example, job2, job3 will run step by step, but job1 run in background, the program will wait job1 done then finish the program  
+
+
+## <a id="else"></a>else  
+`It's a property in a tag`  
+Check condition before run the item and skip the next cases when it passed  
+
+Example:  
+
+```yaml
+  - vars:
+      number: 11
+
+  - if: ${$vars.number === 11}
+    echo: Value is 11                   # => Value is 11
+
+  - elseif: ${$vars.number > 10}
+    echo: Value is greater than 10      # =>
+
+  - else:
+    echo: Value is lessthan than 10     # =>
+
+  - echo: Done                          # => Done
+```  
 
 
 ## <a id="elseif"></a>elseif  
@@ -680,6 +704,22 @@ Print text with custom type. (Follow "chalk")
   - echo:
       styles: [red, bold]
       content: Content is red and bold
+```  
+
+
+## <a id="echo'debug"></a>echo'debug  
+  
+Add more information when print to console screen  
+
+Example:  
+
+Print a message
+```yaml
+  - echo'debug: Hello world
+
+  - echo'debug:
+      showTime: true        # Default prepend execution time into log
+      content: Hello
 ```  
 
 
@@ -1680,10 +1720,18 @@ Formater
 Example:  
 
 ```yaml
-  # Format file name
-  - echo: ${ $utils.format.fileName('a@(*&#.jpg') }
+- echo: ${ $utils.format.fileName('a@(*&#à.jpg', ' ') }                             # => a a.jpg
 
-  - echo: ${ $utils.format.number(1000000) }
+- echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
+
+- echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
+
+- echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
+- echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
+
+- echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
+
+- echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
 ```  
 
 
