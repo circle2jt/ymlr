@@ -22,7 +22,7 @@ test('Test simple cron each 1 sec', async () => {
       {
         vars: {
           ok: true,
-          lastDate: "${ $parentState.lastDate }"
+          lastDate: '${ $parentState.lastDate }'
         }
       }, {
         stop: null

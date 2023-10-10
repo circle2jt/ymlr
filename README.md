@@ -115,6 +115,7 @@ runs:
 | [echo](#echo) | Print to console screen |
 | [echo'debug](#echo'debug) | Add more information when print to console screen |
 | [clear](#clear) | Clear console screen |
+| [cron](#cron) | Schedule a task with cron pattern |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -151,9 +152,7 @@ runs:
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
-| [vars](#vars) | Declare and set value to variables to reused in the scene/global scope
-- If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
-- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene |
+| [vars](#vars) | Declare and set value to variables to reused in the scene/global scope |
 
 
 ## <a id="Root scene"></a>Root scene  
@@ -715,11 +714,12 @@ Example:
 
 Print a message
 ```yaml
-  - echo'debug: Hello world
+                                            # Default prepend execution time into log
+  - echo'debug: Hello world                 # => 01:01:01.101    Hello world
 
   - echo'debug:
-      showTime: true        # Default prepend execution time into log
-      content: Hello
+      formatTime: YYYY/MM/DD hh:mm:ss.ms    # Default format is "hh:mm:ss.ms"
+      content: Hello                        # => 2023/01/01 01:01:01.101    Hello
 ```  
 
 
@@ -731,6 +731,36 @@ Example:
 
 ```yaml
   - clear:
+```  
+
+
+## <a id="cron"></a>cron  
+  
+Schedule a task with cron pattern
+` *     *     *      *       *        * `
+(sec) (min) (hour) (date) (month) (dayOfWeek)
+
+- `sec`           execution seconds (0-23)
+- `min`           execution minutes (0-23)
+- `hour`          execution hours (0-23)
+- `date`          execution date of month (1-31)
+- `month`         execution month (1-12)
+- `dayOfWeek`     execution day of week (0-7) - 0 or 7 is Sunday, 1 is Monday ...  
+
+Example:  
+
+Print a message
+```yaml
+  - name: Schedule a job at 00:00:00 AM
+    cron:
+      time: 0 0 0 * * *
+      scheduled: false          # Start ASAP. Default true
+      runOnInit:                # This will immediately fire your onTick function as soon as the requisite initialization has happened. This option is set to false by default for backwards compatibility.
+      runs:
+        - echo: Executed a job at ${ $parentState.execTime }  # $parentState.time: cron pattern (Date)
+                                                              # $parentState.task: Task object
+                                                              # $parentState.lastDate: Tells you the last execution date.
+                                                              # $parentState.nextDate: Provides the next date that will trigger an onTick.
 ```  
 
 

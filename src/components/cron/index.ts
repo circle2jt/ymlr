@@ -1,1 +1,1 @@
-export { Cron as default } from './cron';
+export { Cron as default } from './cron'
