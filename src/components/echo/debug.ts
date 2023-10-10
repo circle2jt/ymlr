@@ -7,22 +7,23 @@ import { Echo } from './echo'
   @example
   Print a message
   ```yaml
-    - echo'debug: Hello world
+                                              # Default prepend execution time into log
+    - echo'debug: Hello world                 # => 01:01:01.101    Hello world
 
     - echo'debug:
-        showTime: true        # Default prepend execution time into log
-        content: Hello
+        formatTime: YYYY/MM/DD hh:mm:ss.ms    # Default format is "hh:mm:ss.ms"
+        content: Hello                        # => 2023/01/01 01:01:01.101    Hello
   ```
 */
 export class EchoDebug extends Echo {
-  showTime = true
+  formatTime = 'hh:mm:ss.ms'
 
   constructor(props: any) {
     super(props)
-    this.showTime = props?.showTime
+    if (props?.formatTime) this.formatTime = props?.formatTime
   }
 
   format(input: string) {
-    return `${formatDate(new Date())}\t${super.format(input)}`
+    return `${formatDate(new Date(), this.formatTime)}    ${super.format(input)}`
   }
 }
