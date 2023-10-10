@@ -13,8 +13,12 @@ export class MDFileProps {
     this.order = 999
   }
 
+  private get firstDes() {
+    return this.description?.split('\n')[0] || ''
+  }
+
   toMenu() {
-    return `| [${this.title}](#${this.title}) | ${this.description} |`
+    return `| [${this.title}](#${this.title}) | ${this.firstDes} |`
   }
 
   toMD() {
