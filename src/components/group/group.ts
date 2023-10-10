@@ -19,6 +19,8 @@ import { type GroupItemProps, type GroupProps } from './group.props'
             - exit:
   ```
 */
+const DEBUG_GROUP_RESULT = process.env.DEBUG_GROUP_RESULT
+
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
   readonly ignoreEvalProps = ['runs']
   readonly proxy!: ElementProxy<this>
@@ -81,24 +83,23 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   async runEachOfElements(parentState?: Record<string, any>) {
     const asyncJobs = new Array<Promise<any>>()
-    const result = new Array<ElementProxy<Element>>()
+    const result = DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let newRuns = cloneDeep(this.runs)
     // Handle includes tag
-    const includes = newRuns.map((e: any, i) => {
-      if (!e.include) return undefined
-      return { idx: i, file: e.include }
-    }).filter(e => e) as Array<{ idx: number, file: string }>
+    const includes = newRuns.map((e: any, i: number) => {
+      return e.include ? { idx: i, include: e.include } : undefined
+    }).filter(e => e)
     if (includes.length) {
-      const tagName = 'include'
-      for (let i = includes.length - 1; i >= 0; i--) {
-        const include = includes[i]
-        const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, {}, include.file)
-        const rs = elemProxy?.result
-        if (rs?.length) {
-          newRuns.splice(include.idx, 1, ...rs)
-        }
+      const runs = await Promise.all(includes
+        .map(async (e: any) => {
+          const elemProxy = await this.createAndExecuteElement(asyncJobs, 'include', parentState, {}, e.include)
+          return { idx: e.idx, runs: elemProxy?.result || [] }
+        })) as Array<{ idx: number, runs: any[] }>
+      for (let i = runs.length - 1; i >= 0; i--) {
+        newRuns.splice(runs[i].idx, 1, ...runs[i].runs)
       }
     }
+
     const hasRunOnly = newRuns.some(r => {
       return r.only === true
     })
@@ -106,12 +107,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       newRuns = newRuns.filter(r => {
         return (r.only === true) || (r.template)
       })
-    } else {
-      newRuns = newRuns.filter(r => !r.skip)
     }
-    let i = 0
+    newRuns = newRuns.filter(r => !r.skip)
     let isPassedCondition = false
-    for (; i < newRuns.length; i++) {
+    for (let i = 0; i < newRuns.length; i++) {
       const allProps = newRuns[i]
       // Init props
       const props: any = allProps || {}
@@ -179,7 +178,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
-          result.push(elemProxy)
+          result?.push(elemProxy)
           isPassedCondition = !!baseProps.if || !!baseProps.elseif || baseProps.else === null
           if (elemProxy.isSkipNext) break
         }
@@ -188,24 +187,26 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (loopCondition) {
           if (Array.isArray(loopCondition)) {
             for (let i = 0; i < loopCondition.length; i++) {
-              const newProps = elemProps && cloneDeep(elemProps)
+              const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: i,
                 loopValue: loopCondition[i]
               })
               if (elemProxy) {
-                result.push(elemProxy)
+                result?.push(elemProxy)
               }
             }
           } else if (typeof loopCondition === 'object') {
-            for (const key in loopCondition) {
-              const newProps = elemProps && cloneDeep(elemProps)
+            const keys = Object.keys(loopCondition)
+            for (let i = 0; i < keys.length; i++) {
+              const key = keys[i]
+              const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: key,
                 loopValue: loopCondition[key]
               })
               if (elemProxy) {
-                result.push(elemProxy)
+                result?.push(elemProxy)
               }
             }
           } else if (loopCondition === true) {
@@ -215,7 +216,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 loopValue: loopCondition
               })
               if (elemProxy) {
-                result.push(elemProxy)
+                result?.push(elemProxy)
               }
               loopCondition = await this.innerScene.getVars(loop, this.proxy)
             }
