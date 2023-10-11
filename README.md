@@ -282,8 +282,7 @@ Example:
     http'get:
       url: /categories
     vars: categories
-  - async: true
-    http'get:
+  - ~http'get:            # Can use shortcut by add "~"" before tag name
       url: /product/1
     vars: product
 

@@ -78,7 +78,21 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   private getTagName(props: any) {
     const keys = Object.keys(props)
-    return keys.find(key => !ElementBaseKeys.includes(key) && props[key] !== undefined)
+    let tagName: string | undefined
+    for (let key of keys) {
+      if (key.startsWith('~')) {
+        const oldKey = key
+        key = key.substring(1)
+        props[key] = props[oldKey]
+        props[oldKey] = undefined
+        props.async = true
+      }
+      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
+        tagName = key
+        break
+      }
+    }
+    return tagName
   }
 
   async runEachOfElements(parentState?: Record<string, any>) {
@@ -114,12 +128,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const allProps = newRuns[i]
       // Init props
       const props: any = allProps || {}
-      if (props.runs) {
-        const runs = props.runs
+      if (props.runs || props['~runs']) {
+        const runs = props.runs || props['~runs']
+        props.async = !!props['~runs']
         props.group = {
           runs
         }
-        props.runs = undefined
+        props.runs = props['~runs'] = undefined
       }
       let { '<-': inheritKeys, '->': exposeKey, skip, only, ...eProps } = props
       let tagName = this.getTagName(eProps)
@@ -135,7 +150,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (isTemplate) continue
 
       // Retry to get tagName which is override by keys
-      if (!tagName) tagName = this.getTagName(eProps)
+      if (!tagName) {
+        tagName = this.getTagName(eProps)
+      }
 
       let { if: condition, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
@@ -152,8 +169,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
+      if (elseCondition === null) {
+        elseIfCondition = true
+      }
       if (isPassedCondition) {
-        if (elseIfCondition || elseCondition === null) continue
+        if (elseIfCondition) continue
         isPassedCondition = false
       }
       if (debug === true) debug = LoggerLevel.DEBUG
@@ -162,7 +182,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         name,
         if: condition,
         elseif: elseIfCondition,
-        else: elseCondition,
         force,
         debug,
         vars,
@@ -179,7 +198,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           result?.push(elemProxy)
-          isPassedCondition = !!baseProps.if || !!baseProps.elseif || baseProps.else === null
+          isPassedCondition = !!baseProps.if || !!baseProps.elseif
           if (elemProxy.isSkipNext) break
         }
       } else {
