@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.2-alpha.1.md](#1696997062072)  -  _10/11/2023, 11:04:22 AM_
 - [1.2.2-alpha.0.md](#1696927470182)  -  _10/10/2023, 3:44:30 PM_
 - [1.2.1.md](#1685333127165)  -  _5/29/2023, 11:05:27 AM_
 - [1.2.1-alpha.2.md](#1684810589863)  -  _5/23/2023, 9:56:29 AM_
@@ -32,6 +33,14 @@
 
 ## Details
 
+<a id="1696997062072"></a>
+### 1.2.2-alpha.1
+
+* fix: eslint (1220354)
+* feat: support shortcut for async (f4783a2)
+* perf: optimize package installation (d26ca32)
+* fix: Cron exited ASAP after run (dca0f04)
+  
 <a id="1696927470182"></a>
 ### 1.2.2-alpha.0
 
