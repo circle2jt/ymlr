@@ -3,7 +3,6 @@ import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
 import { type Element } from 'src/components/element.interface'
 import { type Scene } from 'src/components/scene/scene'
-import { sleep } from 'src/libs/time'
 import { PackagesManager } from './packages-manager'
 
 export const ClassInFileCharacter = "'"
@@ -12,8 +11,8 @@ export class TagsManager {
   modules: Record<string, any> = {}
   tags: Record<string, any> = {}
   tagDirs: string[] = []
-  private lockInstall: boolean = false
-  private readonly packages = new Set<string>()
+  private prInstall?: Promise<any>
+  private readonly packages = new Array<string>()
   private get logger() {
     return this.scene.proxy.logger
   }
@@ -51,19 +50,25 @@ export class TagsManager {
   }
 
   async install(...packages: string[]) {
-    while (this.lockInstall) {
-      await sleep(1000)
+    packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
+    if (!this.prInstall) {
+      this.prInstall = new Promise(async (resolve, reject) => {
+        try {
+          let packs: string[]
+          do {
+            packs = this.packages.splice(0, this.packages.length)
+            this.logger.debug('Preparing to install the lack packages...')
+            const packagesManager = new PackagesManager(this.logger)
+            await packagesManager.install(...packs)
+          } while (this.packages.length)
+          resolve(undefined)
+        } catch (err) {
+          reject(err)
+        }
+      })
     }
-    this.lockInstall = true
-    try {
-      packages.forEach(pack => this.packages.add(pack))
-      this.logger.debug('Preparing to install the lack packages...')
-      const packagesManager = new PackagesManager(this.logger)
-      await packagesManager.install(...Array.from(this.packages))
-      this.packages.clear()
-    } finally {
-      this.lockInstall = false
-    }
+    await this.prInstall
+    this.prInstall = undefined
   }
 
   async loadElementClass(name: string, scene: Scene) {
