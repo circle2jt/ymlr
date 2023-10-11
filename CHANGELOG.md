@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.2-alpha.2.md](#1697015302031)  -  _10/11/2023, 4:08:22 PM_
 - [1.2.2-alpha.1.md](#1696997062072)  -  _10/11/2023, 11:04:22 AM_
 - [1.2.2-alpha.0.md](#1696927470182)  -  _10/10/2023, 3:44:30 PM_
 - [1.2.1.md](#1685333127165)  -  _5/29/2023, 11:05:27 AM_
@@ -33,6 +34,13 @@
 
 ## Details
 
+<a id="1697015302031"></a>
+### 1.2.2-alpha.2
+
+* fix: redesign package manager to support many types (cf041c5)
+* cicd: Add docker build/publish for "bun" tag (458e225)
+* feat: Support bun.sh (7c3efb4)
+  
 <a id="1696997062072"></a>
 ### 1.2.2-alpha.1
 
