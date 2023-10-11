@@ -29,9 +29,9 @@ test('Test simple cron each 1 sec', async () => {
       }
     ]
   })
-  await Promise.race([
+  await Promise.race<any>([
     cron.exec(),
-    sleep('2s'),
+    sleep('2s')
   ])
   expect(Testing.vars.ok).toBe(true)
   expect(Testing.vars.lastDate).toBeInstanceOf(Date)

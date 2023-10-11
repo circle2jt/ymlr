@@ -62,7 +62,9 @@ export class Cron extends Job {
       }) as any
     }, null, this.scheduled, this.timezone, undefined, this.runOnInit)
 
-    this.prRunning = new Promise(resolve => this.rsRunning = resolve)
+    this.prRunning = new Promise<void>(resolve => {
+      this.rsRunning = resolve
+    })
     await this.prRunning
     return []
   }

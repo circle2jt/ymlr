@@ -52,7 +52,8 @@ export class TagsManager {
   async install(...packages: string[]) {
     packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
     if (!this.prInstall) {
-      this.prInstall = new Promise(async (resolve, reject) => {
+      // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+      this.prInstall = new Promise<any>(async (resolve, reject) => {
         try {
           let packs: string[]
           do {
