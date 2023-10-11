@@ -3,7 +3,7 @@ name: publish
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   publish-npm:
@@ -103,4 +103,17 @@ jobs:
             NODE_VERSION=${{ vars.NODE_VERSION }}
             ALPINE_VERSION=${{ vars.ALPINE_VERSION }}
           tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-alpine, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:alpine
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Publish to docker hub - bun
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Dockerfile.bun
+          platforms: ${{ vars.PLATFORMS }}
+          push: true
+          build-args: |
+            VERSION=${{ vars.VERSION || github.ref_name }}
+            BUN_VERSION=${{ vars.BUN_VERSION }}
+          tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-bun, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:bun
           labels: ${{ steps.meta.outputs.labels }}

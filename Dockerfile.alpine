@@ -17,5 +17,5 @@ RUN mkdir /my-tags && \
     echo -e '- echo: Welcome to ymlr container' > /scripts/index.yaml
 RUN yarn global add ymlr@$VERSION
 
-ENTRYPOINT ["ymlr", "--tag-dirs=/my-tags"]
+ENTRYPOINT ["ymlr", "--tag-dirs", "/my-tags", "--"]
 CMD ["/scripts/index.yaml", ""]
