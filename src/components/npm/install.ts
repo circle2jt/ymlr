@@ -1,4 +1,4 @@
-import { PackagesManager } from 'src/managers/packages-manager'
+import { PackagesManagerFactory } from 'src/managers/packages-manager-factory'
 import { InstallAbstract } from './install.abstract'
 import { type InstallProps } from './install.props'
 
@@ -44,7 +44,7 @@ export class Install extends InstallAbstract {
   }
 
   override async action(...packsInstall: string[]) {
-    const packageManager = new PackagesManager(this.logger)
+    const packageManager = PackagesManagerFactory.GetInstance(this.logger)
     await packageManager.install(...packsInstall)
   }
 }

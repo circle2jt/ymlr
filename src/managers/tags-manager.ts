@@ -3,7 +3,7 @@ import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
 import { type Element } from 'src/components/element.interface'
 import { type Scene } from 'src/components/scene/scene'
-import { PackagesManager } from './packages-manager'
+import { PackagesManagerFactory } from './packages-manager-factory'
 
 export const ClassInFileCharacter = "'"
 
@@ -59,7 +59,7 @@ export class TagsManager {
           do {
             packs = this.packages.splice(0, this.packages.length)
             this.logger.debug('Preparing to install the lack packages...')
-            const packagesManager = new PackagesManager(this.logger)
+            const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
             await packagesManager.install(...packs)
           } while (this.packages.length)
           resolve(undefined)

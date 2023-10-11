@@ -8,7 +8,7 @@ import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import { Logger } from './libs/logger'
 import { LoggerLevel } from './libs/logger/logger-level'
-import { PackagesManager } from './managers/packages-manager'
+import { PackagesManagerFactory } from './managers/packages-manager-factory'
 
 program
   .name(name)
@@ -72,7 +72,7 @@ program
     .action(async (packages: string[]) => {
       assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(appLogger).install(...packages)
+      await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
       process.exit(0)
     })
   )
@@ -84,7 +84,7 @@ program
     .action(async (packages: string[]) => {
       assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(appLogger).upgrade(...packages)
+      await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
       process.exit(0)
     })
   )
@@ -96,7 +96,7 @@ program
     .action(async (packages: string[]) => {
       assert(packages?.length, '"package(s)" is requried')
       const appLogger = new Logger(LoggerLevel.ALL)
-      await new PackagesManager(appLogger).uninstall(...packages)
+      await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
       process.exit(0)
     })
   )

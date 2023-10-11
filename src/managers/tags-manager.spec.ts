@@ -1,6 +1,6 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
-import { PackagesManager } from './packages-manager'
+import { PackagesManagerFactory } from './packages-manager-factory'
 
 beforeEach(async () => {
   await Testing.reset()
@@ -12,7 +12,7 @@ afterEach(async () => {
 
 test('auto install external tags', async () => {
   const tagsManager = Testing.rootScene.tagsManager
-  const packagesManager = new PackagesManager(Testing.logger)
+  const packagesManager = PackagesManagerFactory.GetInstance(Testing.logger)
   try {
     const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene)
     expect(newClass).toBeDefined()
