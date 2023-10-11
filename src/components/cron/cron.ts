@@ -27,6 +27,8 @@ import { Job } from '../.job/job'
                                                                 # $parentState.task: Task object
                                                                 # $parentState.lastDate: Tells you the last execution date.
                                                                 # $parentState.nextDate: Provides the next date that will trigger an onTick.
+                                                                
+          - stop:                                               # Stop cron job, dont execute anymore
   ```
 */
 export class Cron extends Job {

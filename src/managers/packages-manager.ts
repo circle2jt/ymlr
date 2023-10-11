@@ -8,25 +8,29 @@ import { type Logger } from 'src/libs/logger'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { nodeModulesDir } from './modules-manager'
 
-const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['yarn', 'npm', 'pnpm']) as Array<'npm' | 'yarn' | 'pnpm'>
+type NPMSupport = 'npm' | 'yarn' | 'pnpm' | 'bun'
+const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['yarn', 'npm', 'pnpm', 'bun']) as Array<NPMSupport>
 
 export class PackagesManager {
-  private static Bin?: 'pnpm' | 'npm' | 'yarn'
+  private static Bin?: NPMSupport
   private static get CmdInstall() {
     if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'add', '--dir', `${join(nodeModulesDir, '..')}`]
     if (PackagesManager.Bin === 'yarn') return ['yarn', 'add', '--cwd', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'bun') return ['bun', 'add', '--cwd', `${join(nodeModulesDir, '..')}`]
     return ['npm', 'add', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
   private static get CmdUpgrade() {
     if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'upgrade', '--save', '--dir', `${join(nodeModulesDir, '..')}`]
     if (PackagesManager.Bin === 'yarn') return ['yarn', 'upgrade', '--save', '--cwd', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'bun') return ['bun', 'upgrade', '--save', '--cwd', `${join(nodeModulesDir, '..')}`]
     return ['npm', 'upgrade', '--save', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
   private static get CmdUninstall() {
     if (PackagesManager.Bin === 'pnpm') return ['pnpm', 'remove', '--dir', `${join(nodeModulesDir, '..')}`]
     if (PackagesManager.Bin === 'yarn') return ['yarn', 'remove', '--cwd', `${join(nodeModulesDir, '..')}`]
+    if (PackagesManager.Bin === 'bun') return ['bun', 'remove', '--cwd', `${join(nodeModulesDir, '..')}`]
     return ['npm', 'uninstall', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
