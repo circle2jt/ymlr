@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.2.md](#1697088386300)  -  _10/12/2023, 12:26:26 PM_
 - [1.2.2-alpha.2.md](#1697015302031)  -  _10/11/2023, 4:08:22 PM_
 - [1.2.2-alpha.1.md](#1696997062072)  -  _10/11/2023, 11:04:22 AM_
 - [1.2.2-alpha.0.md](#1696927470182)  -  _10/10/2023, 3:44:30 PM_
@@ -34,6 +35,36 @@
 
 ## Details
 
+<a id="1697088386300"></a>
+### 1.2.2
+
+* fix: not return result after executed (ab2ec6e)
+* feat!: remove preScript and postScript (ee39eab)
+* chore: prerelease 1.2.2-alpha.2 (6bb696e)
+* fix: redesign package manager to support many types (cf041c5)
+* cicd: Add docker build/publish for "bun" tag (458e225)
+* feat: Support bun.sh (7c3efb4)
+* chore: prerelease 1.2.2-alpha.1 (0878f45)
+* fix: eslint (1220354)
+* feat: support shortcut for async (f4783a2)
+* perf: optimize package installation (d26ca32)
+* fix: Cron exited ASAP after run (dca0f04)
+* chore: prerelease 1.2.2-alpha.0 (9dc338d)
+* fix: display not correct when description is multiple line (39eca3b)
+* fix: eslint (a96a578)
+* feat: add "stop" tag to stop all of group/job tag (2a2a76c)
+* feat: add new "cron" tag to schedule tasks (881fceb)
+* perf: optimize group tag (02015f1)
+* feat: add echo'debug to show timestamp (a88c457)
+* feat: add format date in $utils (1aae061)
+* feat: add new echo'debug (28cfdee)
+* refactor: Apply override into .ts (4e8a65d)
+* refactor: Update logger formater (c71d402)
+* feat: Expose some functions to $utils (d85f8b8)
+* feat: support "else" props (3aaf717)
+* fix: Commit includes " error (72fb34c)
+* fix: input suggestion not allow add new value (3d1c110)
+  
 <a id="1697015302031"></a>
 ### 1.2.2-alpha.2
 
