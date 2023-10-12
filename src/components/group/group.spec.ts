@@ -156,21 +156,6 @@ test('run with false condition', async () => {
   expect(Testing.vars.result).toBeUndefined()
 })
 
-test('test preScript and postScript', async () => {
-  group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
-    runs: [
-      {
-        preScript: '$vars.vl = "0"',
-        "exec'js": '$vars.vl += "1"',
-        postScript: '$vars.vl += "2"'
-      }
-    ]
-  })
-  await group.exec()
-  expect(Testing.vars.vl).toBe('012')
-})
-
 test('skip', async () => {
   group = await Testing.createElementProxy(Group, {
     name: 'Test group',

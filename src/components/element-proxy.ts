@@ -356,7 +356,7 @@ export class ElementProxy<T extends Element> {
         detach: true
         loop: ${[1,2,3]}
         runs:
-          - echo: Hello ${$this.parentProxy.loopValue}
+          - echo: Hello ${this.parentProxy.loopValue}
           - sleep: 1s
       - name: job2
         echo: first
@@ -401,32 +401,6 @@ export class ElementProxy<T extends Element> {
     ```
   */
   async?: boolean | string
-  /** |**  preScript
-    Execute a script before run
-    @position top
-    @tag It's a property in a tag
-    @example
-    ```yaml
-      - preScript: |                                # => Prepare data
-          console.log('Prepare data')               # => Execute here
-        echo: Execute here
-    ```
-  */
-  preScript?: string
-
-  /** |**  postScript
-    Execute a script before run
-    @position top
-    @tag It's a property in a tag
-    @example
-    ```yaml
-      - echo: Execute here                           # => Execute here
-        postScript: |                                # => Do something after executed
-          console.log('Do something after executed')
-
-    ```
-  */
-  postScript?: string
 
   private _parentState?: Record<string, any>
 
@@ -547,7 +521,7 @@ export class ElementProxy<T extends Element> {
     const baseProps = Object.keys(this)
     proms.push(...baseProps
       .filter(key => {
-        return IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
+        return !IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(this[key])
       }).map(async key => {
@@ -601,9 +575,6 @@ export class ElementProxy<T extends Element> {
         if (this.name && !this.$.hideName) {
           this.logger.label(this.name)
         }
-        if (this.preScript) {
-          await this.callFunctionScript(this.preScript)
-        }
         const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) this.result = this.result.result
         else this.result = result
@@ -616,9 +587,6 @@ export class ElementProxy<T extends Element> {
         return
       }
       await this.setVarsAfterExec()
-      if (this.postScript) {
-        await this.callFunctionScript(this.postScript)
-      }
       // if (this.name && !this.$.hideName) {
       //   this.logger.passed(this.name, LoggerLevel.DEBUG)
       // }

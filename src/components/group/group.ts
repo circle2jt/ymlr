@@ -99,33 +99,43 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const asyncJobs = new Array<Promise<any>>()
     const result = DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let newRuns = cloneDeep(this.runs)
-    // Handle includes tag
-    const includes = newRuns.map((e: any, i: number) => {
-      return e.include ? { idx: i, include: e.include } : undefined
-    }).filter(e => e)
+
+    // Preload includes tag
+    const includes = newRuns
+      .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
+      .filter(e => e)
     if (includes.length) {
       const runs = await Promise.all(includes
         .map(async (e: any) => {
           const elemProxy = await this.createAndExecuteElement(asyncJobs, 'include', parentState, {}, e.include)
           return { idx: e.idx, runs: elemProxy?.result || [] }
-        })) as Array<{ idx: number, runs: any[] }>
+        })
+      ) as Array<{ idx: number, runs: any[] }>
       for (let i = runs.length - 1; i >= 0; i--) {
         newRuns.splice(runs[i].idx, 1, ...runs[i].runs)
       }
     }
 
-    const hasRunOnly = newRuns.some(r => {
-      return r.only === true
-    })
+    // Check tags which are picked to run then ignore others
+    const hasRunOnly = newRuns.some(r => r.only === true)
     if (hasRunOnly) {
-      newRuns = newRuns.filter(r => {
-        return (r.only === true) || (r.template)
-      })
+      newRuns = newRuns.filter(r => (r.only === true) || (r.template))
     }
+
+    // Ignore skip tags
     newRuns = newRuns.filter(r => !r.skip)
+
     let isPassedCondition = false
+
+    // Loop to execute each of tags
     for (let i = 0; i < newRuns.length; i++) {
       const allProps = newRuns[i]
+
+      if (isPassedCondition) {
+        if (allProps.elseif || allProps.else === null) continue
+        isPassedCondition = false
+      }
+
       // Init props
       const props: any = allProps || {}
       if (props.runs || props['~runs']) {
@@ -149,12 +159,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
+      let { if: condition, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+
+      if (elseCondition === null) {
+        elseIfCondition = true
+      }
+
       // Retry to get tagName which is override by keys
       if (!tagName) {
         tagName = this.getTagName(eProps)
       }
 
-      let { if: condition, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, preScript, postScript, context } = eProps
       let elemProps: any
       if (tagName) {
         // This is a tag
@@ -169,13 +184,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
-      if (elseCondition === null) {
-        elseIfCondition = true
-      }
-      if (isPassedCondition) {
-        if (elseIfCondition) continue
-        isPassedCondition = false
-      }
       if (debug === true) debug = LoggerLevel.DEBUG
       const baseProps: ElementBaseProps = {
         id,
@@ -188,8 +196,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         detach,
         async,
         loop,
-        preScript,
-        postScript,
         context,
         skipNext
       }
