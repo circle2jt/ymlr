@@ -108,6 +108,7 @@ dist
 
 test-local/
 src/package-lock.json
+src/package.json
 src/yarn.lock
 src/pnpm-lock.yaml
 src/yarn.lock

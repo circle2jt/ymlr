@@ -10,8 +10,8 @@ import { type Group } from './group/group'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars/vars.props'
 
-const IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS = [
-  'name', 'id', 'skip', 'force', 'debug', '_parentState', 'preScript', 'postScript', 'skipNext'
+const EVAL_ELEMENT_SHADOW_BASE_PROPS = [
+  'name'
 ]
 
 export class ElementProxy<T extends Element> {
@@ -521,7 +521,7 @@ export class ElementProxy<T extends Element> {
     const baseProps = Object.keys(this)
     proms.push(...baseProps
       .filter(key => {
-        return !IGNORE_EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
+        return EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(this[key])
       }).map(async key => {
