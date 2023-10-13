@@ -12,6 +12,13 @@ Install via yarn
   yarn global add ymlr
 ```
 
+## Supported tags
+1. [ymlr-mqtt](https://github.com/circle2jt/ymlr-mqtt) Pub/sub messages to channels in mqtt
+2. [ymlr-redis](https://github.com/circle2jt/ymlr-redis) Handle redis into ymlr platform
+3. [ymlr-telegram](https://github.com/circle2jt/ymlr-telegram) Send telegram text, photo..., support "listen", "command", "hears"... in telegram bot
+4. [ymlr-sql](https://github.com/circle2jt/ymlr-sql) Execute query to mysql, postgresql, orable, sqlite...
+5. [ymlr-cron](https://github.com/circle2jt/ymlr-cron) Schedule jobs to do something base on cron pattern
+
 ## Run a scene
 Run a scene file
 ```sh

@@ -12,6 +12,13 @@ Install via yarn
   yarn global add ymlr
 ```
 
+## Supported tags
+1. [ymlr-mqtt](https://github.com/circle2jt/ymlr-mqtt) Pub/sub messages to channels in mqtt
+2. [ymlr-redis](https://github.com/circle2jt/ymlr-redis) Handle redis into ymlr platform
+3. [ymlr-telegram](https://github.com/circle2jt/ymlr-telegram) Send telegram text, photo..., support "listen", "command", "hears"... in telegram bot
+4. [ymlr-sql](https://github.com/circle2jt/ymlr-sql) Execute query to mysql, postgresql, orable, sqlite...
+5. [ymlr-cron](https://github.com/circle2jt/ymlr-cron) Schedule jobs to do something base on cron pattern
+
 ## Run a scene
 Run a scene file
 ```sh
@@ -115,7 +122,6 @@ runs:
 | [echo](#echo) | Print to console screen |
 | [echo'debug](#echo'debug) | Add more information when print to console screen |
 | [clear](#clear) | Clear console screen |
-| [cron](#cron) | Schedule a task with cron pattern |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -703,38 +709,6 @@ Example:
 
 ```yaml
   - clear:
-```  
-
-
-## <a id="cron"></a>cron  
-  
-Schedule a task with cron pattern
-` *     *     *      *       *        * `
-(sec) (min) (hour) (date) (month) (dayOfWeek)
-
-- `sec`           execution seconds (0-23)
-- `min`           execution minutes (0-23)
-- `hour`          execution hours (0-23)
-- `date`          execution date of month (1-31)
-- `month`         execution month (1-12)
-- `dayOfWeek`     execution day of week (0-7) - 0 or 7 is Sunday, 1 is Monday ...  
-
-Example:  
-
-Print a message
-```yaml
-  - name: Schedule a job at 00:00:00 AM
-    cron:
-      time: 0 0 0 * * *
-      scheduled: false          # Start ASAP. Default true
-      runOnInit:                # This will immediately fire your onTick function as soon as the requisite initialization has happened. This option is set to false by default for backwards compatibility.
-      runs:
-        - echo: Executed a job at ${ $parentState.execTime }  # $parentState.time: cron pattern (Date)
-                                                              # $parentState.task: Task object
-                                                              # $parentState.lastDate: Tells you the last execution date.
-                                                              # $parentState.nextDate: Provides the next date that will trigger an onTick.
-
-        - stop:                                               # Stop cron job, dont execute anymore
 ```  
 
 
