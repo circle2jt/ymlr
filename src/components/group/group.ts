@@ -267,12 +267,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       await elemProxy.scene.setVars(baseProps.id, elemProxy)
     }
 
-    const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
-
     const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
     if (detach) {
-      this.rootScene.pushToBackgroundJob(p)
+      elemProxy.exec(parentState)
+      this.rootScene.pushToBackgroundJob(elemProxy)
     } else {
+      const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
       const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
       if (async) {
         asyncJobs.push(p)

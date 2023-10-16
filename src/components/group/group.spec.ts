@@ -296,20 +296,21 @@ test('should include a file to execute', async () => {
   }
 })
 
-test('should detach a tag to run in background', async () => {
+test.only('should detach a tag to run in background', async () => {
   const result = await Testing.reset(`
 - name: background job
   detach: true
   runs:
     - loop: \${[1, 2, 3]}
       runs:
-        - sleep: 1s
+        - sleep: 500
     - echo: hehe
     - vars:
         done: \${Date.now()}
 - name: task 1
 - name: task 2
   echo: \${Date.now()}
+- sleep: 2s
   `)
   expect(result[2].result).toBeLessThan(Testing.vars.done)
 })

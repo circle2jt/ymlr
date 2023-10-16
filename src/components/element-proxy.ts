@@ -347,7 +347,7 @@ export class ElementProxy<T extends Element> {
   */
   if?: boolean | string
   /** |**  detach
-    Push the tag execution to background jobs to run async, the next steps will be run ASAP. But the program still wait it to be done before finish program
+    Push the tag execution to background jobs to run async, the next steps will be run ASAP. Before the program is exited, it will be released
     @position top
     @tag It's a property in a tag
     @example

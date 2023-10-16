@@ -126,6 +126,12 @@ runs:
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
 | [exit](#exit) | Stop then quit the program |
+| [fetch'del](#fetch'del) | Send a http request with DELETE method |
+| [fetch'get](#fetch'get) | Send a http request with GET method |
+| [fetch'head](#fetch'head) | Send a http request with HEAD method |
+| [fetch'patch](#fetch'patch) | Send a http request with PATCH method |
+| [fetch'post](#fetch'post) | Send a http request with POST method |
+| [fetch'put](#fetch'put) | Send a http request with PUT method |
 | [file'read](#file'read) | Read a file then load data into a variable |
 | [file'store](#file'store) | Store data to file |
 | [file'write](#file'write) | Write data to file |
@@ -351,7 +357,7 @@ Example:
 
 ## <a id="detach"></a>detach  
 `It's a property in a tag`  
-Push the tag execution to background jobs to run async, the next steps will be run ASAP. But the program still wait it to be done before finish program  
+Push the tag execution to background jobs to run async, the next steps will be run ASAP. Before the program is exited, it will be released  
 
 Example:  
 
@@ -762,6 +768,232 @@ Example:
 
   - name: Throw error
     exit: 1
+```  
+
+
+## <a id="fetch'del"></a>fetch'del  
+  
+Send a http request with DELETE method  
+
+Example:  
+
+```yaml
+  # DELETE http://localhost:3000/posts/1?method=check_existed
+  - name: Delete a post
+    fetch'del:
+      url: /posts/1
+      baseURL: http://localhost:3000  # !optional - Request base url
+      query:                          # !optional - Request query string
+        method: check_existed
+      headers:                        # !optional - Request headers
+        authorization: Bearer TOKEN
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+    vars:                             # !optional - Global variable which store value after executed
+      status: ${this.response.status}
+```  
+
+
+## <a id="fetch'get"></a>fetch'get  
+  
+Send a http request with GET method  
+
+Example:  
+
+Get data from API then store value in `vars.posts`
+```yaml
+  # GET http://localhost:3000/posts?category=users
+  - name: Get list posts
+    fetch'get:
+      url: /posts
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      baseURL: http://localhost:3000  # !optional - Request base url
+      query:                          # !optional - Request query string
+        category: users
+      headers:                        # !optional - Request headers
+        authorization: Bearer TOKEN
+      responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
+    vars: posts                       # !optional - Global variable which store value after executed
+```
+
+Download file from a API
+```yaml
+  # GET http://localhost:3000/posts?category=users
+  - name: Download a file
+    fetch'get:
+      baseURL: http://localhost:3000
+      url: /posts
+      query:
+        category: users
+      headers:
+        authorization: Bearer TOKEN
+      saveTo: /tmp/post.json
+```  
+
+
+## <a id="fetch'head"></a>fetch'head  
+  
+Send a http request with HEAD method  
+
+Example:  
+
+```yaml
+  # HEAD http://localhost:3000/posts/1?method=check_existed
+  - name: Check post is existed or not
+    fetch'head:
+      baseURL: http://localhost:
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+                                      # supported: d h m s ~ day, hour, minute, seconds
+                                      # example: 1h2m3s ~ 1 hour, 2 minutes, 3 seconds
+      url: /posts/1
+      query:
+        method: check_existed
+      headers:
+        authorization: Bearer TOKEN
+    vars:
+      status: ${this.response?.status}
+```  
+
+
+## <a id="fetch'patch"></a>fetch'patch  
+  
+Send a http request with PATCH method  
+
+Example:  
+
+Update apart of data to API then store value in `vars.posts`
+```yaml
+  # PATCH http://localhost:3000/posts/ID?category=users
+  - name: Update a post
+    fetch'patch:
+      baseURL: http://localhost:3000
+      url: /posts/ID
+      query:
+        category: users
+      headers:
+        authorization: Bearer TOKEN
+      type: json                      # 'json' | 'form' | 'raw' | 'multipart' | 'text'
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      body: {
+        "title": "My title",
+        "description": "My description"
+      }
+      responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+    vars: newPost
+```
+Upload file to server
+```yaml
+  # PATCH http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
+  - name: Upload and update data
+    fetch'patch:
+      baseURL: http://localhost:3000
+      url: /upload/ID_UPLOADER_TO_REPLACE
+      headers:
+        authorization: Bearer TOKEN
+      type: multipart
+      body: {
+        "file": { # File upload must includes path of file, name is optional
+          "path": "/tmp/new_my_avatar.jpg",
+          "name": "thanh_avatar"
+        }
+      }
+    vars:
+      status: ${this.response.status}
+```  
+
+
+## <a id="fetch'post"></a>fetch'post  
+  
+Send a http request with POST method  
+
+Example:  
+
+Post data to API then store value in `vars.posts`
+```yaml
+  # POST http://localhost:3000/posts?category=users
+  - name: Create a new post
+    fetch'post:
+      baseURL: http://localhost:3000
+      url: /posts
+      query:
+        category: users
+      headers:
+        authorization: Bearer TOKEN
+      type: json                      # 'json' | 'form' | 'raw' | 'multipart' | 'text'
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      body: {
+        "title": "My title",
+        "description": "My description"
+      }
+      responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+    vars: newPost
+```
+Upload file to server
+```yaml
+  # POST http://localhost:3000/upload
+  - name: Upload a new avatar
+    fetch'post:
+      baseURL: http://localhost:3000
+      url: /upload
+      headers:
+        authorization: Bearer TOKEN
+      type: multipart
+      body: {
+        "category": "avatar",
+        "file": { # File upload must includes path of file, name is optional
+          "path": "/tmp/my_avatar.jpg",
+          "name": "thanh_avatar"
+        }
+      }
+    vars:
+      status: ${this.response.status}
+```  
+
+
+## <a id="fetch'put"></a>fetch'put  
+  
+Send a http request with PUT method  
+
+Example:  
+
+Update data to API then store value in `vars.posts`
+```yaml
+  # PUT http://localhost:3000/posts/ID?category=users
+  - name: Update a post
+    fetch'put:
+      baseURL: http://localhost:3000
+      url: /posts/ID
+      query:
+        category: users
+      headers:
+        authorization: Bearer TOKEN
+      type: json                      # 'json' | 'form' | 'raw' | 'multipart' | 'text'
+      timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      body: {
+        "title": "My title",
+        "description": "My description"
+      }
+      responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+    vars: newPost
+```
+Upload file to server
+```yaml
+  # PUT http://localhost:3000/upload/ID_UPLOADER_TO_REPLACE
+  - name: Upload and update data
+    fetch'put:
+      baseURL: http://localhost:3000
+      url: /upload/ID_UPLOADER_TO_REPLACE
+      headers:
+        authorization: Bearer TOKEN
+      type: multipart
+      body: {
+        "category": "avatar updated",
+        "file": { # File upload must includes path of file, name is optional
+          "path": "/tmp/new_my_avatar.jpg",
+          "name": "thanh_avatar"
+        }
+      }
+    vars:
+      status: ${this.response.status}
 ```  
 
 

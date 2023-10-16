@@ -6,6 +6,8 @@ import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
+import { ElementProxy } from './element-proxy'
+import { Element } from './element.interface'
 import { type RootSceneProps } from './root-scene.props'
 import { Scene } from './scene/scene'
 
@@ -39,7 +41,7 @@ export class RootScene extends Scene {
     return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
-  private readonly _backgroundJobs = new Array<Promise<any>>()
+  private readonly _backgroundJobs = new Array<ElementProxy<Element>>()
 
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
@@ -61,7 +63,7 @@ export class RootScene extends Scene {
     await super.asyncConstructor()
   }
 
-  pushToBackgroundJob(task: Promise<any>) {
+  pushToBackgroundJob(task: ElementProxy<Element>) {
     this._backgroundJobs.push(task)
   }
 
@@ -71,7 +73,7 @@ export class RootScene extends Scene {
       const rs = await super.exec()
       await this._workerManager?.exec()
       if (this._backgroundJobs.length) {
-        await Promise.all(this._backgroundJobs.map(async job => await job))
+        await Promise.all(this._backgroundJobs.map(job => job.dispose()))
       }
       return rs
     } finally {
