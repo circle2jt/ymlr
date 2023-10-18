@@ -269,6 +269,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
     if (detach) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       elemProxy.exec(parentState)
       this.rootScene.pushToBackgroundJob(elemProxy)
     } else {

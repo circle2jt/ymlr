@@ -105,7 +105,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async exec() {
-    if (this.name) this.logger.label(this.name)
+    if (this.name) this.logger.info(this.name)
     // if (this.isRoot) this.logger.debug('')
     try {
       const results = await super.exec()

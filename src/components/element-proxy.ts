@@ -3,7 +3,7 @@ import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { type Logger } from 'src/libs/logger'
 import { type Level } from 'src/libs/logger/level'
-import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
@@ -445,8 +445,8 @@ export class ElementProxy<T extends Element> {
   }
 
   private _logger?: Logger
-  private get loggerLevel(): Level | LoggerLevel {
-    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level || LoggerLevel.ALL
+  private get loggerLevel(): Level | LoggerLevel | undefined {
+    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level
   }
 
   get logger(): Logger {
@@ -567,13 +567,13 @@ export class ElementProxy<T extends Element> {
       try {
         await this.evalPropsBeforeExec()
 
-        isAddIndent = this.logger.is(LoggerLevel.INFO) && this.parentProxy?.name !== undefined && this.parentProxy?.logger.is(LoggerLevel.INFO)
+        isAddIndent = this.parentProxy?.name !== undefined
         if (isAddIndent) {
           this.logger.addIndent()
         }
 
         if (this.name && !this.$.hideName) {
-          this.logger.label(this.name, this.element instanceof Group ? '▼' : '▸')
+          this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
         }
         const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) this.result = this.result.result

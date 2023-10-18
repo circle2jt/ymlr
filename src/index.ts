@@ -3,12 +3,13 @@ import 'src/managers/modules-manager'
 import assert from 'assert'
 import chalk from 'chalk'
 import { readFile } from 'fs/promises'
-import { resolve } from 'path'
+import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import { Logger } from './libs/logger'
 import { LoggerLevel } from './libs/logger/logger-level'
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
   let t = Promise.resolve()
   let { program } = await import('commander')
@@ -28,11 +29,12 @@ import { LoggerLevel } from './libs/logger/logger-level'
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
     .action(async (path: string, password?: string, opts: any = {}) => {
-      t = new Promise(async (resl, rej) => {
+      // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+      t = new Promise(async (resolve, reject) => {
         try {
           const { debug, env = [], tagDirs, envFile = [], debugContext } = opts
           for (const efile of envFile) {
-            const envFileContent = (await readFile(resolve(efile))).toString()
+            const envFileContent = (await readFile(resolvePath(efile))).toString()
             env.splice(0, 0, ...envFileContent
               .split('\n')
               .filter(e => e?.trim().length)
@@ -45,7 +47,6 @@ import { LoggerLevel } from './libs/logger/logger-level'
               const vl = keyValue.substring(idx + 1)
               process.env[key] = vl
             })
-          const appLogger = new Logger(LoggerLevel.INFO)
           if (debug) {
             process.env.DEBUG = debug
           }
@@ -53,6 +54,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             Logger.DEBUG_CONTEXTS = debugContext
           }
           Logger.LoadFromEnv()
+          const appLogger = new Logger(Logger.DEBUG)
           appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
           appLogger.log('')
           const app = new App(appLogger, {
@@ -61,9 +63,9 @@ import { LoggerLevel } from './libs/logger/logger-level'
           })
           if (tagDirs?.length) app.setDirTags(tagDirs)
           await app.exec()
-          resl(undefined)
+          resolve(undefined)
         } catch (err) {
-          rej(err)
+          reject(err)
         }
       })
     })
@@ -73,15 +75,16 @@ import { LoggerLevel } from './libs/logger/logger-level'
       .description('add external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        t = new Promise(async (resl, rej) => {
+        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+        t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = new Logger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
-            resl(undefined)
+            resolve(undefined)
           } catch (err) {
-            rej(err)
+            reject(err)
           }
         })
       })
@@ -92,15 +95,16 @@ import { LoggerLevel } from './libs/logger/logger-level'
       .description('upgrade external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        t = new Promise(async (resl, rej) => {
+        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+        t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = new Logger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
-            resl(undefined)
+            resolve(undefined)
           } catch (err) {
-            rej(err)
+            reject(err)
           }
         })
       })
@@ -111,15 +115,16 @@ import { LoggerLevel } from './libs/logger/logger-level'
       .description('remove external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        t = new Promise(async (resl, rej) => {
+        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+        t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = new Logger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
-            resl(undefined)
+            resolve(undefined)
           } catch (err) {
-            rej(err)
+            reject(err)
           }
         })
       })

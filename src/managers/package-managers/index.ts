@@ -71,7 +71,7 @@ export abstract class PM {
     const exec = new ElementProxy(new Exec(cmd))
     exec.logger = this.logger
     try {
-      this.logger.label(`${des} ${msg}`)
+      this.logger.info(`${des} ${msg}`)
       await exec.exec()
       this.logger.passed(`${des}ed ${msg} successfully`, LoggerLevel.INFO)
     } catch (err) {

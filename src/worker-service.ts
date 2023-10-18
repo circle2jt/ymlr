@@ -1,7 +1,6 @@
 import { parentPort, workerData } from 'worker_threads'
 import { App } from './app'
 import { Logger } from './libs/logger'
-import { LoggerLevel } from './libs/logger/logger-level'
 
 void (async () => {
   try {
@@ -9,7 +8,7 @@ void (async () => {
     Logger.DEBUG = loggerDebug
     Logger.DEBUG_CONTEXTS = loggerDebugContexts
     Logger.PROCESS_ID = id
-    const appLogger = new Logger(baseProps.debug || LoggerLevel.INFO)
+    const appLogger = new Logger(baseProps.debug || Logger.DEBUG)
     const app = new App(appLogger, props)
     if (tagDirs?.length) app.setDirTags(tagDirs)
     if (templates) app.setTemplates(templates)

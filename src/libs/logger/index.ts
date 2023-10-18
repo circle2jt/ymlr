@@ -84,19 +84,20 @@ export class Logger {
     return chalk
   }
 
-  constructor(level: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
+  constructor(level?: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
     this.indent = indent || new Indent()
     this.context = context
     if (Logger.DEBUG_CONTEXTS?.[this.context]) {
       this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG_CONTEXTS[this.context]])
-    } else if (Logger.DEBUG) {
-      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG])
     } else {
       if (typeof level === 'string') {
         this.setLevelFromName(level)
       } else {
         this.level = level
       }
+    }
+    if (this.level === undefined && Logger.DEBUG) {
+      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG])
     }
   }
 
@@ -105,6 +106,9 @@ export class Logger {
   }
 
   get time() {
+    if (!this.level) {
+      return ''
+    }
     const date = new Date()
     return chalk.dim(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
   }
@@ -120,35 +124,35 @@ export class Logger {
   }
 
   log(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.info)) {
-      if (typeof msg === 'string') {
-        this.splitRawMsgThenPrint(msg, LevelFactory.GetLogInstance(), ...prms)
-      } else {
-        prms.splice(0, 0, msg)
-        this.print(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, ...prms)
-      }
-    }
-    return this
-  }
-
-  label(msg: string, icon = '○') {
-    if (!this.level?.is(LevelNumber.debug)) {
-      this.log(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+    // if (this.level?.is(LevelNumber.info)) {
+    if (typeof msg === 'string') {
+      this.splitRawMsgThenPrint(msg, LevelFactory.GetLogInstance(), ...prms)
     } else {
-      this.info(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+      prms.splice(0, 0, msg)
+      this.print(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, ...prms)
     }
+    // }
     return this
   }
 
-  passed(msg: any, level?: LoggerLevel) {
-    if (this.level?.is(!level ? LevelNumber.debug : LevelNumber[level])) {
+  // label(msg: string, icon = '○') {
+  //   if (!this.level) {
+  //     this.log(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+  //   } else {
+  //     this.info(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+  //   }
+  //   return this
+  // }
+
+  passed(msg: any, level: LoggerLevel = LoggerLevel.INFO) {
+    if (this.level?.is(LevelNumber[level])) {
       this.print(this.indent.format(`${chalk.green('✔')} ${msg} ${Logger._PROCESS_ID} `))
     }
     return this
   }
 
-  failed(msg: any, level?: LoggerLevel) {
-    if (this.level?.is(!level ? LevelNumber.debug : LevelNumber[level])) {
+  failed(msg: any, level: LoggerLevel = LoggerLevel.INFO) {
+    if (this.level?.is(LevelNumber[level])) {
       this.print(this.indent.format(`${chalk.red('✘')} ${msg} ${Logger._PROCESS_ID} `))
     }
     return this
