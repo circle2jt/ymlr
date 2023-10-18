@@ -132,7 +132,11 @@ export class Logger {
   }
 
   label(msg: string, icon = '○') {
-    this.log(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+    if (!this.level?.is(LevelNumber.debug)) {
+      this.log(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+    } else {
+      this.info(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
+    }
     return this
   }
 
@@ -248,7 +252,7 @@ export class Logger {
   private syncTab() {
     if (this.maxContextLength === Logger.MaxContextLength) return
     this.maxContextLength = Logger.MaxContextLength
-    this.tab = chalk.gray(new Array(this.maxContextLength - this.context.length - this.indent.indentStringLength).fill(' ').join(''))
+    this.tab = chalk.gray(new Array(this.maxContextLength - this.context.length).fill(' ').join(''))
   }
 
   private print(...args: any) {
@@ -264,7 +268,8 @@ export class Logger {
 
   private formatRaw(msg: string, level?: Level) {
     if (level) {
-      return this.indent.format(level.format(msg))
+      const [icon, txt] = level.format(msg)
+      return icon + this.indent.format(txt)
     }
     return this.indent.format(msg)
   }
@@ -278,8 +283,9 @@ export class Logger {
 
   private format(msg: string, level?: Level) {
     if (level) {
-      return this.indent.format(this.prefix + ' ' + level.format(msg))
+      const [icon, txt] = level.format(msg)
+      return this.prefix + icon + this.indent.format(txt)
     }
-    return this.indent.format(this.prefix + ' ' + msg)
+    return this.prefix + this.indent.format(msg)
   }
 }

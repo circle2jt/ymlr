@@ -8,6 +8,6 @@ export class TraceLevel extends Level {
   }
 
   override format(msg: string) {
-    return `${chalk.bgMagenta('[T]')} ${chalk.magenta(msg)}`
+    return [chalk.bgMagenta('[T]') + ' ', chalk.magenta(msg)]
   }
 }

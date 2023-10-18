@@ -7,6 +7,6 @@ export class LogLevel extends Level {
   }
 
   override format(msg: string) {
-    return msg
+    return ['', msg]
   }
 }
