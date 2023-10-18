@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.0.md](#1697614191290)  -  _10/18/2023, 2:29:51 PM_
 - [1.2.2.md](#1697088386300)  -  _10/12/2023, 12:26:26 PM_
 - [1.2.2-alpha.2.md](#1697015302031)  -  _10/11/2023, 4:08:22 PM_
 - [1.2.2-alpha.1.md](#1696997062072)  -  _10/11/2023, 11:04:22 AM_
@@ -35,6 +36,17 @@
 
 ## Details
 
+<a id="1697614191290"></a>
+### 1.2.3-alpha.0
+
+* fix: update log format (142bfbe)
+* fix: Add time into log when set debug mode (4abf184)
+* perf: Release unused object before running (04d3f05)
+* fix: Update format to log label (dbeb931)
+* fix: delay dispose detach when before program exits (8be7f11)
+* feat: add "fetch" tags (f2c8d00)
+* fix!: separate "cron" tag to "ymlr-cron" project (dd8e707)
+  
 <a id="1697088386300"></a>
 ### 1.2.2
 
