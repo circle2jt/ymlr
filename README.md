@@ -141,6 +141,7 @@ runs:
 | [http'patch](#http'patch) | Send a http request with PATCH method |
 | [http'post](#http'post) | Send a http request with POST method |
 | [http'put](#http'put) | Send a http request with PUT method |
+| [http'server](#http'server) | Create a http server to serve content via http |
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
@@ -1311,6 +1312,40 @@ Upload file to server
       }
     vars:
       status: ${this.response.status}
+```  
+
+
+## <a id="http'server"></a>http'server  
+  
+Create a http server to serve content via http  
+
+Example:  
+
+```yaml
+  - http'server:
+      address: 0.0.0.0:8811                   # Address to listen
+      auth:                                   # Check authentication
+        basic:                                # 'Basic ' + base64(`${username}:${password}`)
+            username: username
+            password: password
+      runs:                                   # Execute when a request comes
+        - echo: ${ $parentState.path }        # Get request path
+        - echo: ${ $parentState.method }      # Get request method
+        - echo: ${ $parentState.headers }     # Get request headers
+        - echo: ${ $parentState.query }       # Get request query string
+        - echo: ${ $parentState.body }        # Get request body
+        - echo: ${ $parentState.response }    # Set response data
+                                              # - status: 200       - http response status
+                                              # - statusMessage: OK - http response status message
+                                              # - headers: {}       - Set response headers
+                                              # - data: {}          - Set response data
+        - echo: ${ $parentState.req }         # Ref to req in http.IncomingMessage in nodejs
+        - echo: ${ $parentState.res }         # Ref to res in http.ServerResponse in nodejs
+        - js: |                               # Handle response by yourself (When $parentState.response is undefined)
+            $parentState.res.status = 200
+            $parentState.res.statusMessage = 'OK'
+            $parentState.res.write('OK')
+            $parentState.res.end()
 ```  
 
 

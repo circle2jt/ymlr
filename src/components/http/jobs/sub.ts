@@ -122,12 +122,15 @@ export class Sub extends Job {
       }
       merge(jobData.jobData, requestBody)
 
-      const isAuth = await this.auth?.verify(jobData)
-      if (isAuth === false) {
-        res.statusMessage = logs.join('-')
-        res.statusCode = 401
-        res.end()
-        return
+      if (this.auth) {
+        const userToken = jobData.jobInfo.headers.authorization || jobData.jobInfo.query.authorization
+        const isAuth = await this.auth.verify(userToken)
+        if (!isAuth) {
+          res.statusMessage = logs.join('-')
+          res.statusCode = 401
+          res.end()
+          return
+        }
       }
 
       if (jobData.jobInfo.query.jobRes) {

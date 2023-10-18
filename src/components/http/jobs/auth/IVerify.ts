@@ -1,5 +1,3 @@
-import { type SubJobData } from '../sub-job-data.props'
-
 export interface IVerify {
-  verify: (clientHash: SubJobData) => boolean | Promise<boolean>
+  verify: (userToken: string | undefined) => boolean | Promise<boolean>
 }
