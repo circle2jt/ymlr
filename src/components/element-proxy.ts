@@ -6,7 +6,7 @@ import { type Level } from 'src/libs/logger/level'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
-import { type Group } from './group/group'
+import { Group } from './group/group'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars/vars.props'
 
@@ -573,7 +573,7 @@ export class ElementProxy<T extends Element> {
         }
 
         if (this.name && !this.$.hideName) {
-          this.logger.label(this.name)
+          this.logger.label(this.name, this.element instanceof Group ? '▼' : '▸')
         }
         const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) this.result = this.result.result

@@ -131,8 +131,8 @@ export class Logger {
     return this
   }
 
-  label(msg: string) {
-    this.log(`${chalk.green('○')} ${msg} ${Logger._PROCESS_ID} `)
+  label(msg: string, icon = '○') {
+    this.log(`${chalk.green(icon)} ${msg} ${Logger._PROCESS_ID} `)
     return this
   }
 
