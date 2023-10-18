@@ -19,7 +19,7 @@ afterEach(async () => {
 test('Listen to handle jobs in queue', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:4001',
+    address: '0.0.0.0:3001',
     runs: [
       {
         vars: {
@@ -31,7 +31,7 @@ test('Listen to handle jobs in queue', async () => {
   })
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    await axios.post('http://0.0.0.0:4001', jobData)
+    await axios.post('http://0.0.0.0:3001', jobData)
     await serve.dispose()
   }, 1000)
   await serve.exec()
@@ -42,7 +42,7 @@ test('Listen to handle jobs in queue', async () => {
 test('Force quit server', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:4001',
+    address: '0.0.0.0:3002',
     runs: [
       {
         vars: {
@@ -58,7 +58,7 @@ test('Force quit server', async () => {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
     try {
-      await axios.post('http://0.0.0.0:4001', jobData)
+      await axios.post('http://0.0.0.0:3002', jobData)
     } catch (err: any) {
       expect(err.response.status).toBe(503)
     }
@@ -71,7 +71,7 @@ test('Force quit server', async () => {
 test('Check basic authentication via headers', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:4001',
+    address: '0.0.0.0:3003',
     auth: {
       basic: {
         username: 'thanh',
@@ -90,11 +90,11 @@ test('Check basic authentication via headers', async () => {
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
     try {
-      await axios.post('http://0.0.0.0:4001', jobData)
+      await axios.post('http://0.0.0.0:3003', jobData)
     } catch (err: any) {
       expect(err.response.status).toBe(401)
     }
-    const resp = await axios.post('http://0.0.0.0:4001', jobData, {
+    const resp = await axios.post('http://0.0.0.0:3003', jobData, {
       headers: {
         authorization: `Basic ${Testing.rootScene.globalUtils.base64.encrypt('thanh:123')}`
       }
@@ -109,7 +109,7 @@ test('Check basic authentication via headers', async () => {
 
 test('Test job response', async () => {
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:4001',
+    address: '0.0.0.0:3004',
     runs: [
       {
         "exec'js": `
@@ -125,7 +125,7 @@ test('Test job response', async () => {
   })
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    const resp = await axios.post('http://0.0.0.0:4001')
+    const resp = await axios.post('http://0.0.0.0:3004')
     expect(resp.status).toBe(200)
     expect(resp.data).toBe('ok')
   }, 1000)
