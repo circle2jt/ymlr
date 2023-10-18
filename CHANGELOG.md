@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.1.md](#1697620095894)  -  _10/18/2023, 4:08:15 PM_
 - [1.2.3-alpha.0.md](#1697614191290)  -  _10/18/2023, 2:29:51 PM_
 - [1.2.2.md](#1697088386300)  -  _10/12/2023, 12:26:26 PM_
 - [1.2.2-alpha.2.md](#1697015302031)  -  _10/11/2023, 4:08:22 PM_
@@ -36,6 +37,13 @@
 
 ## Details
 
+<a id="1697620095894"></a>
+### 1.2.3-alpha.1
+
+* fix: update http'server unit test (7ad0da3)
+* fix: Update log level in log format (690ee0f)
+* feat: add new tag http'server (e80bf29)
+  
 <a id="1697614191290"></a>
 ### 1.2.3-alpha.0
 
