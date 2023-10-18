@@ -8,6 +8,6 @@ export class WarnLevel extends Level {
   }
 
   override format(msg: string) {
-    return [chalk.bgYellow('[W]') + ' ', chalk.yellow(msg)]
+    return [chalk.bgYellow.bold('[W]') + ' ', chalk.yellow(msg)]
   }
 }

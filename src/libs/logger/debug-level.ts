@@ -8,6 +8,6 @@ export class DebugLevel extends Level {
   }
 
   override format(msg: string) {
-    return [chalk.bgBlack('[D]') + ' ', chalk.gray(msg)]
+    return [chalk.bgBlack.bold('[D]') + ' ', chalk.gray(msg)]
   }
 }

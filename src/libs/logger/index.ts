@@ -102,13 +102,13 @@ export class Logger {
   }
 
   get prefix() {
+    if (!this.level) {
+      return ''
+    }
     return `${this.time} ${chalk.blue(this.context)} ${this.tab}`
   }
 
   get time() {
-    if (!this.level) {
-      return ''
-    }
     const date = new Date()
     return chalk.dim(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
   }
@@ -159,7 +159,7 @@ export class Logger {
   }
 
   info(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.info)) {
+    if (!this.level || this.level?.is(LevelNumber.info)) {
       this.syncTab()
       if (typeof msg === 'string') {
         this.splitMsgThenPrint(msg, LevelFactory.GetInstance(LevelNumber.info), ...prms)
@@ -185,7 +185,7 @@ export class Logger {
   }
 
   warn(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.warn)) {
+    if (!this.level || this.level?.is(LevelNumber.warn)) {
       Logger.Event?.emit(LoggerLevel.WARN)
       this.syncTab()
       if (typeof msg === 'string') {
@@ -212,7 +212,7 @@ export class Logger {
   }
 
   error(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.error)) {
+    if (!this.level || this.level?.is(LevelNumber.error)) {
       Logger.Event?.emit(LoggerLevel.ERROR)
       this.syncTab()
       if (typeof msg === 'string') {
@@ -226,7 +226,7 @@ export class Logger {
   }
 
   fatal(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.fatal)) {
+    if (!this.level || this.level?.is(LevelNumber.fatal)) {
       Logger.Event?.emit(LoggerLevel.FATAL)
       this.syncTab()
       if (typeof msg === 'string') {

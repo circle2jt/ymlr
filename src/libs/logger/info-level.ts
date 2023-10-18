@@ -8,6 +8,6 @@ export class InfoLevel extends Level {
   }
 
   override format(msg: string) {
-    return [chalk.bgGreen('[I]') + ' ', chalk.green(msg)]
+    return [chalk.bgGreen.bold('[I]') + ' ', chalk.green(msg)]
   }
 }
