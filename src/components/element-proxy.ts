@@ -600,6 +600,10 @@ export class ElementProxy<T extends Element> {
   }
 
   dispose() {
+    const t: any = this.element.innerRunsProxy?.dispose()
+    if (t instanceof Promise) {
+      return t.then(() => this.element.dispose())
+    }
     return this.element.dispose()
   }
 }

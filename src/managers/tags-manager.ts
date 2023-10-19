@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
-import { type Element } from 'src/components/element.interface'
+import { type ElementClass, type Element } from 'src/components/element.interface'
 import { type Scene } from 'src/components/scene/scene'
 import { PackagesManagerFactory } from './packages-manager-factory'
 
@@ -148,6 +148,6 @@ export class TagsManager {
     assert(ElementClazz?.prototype, `Could not found the tag "${path}.${className}"`)
     // Class type
     if (tagName) ElementClazz.tag = tagName
-    return ElementClazz
+    return ElementClazz as ElementClass
   }
 }

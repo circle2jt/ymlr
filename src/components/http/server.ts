@@ -2,7 +2,9 @@ import assert from 'assert'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { parse } from 'querystring'
 import { promisify } from 'util'
-import Group from '../group'
+import { type ElementProxy } from '../element-proxy'
+import { type Element } from '../element.interface'
+import type Group from '../group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 import { BasicAuth } from './jobs/auth/BasicAuth'
 import { type IVerify } from './jobs/auth/IVerify'
@@ -37,7 +39,9 @@ import { type IVerify } from './jobs/auth/IVerify'
               $parentState.res.end()
   ```
 */
-export class HttpServer extends Group<GroupProps, GroupItemProps> {
+export class HttpServer implements Element {
+  ignoreEvalProps = ['server', 'auth']
+  proxy!: ElementProxy<this>
   address: string = '0.0.0.0:8811'
   auth?: {
     basic?: {
@@ -48,11 +52,15 @@ export class HttpServer extends Group<GroupProps, GroupItemProps> {
 
   private authVerifier?: IVerify
   private server?: Server
+  private get logger() {
+    return this.proxy.logger
+  }
+
+  // Support runs
+  innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   constructor({ address, auth, type, ...props }: any) {
-    super(props)
-    Object.assign(this, { address, auth, type })
-    this.ignoreEvalProps.push('server', 'auth')
+    Object.assign(this, { address, auth, type, ...props })
   }
 
   async exec() {
@@ -63,7 +71,9 @@ export class HttpServer extends Group<GroupProps, GroupItemProps> {
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.server = createServer(async (req, res) => { await this.handleRequest(req, res) })
+      this.server = createServer(async (req, res) => {
+        await this.handleRequest(req, res)
+      })
         .on('error', reject)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         .on('close', async () => {
@@ -112,7 +122,7 @@ export class HttpServer extends Group<GroupProps, GroupItemProps> {
         }
       }
       res.statusCode = 204
-      await this.runEachOfElements(parentState)
+      await this.innerRunsProxy.exec(parentState)
       if (!this.server) {
         res.statusCode = 503
         res.end()
@@ -166,6 +176,5 @@ export class HttpServer extends Group<GroupProps, GroupItemProps> {
 
   async dispose() {
     await this.stop()
-    await super.dispose()
   }
 }

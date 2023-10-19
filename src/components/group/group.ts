@@ -26,9 +26,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   readonly proxy!: ElementProxy<this>
 
   protected runs: GIP[] = []
-  protected get scene() { return this.proxy.scene }
-  protected get rootScene() { return this.proxy.rootScene }
-  protected get logger() { return this.proxy.logger }
+  protected get scene() { return this.proxy?.scene }
+  protected get rootScene() { return this.proxy?.rootScene }
+  protected get logger() { return this.proxy?.logger }
   protected get innerScene() {
     return this.scene
   }
@@ -50,13 +50,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   }
 
   private async newElement(nameOrClass: string | ElementClass, props: any) {
+    let ElemClass: ElementClass
     if (typeof nameOrClass === 'string') {
       const name = nameOrClass
-      const ElemClass: ElementClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
-      return new ElemClass(props)
+      ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
+    } else {
+      ElemClass = nameOrClass
     }
-    const ElemClass = nameOrClass
-    return new ElemClass(props)
+    const elem = new ElemClass(props)
+    return elem
   }
 
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
@@ -69,6 +71,20 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     Object.assign(elemProxy, loopObj)
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
+
+    if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
+      const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
+      const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
+      innerRunsProxy.tag = 'inner-group'
+      innerRunsProxy.parent = elemProxy.parent
+      innerRunsProxy.scene = elemProxy.scene
+      innerRunsProxy.rootScene = elemProxy.rootScene
+      // @ts-expect-error auto be injected by system
+      elem.innerRunsProxy = innerRuns
+      // @ts-expect-error auto init by system
+      if (!elem.ignoreEvalProps) elem.ignoreEvalProps = []
+      elem.ignoreEvalProps.push('innerRunsProxy', ...innerRuns.ignoreEvalProps)
+    }
     return elemProxy
   }
 
