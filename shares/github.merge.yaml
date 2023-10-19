@@ -1,0 +1,31 @@
+title: Create a pull request on github
+vars:
+  title: "Auto create a pull request"
+  body: "Please merge code"
+  token: ""
+  owner: ""
+  repo: ""
+  to: "main"
+  from: "dev"
+runs:
+  - ->: git-http
+    force: true
+    template:
+      baseURL: https://api.github.com
+      headers:
+        Accept: application/vnd.github+json"
+        Authorization: Bearer ${$vars.token}
+
+  - name: Create a new tag
+    runs:
+      - <-: git-http
+        debug: all
+        http'post:
+          url: /repos/${ $vars.owner }/${ $vars.repo }/pulls
+          body:
+            owner: ${ $vars.owner }
+            repo: ${ $vars.repo }
+            title: ${ $vars.title }
+            body: ${ $vars.body }
+            head: ${ $vars.from }
+            base: ${ $vars.to }

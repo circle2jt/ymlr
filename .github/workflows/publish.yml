@@ -117,3 +117,25 @@ jobs:
             BUN_VERSION=${{ vars.BUN_VERSION }}
           tags: ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ vars.VERSION || github.ref_name }}-bun, ${{ vars.REGISTRY }}/${{ env.IMAGE_NAME }}:bun
           labels: ${{ steps.meta.outputs.labels }}
+
+  merge-code:
+    needs:
+      - publish-vscode
+      - publish-docker
+    name: Create a pull request to merge code
+    runs-on: ubuntu-latest
+    environment: ${{ vars.ENV_STAGE }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          registry-url: ${{ vars.NPM_REGISTRY }}
+          node-version: current
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Create a pull request
+        run: yarn ci:merge
+        env:
+          TAG: ${{ github.ref_name }}
+          GITHUBTOKEN: ${{ secrets.GIT_TOKEN }}

@@ -1,0 +1,17 @@
+title: Create a new tag on github
+vars:
+  githubToken: ""
+  from: dev
+  to: main
+runs:
+  - scene:
+      title: Merge code
+      path: ../shares/github.merge.yaml
+      vars:
+        title: "Auto create a pull request"
+        body: "Please merge code from ${$vars.from} to ${$vars.to}"
+        token: ${ $vars.githubToken }
+        owner: circle2jt
+        repo: ymlr
+        to: ${ $vars.to }
+        from: ${ $vars.from }
