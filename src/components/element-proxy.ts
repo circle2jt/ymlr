@@ -8,7 +8,7 @@ import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
 import { Returns } from './scene/returns'
-import { type VarsProps } from './vars/vars.props'
+import { type VarsProps } from './vars.props'
 
 const EVAL_ELEMENT_SHADOW_BASE_PROPS = [
   'name'

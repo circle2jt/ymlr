@@ -190,11 +190,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (tagName) {
         // This is a tag
         elemProps = eProps[tagName]
-      } else if (vars) {
-        // This is "vars" tag
-        tagName = 'vars'
-        elemProps = vars
-        vars = undefined
       } else {
         // This is a empty tag
         tagName = 'base'

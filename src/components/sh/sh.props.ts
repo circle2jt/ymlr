@@ -1,4 +1,4 @@
-import { type VarsProps } from '../vars/vars.props'
+import { type VarsProps } from '../vars.props'
 
 export type ShProps = {
   bin?: string
