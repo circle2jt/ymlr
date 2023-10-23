@@ -54,7 +54,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             Logger.DEBUG_CONTEXTS = debugContext
           }
           Logger.LoadFromEnv()
-          const appLogger = new Logger(Logger.DEBUG)
+          const appLogger = Logger.NewLogger(Logger.DEBUG)
           appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
           appLogger.log('')
           const app = new App(appLogger, {
@@ -79,7 +79,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = new Logger(LoggerLevel.ALL)
+            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
             resolve(undefined)
@@ -99,7 +99,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = new Logger(LoggerLevel.ALL)
+            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
             resolve(undefined)
@@ -119,7 +119,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = new Logger(LoggerLevel.ALL)
+            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
             resolve(undefined)

@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { ElementProxy } from 'src/components/element-proxy'
@@ -73,9 +74,9 @@ export abstract class PM {
     try {
       this.logger.info(`${des} ${msg}`)
       await exec.exec()
-      this.logger.passed(`${des}ed ${msg} successfully`, LoggerLevel.INFO)
+      this.logger.info(`${chalk.green('✔')} ${des}ed ${msg} successfully`, LoggerLevel.INFO)
     } catch (err) {
-      this.logger.failed(`${des}ed ${msg} failed`, LoggerLevel.ERROR)
+      this.logger.error(`${chalk.red('✘')} ${des}ed ${msg} failed`, LoggerLevel.ERROR)
       throw err
     } finally {
       await exec.dispose()

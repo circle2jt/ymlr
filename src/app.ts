@@ -33,7 +33,7 @@ export class App {
     try {
       await this.rootSceneProxy.exec()
     } catch (err: any) {
-      this.logger.failed(`${err.message}\t${chalk.gray(err.cause || '')}`, LoggerLevel.ERROR)
+      this.logger.error(`${err.message}\t${chalk.gray(err.cause || '')}`, LoggerLevel.ERROR)
       throw err
     } finally {
       await this.rootSceneProxy.dispose()

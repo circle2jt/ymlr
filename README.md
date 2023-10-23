@@ -165,7 +165,6 @@ runs:
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
-| [vars](#vars) | Declare and set value to variables to reused in the scene/global scope |
 
 
 ## <a id="Root scene"></a>Root scene  
@@ -619,15 +618,37 @@ Example:
 
 ## <a id="vars"></a>vars  
 `It's a property in a tag`  
-Set value in the item to global vars to reused later  
+Declare and set value to variables to reused in the scene/global scope
+- If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
+- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene    
 
 Example:  
 
+A main scene file
 ```yaml
-  - echo: Hello world
-    vars: helloText
-  - echo: ${$vars.helloText}     # => Hello world
-```  
+  - vars:
+      MainName: global var      # Is used in all of scenes
+      mainName: local var       # Only used in this scene
+
+  - scene:
+      path: ./child.scene.yaml
+
+  - echo: ${$vars.MainName}      # => global var
+  - echo: ${$vars.mainName}      # => local var
+  - echo: ${$vars.name}          # => undefined
+  - echo: ${$vars.Name}          # => global name here
+```
+A scene file `child.scene.yaml` is:
+```yaml
+  - vars:
+      Name: global name here
+      name: scene name here     # Only used in this scene
+
+  - echo: ${$vars.MainName}      # => global var
+  - echo: ${$vars.mainName}      # => undefined
+  - echo: ${$vars.name}          # => scene name here
+  - echo: ${$vars.Name}          # => global name here
+```    
 
 
 
@@ -1893,41 +1914,6 @@ Test with nodejs script
       title: Number must be greater than 10
       script: |
         if (vars.age > 10) this.$.failed('Age is not valid')
-```  
-
-
-## <a id="vars"></a>vars  
-  
-Declare and set value to variables to reused in the scene/global scope
-- If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
-- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene  
-
-Example:  
-
-A main scene file
-```yaml
-  - vars:
-      MainName: global var      # Is used in all of scenes
-      mainName: local var       # Only used in this scene
-
-  - scene:
-      path: ./child.scene.yaml
-
-  - echo: ${$vars.MainName}      # => global var
-  - echo: ${$vars.mainName}      # => local var
-  - echo: ${$vars.name}          # => undefined
-  - echo: ${$vars.Name}          # => global name here
-```
-A scene file `child.scene.yaml` is:
-```yaml
-  - vars:
-      Name: global name here
-      name: scene name here     # Only used in this scene
-
-  - echo: ${$vars.MainName}      # => global var
-  - echo: ${$vars.mainName}      # => undefined
-  - echo: ${$vars.name}          # => scene name here
-  - echo: ${$vars.Name}          # => global name here
 ```  
 
 

@@ -2,10 +2,10 @@ import { existsSync, unlinkSync } from 'fs'
 import { dump } from 'js-yaml'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
+import type Base from '../base'
 import { type Echo } from '../echo/echo'
 import { ElementProxy } from '../element-proxy'
 import { RootScene } from '../root-scene'
-import { type Vars } from '../vars/vars'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>
@@ -290,7 +290,7 @@ test('should NOT share vars', async () => {
     sceneVar: scene var
   `
   })
-  await scene.exec() as Array<ElementProxy<Vars>>
+  await scene.exec() as Array<ElementProxy<Base>>
   expect(Testing.vars.GlobalVar).toBe('Global var')
   expect(Testing.vars.sceneVar).toBe(undefined)
 })
@@ -306,7 +306,7 @@ test('should load content file when use "include"', async () => {
   # @include ${task1.file}
     `
     })
-    const rs = await scene.exec() as Array<ElementProxy<Vars>>
+    const rs = await scene.exec() as Array<ElementProxy<Base>>
     expect(rs[0].result).toBe('This is a main')
     expect(rs[1].result).toBe('This is a task1')
   } finally {

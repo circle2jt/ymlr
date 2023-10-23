@@ -1,7 +1,7 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
+import type Base from '../base'
 import { type ElementProxy } from '../element-proxy'
-import { type Vars } from '../vars/vars'
 import { Scene } from './scene'
 
 let scene: ElementProxy<Scene>
@@ -36,6 +36,6 @@ runs:
     vars: sceneResult
 `
   })
-  await scene.exec() as Array<ElementProxy<Vars>>
+  await scene.exec() as Array<ElementProxy<Base>>
   expect(scene.$.localVars.sceneResult).toBe('Name is My result')
 })

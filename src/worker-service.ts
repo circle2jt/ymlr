@@ -8,7 +8,8 @@ void (async () => {
     Logger.DEBUG = loggerDebug
     Logger.DEBUG_CONTEXTS = loggerDebugContexts
     Logger.PROCESS_ID = id
-    const appLogger = new Logger(baseProps.debug || Logger.DEBUG)
+    Logger.LoadFromEnv()
+    const appLogger = Logger.NewLogger(baseProps.debug || Logger.DEBUG)
     const app = new App(appLogger, props)
     if (tagDirs?.length) app.setDirTags(tagDirs)
     if (templates) app.setTemplates(templates)
@@ -16,7 +17,5 @@ void (async () => {
     parentPort?.postMessage(JSON.stringify({ state: 'done' }))
   } catch (err: any) {
     parentPort?.postMessage(JSON.stringify({ state: 'error', data: err.message }))
-  } finally {
-    Logger.Dispose()
   }
 })()

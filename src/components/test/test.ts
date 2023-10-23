@@ -1,4 +1,4 @@
-import { LoggerLevel } from 'src/libs/logger/logger-level'
+import chalk from 'chalk'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { TestError } from './test-error'
@@ -67,7 +67,7 @@ export class Test implements Element {
         this.failed(err?.message)
       }
     }
-    this.proxy.name && this.logger.passed(this.proxy.name, LoggerLevel.INFO)
+    this.proxy.name && this.logger.info(`${chalk.green('✔')} ${this.proxy.name}`)
     return true
   }
 
