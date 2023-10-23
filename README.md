@@ -618,14 +618,19 @@ Example:
 
 ## <a id="vars"></a>vars  
 `It's a property in a tag`  
-Declare and set value to variables to reused in the scene/global scope
+- Set value in the item to global vars to reused later
+- Declare and set value to variables to reused in the scene/global scope
 - If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
-- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene    
+- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene  
 
 Example:  
 
 A main scene file
 ```yaml
+  - echo: Hello world
+    vars: helloText             # Save output from echo to global variable "helloText"
+  - echo: ${$vars.helloText}    # => Hello world
+
   - vars:
       MainName: global var      # Is used in all of scenes
       mainName: local var       # Only used in this scene
@@ -648,7 +653,7 @@ A scene file `child.scene.yaml` is:
   - echo: ${$vars.mainName}      # => undefined
   - echo: ${$vars.name}          # => scene name here
   - echo: ${$vars.Name}          # => global name here
-```    
+```  
 
 
 

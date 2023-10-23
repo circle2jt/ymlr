@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.3.md](#1698042890005)  -  _10/23/2023, 1:34:50 PM_
 - [1.2.3-alpha.2.md](#1697688515505)  -  _10/19/2023, 11:08:35 AM_
 - [1.2.3-alpha.1.md](#1697620095894)  -  _10/18/2023, 4:08:15 PM_
 - [1.2.3-alpha.0.md](#1697614191290)  -  _10/18/2023, 2:29:51 PM_
@@ -38,6 +39,13 @@
 
 ## Details
 
+<a id="1698042890005"></a>
+### 1.2.3-alpha.3
+
+* fix: optimize logger (15794b4)
+* fix: remove unused "vars" tags (4afef37)
+* ci: auto create a pull to merge code after each release done (c9a9bb7)
+  
 <a id="1697688515505"></a>
 ### 1.2.3-alpha.2
 
