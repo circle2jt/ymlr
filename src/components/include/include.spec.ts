@@ -22,3 +22,28 @@ test('should be includes a file', async () => {
     f.remove()
   }
 })
+
+test('should be includes multiple files in a folder', async () => {
+  const f1 = new FileTemp('.yaml', true)
+  const f2 = f1.newOne()
+  try {
+    f1.create(`
+- echo: 1
+- clear:
+`)
+    f2.create(`
+- echo: 2
+- clear:
+`)
+    const include = await Testing.createElementProxy(Include, f1.dir)
+    await include.exec()
+    expect(include.result).toHaveLength(4)
+    expect(Object.keys(include.result[0])[0]).toBe('echo')
+    expect(Object.keys(include.result[1])[0]).toBe('clear')
+    expect(Object.keys(include.result[2])[0]).toBe('echo')
+    expect(Object.keys(include.result[3])[0]).toBe('clear')
+  } finally {
+    f1.remove()
+    f2.remove()
+  }
+})

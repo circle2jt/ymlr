@@ -1,12 +1,17 @@
 import assert from 'assert'
 import axios from 'axios'
-import { existsSync } from 'fs'
+import { existsSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { type Scene } from 'src/components/scene/scene'
 
 export class FileRemote {
   get isRemote() {
     return !!((this.uri.startsWith('http://') || this.uri.startsWith('https://')))
+  }
+
+  get isDirectory() {
+    if (this.isRemote) return undefined
+    return statSync(this.uri).isDirectory()
   }
 
   constructor(public uri: string, scene: Scene) {

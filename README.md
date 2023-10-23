@@ -145,7 +145,7 @@ runs:
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
-| [include](#include) | Include a scene file |
+| [include](#include) | Include a scene file or list scene files in a folder |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
 | [input'number](#input'number) | Get user input from keyboard then convert to number |
@@ -1450,13 +1450,14 @@ Example:
 
 ## <a id="include"></a>include  
   
-Include a scene file  
+Include a scene file or list scene files in a folder  
 
 Example:  
 
 ```yaml
-  - include: ./scene1.yaml
-  - include: ./scene2.yaml
+  - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
+
+  - include: ./my-scenes              # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
 ```  
 
 
