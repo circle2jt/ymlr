@@ -67,6 +67,10 @@ export abstract class Logger {
   }
 
   public level?: Level
+  public get levelName(): LoggerLevel | undefined {
+    return LevelFactory.GetNameFromInstance(this.level)
+  }
+
   set context(ctx: string) {
     this._context = ctx
   }

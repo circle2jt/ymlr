@@ -284,7 +284,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       elemProxy.exec(parentState)
       this.rootScene.pushToBackgroundJob(elemProxy)
     } else {
-      const p = elemProxy.exec(parentState).finally(() => elemProxy.dispose())
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      const p = elemProxy.exec(parentState).finally(async () => { await elemProxy.dispose() })
       const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
       if (async) {
         asyncJobs.push(p)

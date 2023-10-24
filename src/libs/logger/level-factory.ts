@@ -5,7 +5,7 @@ import { InfoLevel } from './info-level'
 import { type Level } from './level'
 import { LevelNumber } from './level-number'
 import { LogLevel } from './log-level'
-import { type LoggerLevel } from './logger-level'
+import { LoggerLevel } from './logger-level'
 import { TraceLevel } from './trace-level'
 import { WarnLevel } from './warn-level'
 
@@ -20,6 +20,28 @@ export class LevelFactory {
     levelObj = new LogLevel()
     this._Instance.set(level, levelObj)
     return levelObj
+  }
+
+  static GetNameFromInstance(instance: Level | undefined) {
+    if (instance instanceof TraceLevel) {
+      return LoggerLevel.TRACE
+    }
+    if (instance instanceof DebugLevel) {
+      return LoggerLevel.DEBUG
+    }
+    if (instance instanceof InfoLevel) {
+      return LoggerLevel.INFO
+    }
+    if (instance instanceof WarnLevel) {
+      return LoggerLevel.WARN
+    }
+    if (instance instanceof ErrorLevel) {
+      return LoggerLevel.ERROR
+    }
+    if (instance instanceof FatalLevel) {
+      return LoggerLevel.FATAL
+    }
+    return undefined
   }
 
   static GetInstance(_level: LoggerLevel | LevelNumber) {

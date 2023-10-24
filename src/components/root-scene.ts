@@ -73,7 +73,7 @@ export class RootScene extends Scene {
       const rs = await super.exec()
       await this._workerManager?.exec()
       if (this._backgroundJobs.length) {
-        await Promise.all(this._backgroundJobs.map(job => job.dispose()))
+        await Promise.all(this._backgroundJobs.map(async job => { await job.dispose() }))
       }
       return rs
     } finally {

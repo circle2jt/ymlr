@@ -629,11 +629,8 @@ export class ElementProxy<T extends Element> {
     return this.result
   }
 
-  dispose() {
-    const t: any = this.element.innerRunsProxy?.dispose()
-    if (t instanceof Promise) {
-      return t.then(() => this.element.dispose())
-    }
-    return this.element.dispose()
+  async dispose() {
+    await this.element.innerRunsProxy?.dispose()
+    return this.element.dispose?.()
   }
 }
