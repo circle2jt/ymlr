@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.4.md](#1698140815650)  -  _10/24/2023, 4:46:55 PM_
 - [1.2.3-alpha.3.md](#1698042890005)  -  _10/23/2023, 1:34:50 PM_
 - [1.2.3-alpha.2.md](#1697688515505)  -  _10/19/2023, 11:08:35 AM_
 - [1.2.3-alpha.1.md](#1697620095894)  -  _10/18/2023, 4:08:15 PM_
@@ -39,6 +40,12 @@
 
 ## Details
 
+<a id="1698140815650"></a>
+### 1.2.3-alpha.4
+
+* fix(worker): logger not inherited from main process (cd4bade)
+* feat(include): Support includes a folder (1a17a9f)
+  
 <a id="1698042890005"></a>
 ### 1.2.3-alpha.3
 
