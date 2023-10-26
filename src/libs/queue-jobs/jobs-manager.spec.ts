@@ -1,10 +1,10 @@
-import { Logger } from '../logger'
+import { LoggerFactory } from '../logger/logger-factory'
 import { LoggerLevel } from '../logger/logger-level'
 import { sleep } from '../time'
 import { type Job } from './job'
 import { JobsManager } from './jobs-manager'
 
-const logger = Logger.NewLogger(LoggerLevel.SILENT)
+const logger = LoggerFactory.NewLogger(LoggerLevel.SILENT)
 
 class MyJob implements Job {
   constructor(public name: string, private readonly time: number) { }

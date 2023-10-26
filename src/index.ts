@@ -6,7 +6,7 @@ import { readFile } from 'fs/promises'
 import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
-import { Logger } from './libs/logger'
+import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -51,10 +51,10 @@ import { LoggerLevel } from './libs/logger/logger-level'
             process.env.DEBUG = debug
           }
           if (debugContext?.length > 0) {
-            Logger.DEBUG_CONTEXTS = debugContext
+            LoggerFactory.DEBUG_CONTEXTS = debugContext
           }
-          Logger.LoadFromEnv()
-          const appLogger = Logger.NewLogger(Logger.DEBUG)
+          LoggerFactory.LoadFromEnv()
+          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG)
           appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
           appLogger.log('')
           const app = new App(appLogger, {
@@ -79,7 +79,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
             resolve(undefined)
@@ -99,7 +99,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
             resolve(undefined)
@@ -119,7 +119,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = Logger.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
             resolve(undefined)

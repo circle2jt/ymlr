@@ -5,7 +5,7 @@ import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
-import { Logger } from 'src/libs/logger'
+import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { getVars, setVars } from 'src/libs/variable'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -91,7 +91,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
           })
         }
       }
-      Logger.LoadFromEnv()
+      LoggerFactory.LoadFromEnv()
       if (password) {
         await this.generateEncryptedFile(remoteFileProps, password)
       }

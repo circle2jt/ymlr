@@ -1,15 +1,15 @@
 import { parentPort, workerData } from 'worker_threads'
 import { App } from './app'
-import { Logger } from './libs/logger'
+import { LoggerFactory } from './libs/logger/logger-factory'
 
 void (async () => {
   try {
     const { baseProps = {}, props = {}, tagDirs, templates, id, loggerDebugContexts, loggerDebug } = workerData
-    Logger.DEBUG = loggerDebug
-    Logger.DEBUG_CONTEXTS = loggerDebugContexts
-    Logger.PROCESS_ID = id
-    Logger.LoadFromEnv()
-    const appLogger = Logger.NewLogger(baseProps.debug || Logger.DEBUG)
+    LoggerFactory.DEBUG = loggerDebug
+    LoggerFactory.DEBUG_CONTEXTS = loggerDebugContexts
+    LoggerFactory.PROCESS_ID = id
+    LoggerFactory.LoadFromEnv()
+    const appLogger = LoggerFactory.NewLogger(baseProps.debug || LoggerFactory.DEBUG)
     const app = new App(appLogger, props)
     if (tagDirs?.length) app.setDirTags(tagDirs)
     if (templates) app.setTemplates(templates)

@@ -4,7 +4,8 @@ import { RootScene } from 'src/components/root-scene'
 import { Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
 import { type RootSceneProps } from './components/root-scene.props'
-import { Logger } from './libs/logger'
+import { type Logger } from './libs/logger'
+import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
@@ -38,7 +39,7 @@ export class App {
     } finally {
       await this.rootSceneProxy.dispose()
       summary?.print()
-      Logger.Dispose()
+      LoggerFactory.Dispose()
     }
   }
 }

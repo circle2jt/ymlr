@@ -1,9 +1,9 @@
 import { FileTemp } from 'src/libs/file-temp'
 import { Env } from './env'
-import { Logger } from './logger'
+import { LoggerFactory } from './logger/logger-factory'
 import { LoggerLevel } from './logger/logger-level'
 
-const logger = Logger.NewLogger(LoggerLevel.SILENT)
+const logger = LoggerFactory.NewLogger(LoggerLevel.SILENT)
 
 test('Should load env from files and objects', async () => {
   const tmpFile = new FileTemp('.env')

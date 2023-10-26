@@ -5,6 +5,7 @@ import { type Indent } from '../indent'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
 import { LevelNumber } from '../level-number'
+import { LoggerFactory } from '../logger-factory'
 import { type LoggerLevel } from '../logger-level'
 
 export class ConsoleLogger extends Logger {
@@ -28,8 +29,8 @@ export class ConsoleLogger extends Logger {
   constructor(level?: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
     super(level, context, indent)
     this.context = context
-    if (Logger.DEBUG_CONTEXTS?.[this.context]) {
-      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG_CONTEXTS[this.context]])
+    if (LoggerFactory.DEBUG_CONTEXTS?.[this.context]) {
+      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG_CONTEXTS[this.context]])
     } else {
       if (typeof level === 'string') {
         this.setLevelFromName(level)
@@ -37,8 +38,8 @@ export class ConsoleLogger extends Logger {
         this.level = level
       }
     }
-    if (this.level === undefined && Logger.DEBUG) {
-      this.level = LevelFactory.GetInstance(LevelNumber[Logger.DEBUG])
+    if (this.level === undefined && LoggerFactory.DEBUG) {
+      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG])
     }
   }
 
@@ -51,7 +52,7 @@ export class ConsoleLogger extends Logger {
 
   get time() {
     const date = new Date()
-    return chalk.gray(`#${Logger.PROCESS_ID} `) + chalk.dim(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
+    return chalk.gray(`#${LoggerFactory.PROCESS_ID} `) + chalk.dim(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
   }
 
   override log(msg: any, ...prms: any) {

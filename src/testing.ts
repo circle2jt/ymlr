@@ -3,7 +3,7 @@ import 'src/managers/modules-manager'
 import { RootScene } from 'src/components/root-scene'
 import { ElementProxy } from './components/element-proxy'
 import { type Element, type ElementClass } from './components/element.interface'
-import { Logger } from './libs/logger'
+import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export class Testing {
@@ -22,7 +22,7 @@ export class Testing {
 
   static async reset(content = '[]') {
     const proxy = new ElementProxy(new RootScene({ content }))
-    proxy.logger = Logger.NewLogger(LoggerLevel.SILENT)
+    proxy.logger = LoggerFactory.NewLogger(LoggerLevel.SILENT)
     Testing.rootScene = proxy.scene = proxy.rootScene = proxy.element
     return await proxy.exec()
   }
