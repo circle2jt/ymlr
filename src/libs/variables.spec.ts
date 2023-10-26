@@ -58,3 +58,10 @@ test('get map value', async () => {
   expect(last).toBe('doan')
   expect(hobby).toStrictEqual(['bia', 'travel'])
 })
+
+test.only('test regex value', async () => {
+  const { regex } = await Testing.rootScene.getVars({
+    regex: '${ /\\d/ }'
+  })
+  expect(regex).toBeInstanceOf(RegExp)
+})

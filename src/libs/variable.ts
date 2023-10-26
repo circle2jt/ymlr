@@ -49,6 +49,13 @@ export function isGetEvalExp(vl: any) {
   return null
 }
 
+export function cloneDeep<T>(obj: T): T {
+  if (typeof obj === 'object' && obj) {
+    return JSON.parse(JSON.stringify(obj))
+  }
+  return obj
+}
+
 async function evalObject(obj: any, ctx: any, others: any) {
   if (Array.isArray(obj)) {
     const vl: any[] = await Promise.all(obj.map(async o => await getVars(o, ctx, others)))

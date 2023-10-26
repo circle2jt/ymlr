@@ -1,6 +1,6 @@
-import cloneDeep from 'lodash.clonedeep'
 import { type AppEvent } from 'src/app-event'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { type RootScene } from '../root-scene'

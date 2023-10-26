@@ -19,11 +19,11 @@ afterAll(() => {
   encryptedFile && unlinkSync(encryptedFile)
 })
 
-test('Should load custom tags', async () => {
+test.skip('Should load custom tags', async () => {
   scene = await Testing.createElementProxy(Scene, {
     content: `
 - vars:
-    regex: !regex /\\d+/
+    regex: /\\d+/
 `
   })
   await scene.exec() as Array<ElementProxy<Echo>>

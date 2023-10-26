@@ -149,33 +149,33 @@ export class ElementProxy<T extends Element> {
   */
   force?: boolean | string
   /** |**  context
-    Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"
-    @position top
-    @tag It's a property in a tag
-    @example
-    ```yaml
-      - name: Get list user
-        context: userapi
-        debug: warn
-        http'get: ...
+  Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"
+  @position top
+  @tag It's a property in a tag
+  @example
+  ```yaml
+    - name: Get list user
+      context: userapi
+      debug: warn
+      http'get: ...
 
-      - name: Get user details
-        context: userapi
-        debug: warn
-        http'get: ...
+    - name: Get user details
+      context: userapi
+      debug: warn
+      http'get: ...
 
-      - name: Get product details
-        context: productapi
-        debug: warn
-        http'get: ...
-    ```
-    Now, we have 2 choices to debug all of user APIs and product APIs
-    1. Replace all "debug: warn" to "debug: debug"
-    2. Only run cli as below
-    ```sh
-      ymlr --debug-context userapi=debug --debug-context productapi=trace -- $SCENE_FILE.yaml
-    ```
-  */
+    - name: Get product details
+      context: productapi
+      debug: warn
+      http'get: ...
+  ```
+  Now, we have 2 choices to debug all of user APIs and product APIs
+  1. Replace all "debug: warn" to "debug: debug"
+  2. Only run cli as below
+  ```sh
+    ymlr --debug-context userapi=debug --debug-context productapi=trace -- $SCENE_FILE.yaml
+  ```
+*/
   context?: string
   /** |**  name
     Step name
@@ -592,16 +592,13 @@ export class ElementProxy<T extends Element> {
 
     this.rootScene?.event.emit('element/exec:before', this)
 
-    let isAddIndent: boolean | undefined
+    const isAddIndent = this.parentProxy?.name !== undefined
+    if (isAddIndent) {
+      this.logger.addIndent()
+    }
     try {
       try {
         await this.evalPropsBeforeExec()
-
-        isAddIndent = this.parentProxy?.name !== undefined
-        if (isAddIndent) {
-          this.logger.addIndent()
-        }
-
         if (this.name && !this.$.hideName) {
           this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
         }

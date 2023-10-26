@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
-import cloneDeep from 'lodash.clonedeep'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
+import { cloneDeep } from 'src/libs/variable'
 import { TagsManager } from 'src/managers/tags-manager'
 import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
