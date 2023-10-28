@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.6.md](#1698515340513)  -  _10/29/2023, 12:49:00 AM_
 - [1.2.3-alpha.5.md](#1698510875362)  -  _10/28/2023, 11:34:35 PM_
 - [1.2.3-alpha.4.md](#1698140815650)  -  _10/24/2023, 4:46:55 PM_
 - [1.2.3-alpha.3.md](#1698042890005)  -  _10/23/2023, 1:34:50 PM_
@@ -41,6 +42,12 @@
 
 ## Details
 
+<a id="1698515340513"></a>
+### 1.2.3-alpha.6
+
+* fix(detach): dispose all of element before done (f644019)
+* ci: add default OPTIMIZE_MODE env in the docker image (6335ad9)
+  
 <a id="1698510875362"></a>
 ### 1.2.3-alpha.5
 
