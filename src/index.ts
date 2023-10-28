@@ -23,6 +23,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
+    .option('--optimize-mode [mode]', 'Default is "normal"\n"normal": Always preload other scene to check "only" attribute.\n"best": Load then run ASAP, not preload. Prevent load unused scenes and tags)')
     .option('--debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
     .option('--debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
     .option('--tag-dirs <path...>', 'path to folder which includes external tags')
@@ -32,7 +33,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, env = [], tagDirs, envFile = [], debugContext } = opts
+          const { debug, env = [], tagDirs, optimizeMode, envFile = [], debugContext } = opts
           for (const efile of envFile) {
             const envFileContent = (await readFile(resolvePath(efile))).toString()
             env.splice(0, 0, ...envFileContent
@@ -49,6 +50,9 @@ import { LoggerLevel } from './libs/logger/logger-level'
             })
           if (debug) {
             process.env.DEBUG = debug
+          }
+          if (optimizeMode) {
+            process.env.OPTIMIZE_MODE = optimizeMode
           }
           if (debugContext?.length > 0) {
             LoggerFactory.DEBUG_CONTEXTS = debugContext

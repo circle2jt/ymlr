@@ -1,8 +1,10 @@
 import { type AppEvent } from 'src/app-event'
+import { DEBUG_GROUP_RESULT, OPTIMIZE_MODE, OptimizeMode } from 'src/env'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
+import Include from '../include'
 import { type RootScene } from '../root-scene'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
@@ -19,8 +21,6 @@ import { type GroupItemProps, type GroupProps } from './group.props'
             - exit:
   ```
 */
-const DEBUG_GROUP_RESULT = process.env.DEBUG_GROUP_RESULT
-
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
   readonly ignoreEvalProps = ['runs']
   readonly proxy!: ElementProxy<this>
@@ -79,6 +79,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       innerRunsProxy.parent = elemProxy.parent
       innerRunsProxy.scene = elemProxy.scene
       innerRunsProxy.rootScene = elemProxy.rootScene
+      const dispose = innerRunsProxy.dispose
+      innerRunsProxy.dispose = async () => {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await dispose.bind(innerRunsProxy)
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await elemProxy.dispose()
+      }
       // @ts-expect-error auto be injected by system
       elem.innerRunsProxy = innerRuns
       // @ts-expect-error auto init by system
@@ -114,38 +121,39 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async runEachOfElements(parentState?: Record<string, any>) {
     const asyncJobs = new Array<Promise<any>>()
     const result = DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
-    let newRuns = cloneDeep(this.runs)
 
-    // Preload includes tag
-    const includes = newRuns
-      .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
-      .filter(e => e)
-    if (includes.length) {
-      const runs = await Promise.all(includes
-        .map(async (e: any) => {
-          const elemProxy = await this.createAndExecuteElement(asyncJobs, 'include', parentState, {}, e.include)
-          return { idx: e.idx, runs: elemProxy?.result || [] }
-        })
-      ) as Array<{ idx: number, runs: any[] }>
-      for (let i = runs.length - 1; i >= 0; i--) {
-        newRuns.splice(runs[i].idx, 1, ...runs[i].runs)
+    if (OPTIMIZE_MODE === OptimizeMode.normal) {
+      // Preload includes tag
+      const includes = this.runs
+        .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
+        .filter(e => e)
+      if (includes.length) {
+        const runs = await Promise.all(includes
+          .map(async (e: any) => {
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, 'include', parentState, {}, e.include)
+            return { idx: e.idx, runs: elemProxy?.result || [] }
+          })
+        ) as Array<{ idx: number, runs: any[] }>
+        for (let i = runs.length - 1; i >= 0; i--) {
+          this.runs.splice(runs[i].idx, 1, ...runs[i].runs)
+        }
       }
     }
 
-    // Check tags which are picked to run then ignore others
-    const hasRunOnly = newRuns.some(r => r.only === true)
-    if (hasRunOnly) {
-      newRuns = newRuns.filter(r => (r.only === true) || (r.template))
-    }
-
     // Ignore skip tags
-    newRuns = newRuns.filter(r => !r.skip)
+    this.runs = this.runs.filter(r => !r.skip)
+
+    // Check tags which are picked to run then ignore others
+    const hasRunOnly = this.runs.some(r => r.only === true)
+    if (hasRunOnly) {
+      this.runs = this.runs.filter(r => (r.only === true) || (r.template))
+    }
 
     let isPassedCondition = false
 
     // Loop to execute each of tags
-    for (let i = 0; i < newRuns.length; i++) {
-      const allProps = newRuns[i]
+    for (let i = 0; i < this.runs.length; i++) {
+      const allProps = cloneDeep(this.runs[i])
 
       if (isPassedCondition) {
         if (allProps.elseif || allProps.else === null) continue
@@ -213,9 +221,22 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Execute
       if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
-        if (elemProxy) {
-          result?.push(elemProxy)
+        if (elemProxy?.$ instanceof Include) {
+          // Preload includes tag
+          let runs = elemProxy.result as GIP[]
+          if (runs?.length) {
+            // Ignore skip tags
+            runs = runs.filter(r => !r.skip)
+            // Check tags which are picked to run then ignore others
+            const hasRunOnly = runs.some(r => r.only === true)
+            if (hasRunOnly) {
+              runs = runs.filter(r => (r.only === true) || (r.template))
+            }
+            this.runs.splice(i--, 1, ...runs)
+          }
+        } else if (elemProxy) {
           isPassedCondition = !!baseProps.if || !!baseProps.elseif
+          result?.push(elemProxy)
           if (elemProxy.isSkipNext) break
         }
       } else {

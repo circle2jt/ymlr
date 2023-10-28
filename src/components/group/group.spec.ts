@@ -66,7 +66,7 @@ test('elseif - condition', async () => {
   ])
   const rs = await group.exec() as Array<ElementProxy<Echo>>
   expect(rs).toHaveLength(4)
-  expect(rs[0].tag).toBe('vars')
+  expect(rs[0].tag).toBe('base')
   expect(rs[1].result).toBe('>6')
   expect(rs[2].result).toBe('<10')
   expect(rs[3].result).toBe('done')
@@ -97,7 +97,7 @@ test('else - condition', async () => {
   ])
   const rs = await group.exec() as Array<ElementProxy<Echo>>
   expect(rs).toHaveLength(3)
-  expect(rs[0].tag).toBe('vars')
+  expect(rs[0].tag).toBe('base')
   expect(rs[1].result).toBe('>2')
   expect(rs[2].result).toBe('done')
 })
@@ -264,7 +264,7 @@ test('execute template', async () => {
   expect(group.result[2].result).toBe(2)
 })
 
-test('should include a file to execute', async () => {
+test('should include a file to execute - optimize-mode is "normal"', async () => {
   const f = new FileTemp()
   try {
     f.create(`
@@ -296,7 +296,41 @@ test('should include a file to execute', async () => {
   }
 })
 
-test.only('should detach a tag to run in background', async () => {
+test('should include a file to execute - optimize-mode is "best"', async () => {
+  const f = new FileTemp()
+  try {
+    f.create(`
+- echo: 1
+- echo: 2
+`)
+    process.env.OPTIMIZE_MODE = 'best'
+    group = await Testing.createElementProxy(Group, {
+      name: 'Test group',
+      runs: [
+        {
+          echo: 0
+        },
+        {
+          include: f.file
+        },
+        {
+          echo: 3
+        }
+      ]
+    })
+    await group.exec()
+    expect(group.result).toHaveLength(4)
+    expect(group.result[0].result).toBe(0)
+    expect(group.result[1].result).toBe(1)
+    expect(group.result[2].result).toBe(2)
+    expect(group.result[3].result).toBe(3)
+  } finally {
+    f.remove()
+    process.env.OPTIMIZE_MODE = 'normal'
+  }
+})
+
+test('should detach a tag to run in background', async () => {
   const result = await Testing.reset(`
 - name: background job
   detach: true

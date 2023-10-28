@@ -16,7 +16,7 @@ afterEach(async () => {
   tmp.remove()
 })
 
-test.only('Listen to handle jobs in queue', async () => {
+test('Listen to handle jobs in queue', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
     address: '0.0.0.0:3001',

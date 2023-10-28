@@ -5,7 +5,7 @@ export default class implements Element {
   readonly proxy!: ElementProxy<this>
 
   async exec() {
-    await this.proxy.parent?.dispose()
+    await this.proxy.parentProxy?.dispose()
   }
 
   dispose() { }

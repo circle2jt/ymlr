@@ -13,14 +13,14 @@
 		},
 		{
 			"type": "npm",
-			"script": "test",
+			"script": "ci:test",
 			"group": "test",
 			"problemMatcher": [],
 			"label": "Unit test"
 		},
 		{
 			"type": "npm",
-			"script": "test:debug",
+			"script": "test",
 			"group": "test",
 			"problemMatcher": [],
 			"label": "Debug unit test"

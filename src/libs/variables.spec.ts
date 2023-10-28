@@ -59,7 +59,7 @@ test('get map value', async () => {
   expect(hobby).toStrictEqual(['bia', 'travel'])
 })
 
-test.only('test regex value', async () => {
+test('test regex value', async () => {
   const { regex } = await Testing.rootScene.getVars({
     regex: '${ /\\d/ }'
   })
