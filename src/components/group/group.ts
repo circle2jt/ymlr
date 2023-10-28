@@ -295,7 +295,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
-    if (elemProxy instanceof Include) {
+    if (elemProxy.$ instanceof Include) {
       try {
         await elemProxy.exec(parentState)
       } finally {
