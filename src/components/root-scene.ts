@@ -41,7 +41,7 @@ export class RootScene extends Scene {
     return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
-  private readonly _backgroundJobs = new Array<ElementProxy<Element>>()
+  private readonly _backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
 
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new TemplatesManager()
@@ -63,8 +63,11 @@ export class RootScene extends Scene {
     await super.asyncConstructor()
   }
 
-  pushToBackgroundJob(task: ElementProxy<Element>) {
-    this._backgroundJobs.push(task)
+  pushToBackgroundJob(task: ElementProxy<Element>, parentState: any) {
+    this._backgroundJobs.push({
+      p: task.exec(parentState),
+      ctx: task
+    })
   }
 
   override async exec() {
@@ -73,7 +76,13 @@ export class RootScene extends Scene {
       const rs = await super.exec()
       await this._workerManager?.exec()
       if (this._backgroundJobs.length) {
-        await Promise.all(this._backgroundJobs.map(async job => { await job.dispose() }))
+        await Promise.all(this._backgroundJobs.map(async ({ p, ctx }) => {
+          try {
+            await p
+          } finally {
+            await ctx.dispose()
+          }
+        }))
       }
       return rs
     } finally {

@@ -8,9 +8,9 @@ export interface Element {
   readonly proxy: ElementProxy<this>
   readonly innerRunsProxy?: ElementProxy<Group<GroupProps, GroupItemProps>>
 
-  asyncConstructor?: (props?: any) => any
+  asyncConstructor?: (props?: any) => void | Promise<void>
   exec: (input?: any) => any
-  dispose: () => any
+  dispose: () => void | Promise<void>
 
 }
 

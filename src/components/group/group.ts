@@ -295,25 +295,44 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
-    if (baseProps.id) {
-      await elemProxy.scene.setVars(baseProps.id, elemProxy)
-    }
-
-    const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
-    if (detach) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      elemProxy.exec(parentState)
-      this.rootScene.pushToBackgroundJob(elemProxy)
+    if (elemProxy instanceof Include) {
+      try {
+        await elemProxy.exec(parentState)
+      } finally {
+        await elemProxy.dispose()
+      }
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      const p = elemProxy.exec(parentState).finally(async () => { await elemProxy.dispose() })
-      const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
-      if (async) {
-        asyncJobs.push(p)
+      if (baseProps.id) {
+        await elemProxy.scene.setVars(baseProps.id, elemProxy)
+      }
+      const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
+      if (detach) {
+        this.rootScene.pushToBackgroundJob(elemProxy, parentState)
       } else {
-        await Promise.all(asyncJobs)
-        asyncJobs = []
-        await p
+        const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
+        if (async) {
+          // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+          asyncJobs.push(new Promise<any>(async (resolve, reject) => {
+            try {
+              const rs = await elemProxy.exec(parentState)
+              resolve(rs)
+            } catch (err) {
+              reject(err)
+            } finally {
+              await elemProxy.dispose()
+            }
+          }))
+        } else {
+          if (asyncJobs.length) {
+            await Promise.all(asyncJobs)
+            asyncJobs = []
+          }
+          try {
+            await elemProxy.exec(parentState)
+          } finally {
+            await elemProxy.dispose()
+          }
+        }
       }
     }
     return elemProxy

@@ -628,6 +628,6 @@ export class ElementProxy<T extends Element> {
 
   async dispose() {
     await this.element.innerRunsProxy?.dispose()
-    return this.element.dispose?.()
+    await this.element.dispose?.()
   }
 }
