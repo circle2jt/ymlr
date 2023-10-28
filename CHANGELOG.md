@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.5.md](#1698510875362)  -  _10/28/2023, 11:34:35 PM_
 - [1.2.3-alpha.4.md](#1698140815650)  -  _10/24/2023, 4:46:55 PM_
 - [1.2.3-alpha.3.md](#1698042890005)  -  _10/23/2023, 1:34:50 PM_
 - [1.2.3-alpha.2.md](#1697688515505)  -  _10/19/2023, 11:08:35 AM_
@@ -40,6 +41,14 @@
 
 ## Details
 
+<a id="1698510875362"></a>
+### 1.2.3-alpha.5
+
+* feat: support "--optimize-mode" and OPTIMIZE_MODE env (0b9c38a)
+* fix: separate logger factory (8013484)
+* perf: optimize code (8f67f77)
+* fix: remove unsed libs and replace axios to fetch in PM (b7f474b)
+  
 <a id="1698140815650"></a>
 ### 1.2.3-alpha.4
 

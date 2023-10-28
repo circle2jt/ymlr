@@ -218,18 +218,6 @@ Use `template`
 ```  
 
 
-## <a id="!regex"></a>!regex  
-`It's a yaml type`  
-Regex type  
-
-Example:  
-
-```yaml
-  - vars:
-      myRegex: !regex /\d+/g        # ${ $vars.myRegex } is a RegExp type
-```  
-
-
 ## <a id="# @include"></a># @include  
 `It's a yaml comment type`  
 Include the content file to current position.
