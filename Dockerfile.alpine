@@ -9,6 +9,7 @@ ARG VERSION=latest
 
 ENV NODE_ENV=production
 ENV PACKAGE_MANAGERS=yarn,npm
+ENV OPTIMIZE_MODE=best
 
 # RUN apk add --update nodejs~=$NODE_VERSION yarn
 RUN apk add --update nodejs yarn

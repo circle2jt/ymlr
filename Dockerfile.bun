@@ -7,7 +7,8 @@ WORKDIR /scripts
 ARG VERSION=latest
 
 ENV NODE_ENV=production
-ENV PACKAGE_MANAGERS=bun
+ENV PACKAGE_MANAGERS=bun,yarn,npm
+ENV OPTIMIZE_MODE=best
 
 RUN bunx ymlr@$VERSION -v
 RUN mkdir /my-tags && \
