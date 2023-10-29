@@ -602,6 +602,7 @@ export class ElementProxy<T extends Element> {
         if (this.name && !this.$.hideName) {
           this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
         }
+        await this.element.preExec?.(parentState)
         const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) this.result = this.result.result
         else this.result = result
