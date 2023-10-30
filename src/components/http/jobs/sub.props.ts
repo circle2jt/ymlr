@@ -1,5 +1,4 @@
 import { type GroupItemProps, type GroupProps } from 'src/components/group/group.props'
-import { type QuitItemProps } from './quit-item.props'
 import { type SubItemProps } from './sub-item.props'
 
 export type SubProps = {
@@ -16,5 +15,5 @@ export type SubProps = {
     password?: string
     storage?: string
   }
-  runs: Array<GroupItemProps | SubItemProps | QuitItemProps>
+  runs: Array<GroupItemProps | SubItemProps>
 } & GroupProps

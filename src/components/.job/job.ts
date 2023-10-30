@@ -1,17 +1,25 @@
 import assert from 'assert'
 import { FileStore } from 'src/components/file/file-store'
-import { Group } from 'src/components/group/group'
-import { GroupItemProps } from 'src/components/group/group.props'
 import { JobHandler } from 'src/libs/queue-jobs/job-handler.interface'
 import { JobsManager } from 'src/libs/queue-jobs/jobs-manager'
 import { JobsManagerOption } from 'src/libs/queue-jobs/jobs-manager.props'
 import { FileStorage } from 'src/libs/storage/file-storage'
 import { sleep } from 'src/libs/time'
 import { ElementProxy } from '../element-proxy'
+import { Element } from '../element.interface'
+import Group from '../group'
+import { GroupItemProps, GroupProps } from '../group/group.props'
 import { JobExecute } from './job-executor'
 import { JobProps } from './job.props'
 
-export abstract class Job extends Group<JobProps, GroupItemProps> implements JobHandler {
+export abstract class Job implements JobHandler, Element {
+  readonly ignoreEvalProps = ['jobsManager']
+  readonly proxy!: ElementProxy<this>
+  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
+
   queue?: {
     concurrent?: number
 
@@ -23,19 +31,17 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
 
   protected jobsManager?: JobsManager
 
-  constructor({ queue, ...props }: JobProps) {
-    super(props)
+  constructor({ queue }: JobProps) {
     Object.assign(this, { queue })
-    this.ignoreEvalProps.push('jobsManager')
   }
 
   onJobInit(jobs: JobExecute[]) {
     return jobs?.map((job: JobExecute) => {
-      return new JobExecute(this.runEachOfElements.bind(this), job.data)
+      return new JobExecute(this.innerRunsProxy.exec.bind(this.innerRunsProxy), job.data)
     }) || []
   }
 
-  override async exec(input?: Record<string, any>) {
+  async exec(input?: Record<string, any>) {
     let t: Promise<any> | undefined
     if (this.queue) {
       const opts: JobsManagerOption = {
@@ -43,7 +49,7 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
         concurrent: this.queue?.concurrent || 1
       }
       if (this.queue.file) {
-        opts.storage = new FileStorage(this.logger, this.scene.getPath(this.queue.file), this.queue.password)
+        opts.storage = new FileStorage(this.logger, this.proxy.scene.getPath(this.queue.file), this.queue.password)
       } else if (this.queue.storage) {
         let storage: FileStore
         if (this.queue.storage instanceof ElementProxy) {
@@ -67,9 +73,9 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
 
   protected async addJobData(jobData: any) {
     if (!this.queue) {
-      await this.runEachOfElements(jobData)
+      await this.innerRunsProxy.exec(jobData)
     } else {
-      await this.jobsManager?.add(new JobExecute(this.runEachOfElements.bind(this), jobData))
+      await this.jobsManager?.add(new JobExecute(this.innerRunsProxy.exec.bind(this.innerRunsProxy), jobData))
     }
   }
 
@@ -81,7 +87,7 @@ export abstract class Job extends Group<JobProps, GroupItemProps> implements Job
     this.jobsManager = undefined
   }
 
-  override async dispose() {
+  async dispose() {
     await this.stop()
   }
 }

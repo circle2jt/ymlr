@@ -25,7 +25,7 @@ test('Add a jobs in queue', async () => {
         }
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })

@@ -81,11 +81,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       innerRunsProxy.parent = elemProxy.parent
       innerRunsProxy.scene = elemProxy.scene
       innerRunsProxy.rootScene = elemProxy.rootScene
-      const dispose = innerRunsProxy.dispose
+      const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {
-        // eslint-disable-next-line @typescript-eslint/await-thenable
-        await dispose.bind(innerRunsProxy)
-        // eslint-disable-next-line @typescript-eslint/await-thenable
+        await disposeInnerRunsProxy()
         await elemProxy.dispose()
       }
       // @ts-expect-error auto be injected by system
@@ -121,6 +119,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (hasRunOnly) {
       this.runs = this.runs.filter(r => (r.only === true) || (r.template))
     }
+
+    return true
   }
 
   async exec(parentState?: Record<string, any>) {

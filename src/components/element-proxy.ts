@@ -602,7 +602,12 @@ export class ElementProxy<T extends Element> {
         if (this.name && !this.$.hideName) {
           this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
         }
-        await this.element.preExec?.(parentState)
+        if (this.element.preExec) {
+          const isRunOnce = await this.element.preExec(parentState)
+          if (isRunOnce) {
+            this.element.preExec = undefined
+          }
+        }
         const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) this.result = this.result.result
         else this.result = result
@@ -628,7 +633,6 @@ export class ElementProxy<T extends Element> {
   }
 
   async dispose() {
-    await this.element.innerRunsProxy?.dispose()
     await this.element.dispose?.()
   }
 }

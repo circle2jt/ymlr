@@ -50,6 +50,7 @@ import { type SubProps } from './sub.props'
                                         # {$parentState.jobInfo.method} request method
                                         # {$parentState.jobInfo.query} request query string
                                         # {$parentState.jobInfo.headers} request headers
+          - stop:                       # Stop job here, dont listen anymore
   ```
 */
 export class Sub extends Job {
@@ -136,7 +137,7 @@ export class Sub extends Job {
       if (jobData.jobInfo.query.jobRes) {
         logs.push('pipe')
         jobData.jobRes = res
-        await this.runEachOfElements(jobData)
+        await this.innerRunsProxy.exec(jobData)
       } else {
         if (!this.jobsManager) {
           jobData.jobRes = res

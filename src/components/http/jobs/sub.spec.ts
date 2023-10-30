@@ -32,7 +32,7 @@ test('Listen to handle jobs in queue', async () => {
         }
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })
@@ -61,7 +61,7 @@ test('Check basic authentication via headers', async () => {
         }
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })
@@ -100,7 +100,7 @@ test('Check basic authentication via querystring', async () => {
         }
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })
@@ -138,7 +138,7 @@ test('Test storage is ref ID', async () => {
         }
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })
@@ -180,7 +180,7 @@ test('Test job response', async () => {
         `
       },
       {
-        "http/jobs'stop": null
+        stop: null
       }
     ]
   })

@@ -144,7 +144,6 @@ runs:
 | [http'server](#http'server) | Create a http server to serve content via http |
 | [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
 | [http/jobs'add](#http/jobs'add) | Add a job to the queue |
-| [http/jobs'stop](#http/jobs'stop) | Stop the jobs queue |
 | [include](#include) | Include a scene file or list scene files in a folder |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
@@ -1388,6 +1387,7 @@ Example:
                                       # {$parentState.jobInfo.method} request method
                                       # {$parentState.jobInfo.query} request query string
                                       # {$parentState.jobInfo.headers} request headers
+        - stop:                       # Stop job here, dont listen anymore
 ```  
 
 
@@ -1418,21 +1418,6 @@ Use a "POST" http request to add a job
       url: http://0.0.0.0:3007?name=name1
       body:
         age: 2
-```  
-
-
-## <a id="http/jobs'stop"></a>http/jobs'stop  
-  
-Stop the jobs queue  
-
-Example:  
-
-```yaml
-  - http/jobs:
-      address: 0.0.0.0:3007         # Address to listen to add a new job to
-      runs:                         # Steps to do a job
-        - echo: Display then stop
-        - http/jobs'stop:           # Stop job here
 ```  
 
 
