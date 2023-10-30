@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.3-alpha.8.md](#1698652089931)  -  _10/30/2023, 2:48:09 PM_
 - [1.2.3-alpha.7.md](#1698516729270)  -  _10/29/2023, 1:12:09 AM_
 - [1.2.3-alpha.6.md](#1698515340513)  -  _10/29/2023, 12:49:00 AM_
 - [1.2.3-alpha.5.md](#1698510875362)  -  _10/28/2023, 11:34:35 PM_
@@ -43,6 +44,12 @@
 
 ## Details
 
+<a id="1698652089931"></a>
+### 1.2.3-alpha.8
+
+* optimize!: allow prepare data before exec in group (9007d7b)
+* fix!: remove "optimize-mode", "innerRunsProxy" (1ab86b3)
+  
 <a id="1698516729270"></a>
 ### 1.2.3-alpha.7
 
