@@ -16,7 +16,7 @@ afterEach(async () => {
   tmp.remove()
 })
 
-test('Listen to handle jobs in queue', async () => {
+test('Listen to handle a request', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
     address: '0.0.0.0:3001',
@@ -68,6 +68,48 @@ test('Force quit server', async () => {
   expect(Testing.vars.body).toEqual(jobData)
 })
 
+test('Check custom authentication', async () => {
+  const jobData = { foo: 'bar' }
+  serve = await Testing.createElementProxy(HttpServer, {
+    address: '0.0.0.0:3003',
+    auth: {
+      custom: {
+        secret: 'SERVER_SECRET_TOKEN',
+        secretKey: 'SECRET_HEADER_KEY',
+        'verify()': `
+          return $parentState.headers[this.secretKey.toLowerCase()] === this.secret
+        `
+      }
+    },
+    runs: [
+      {
+        vars: {
+          method: '${$parentState.method}',
+          body: '${$parentState.body}'
+        }
+      }
+    ]
+  })
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  setTimeout(async () => {
+    try {
+      await axios.post('http://0.0.0.0:3003', jobData)
+    } catch (err: any) {
+      expect(err.response.status).toBe(401)
+    }
+    const resp = await axios.post('http://0.0.0.0:3003', jobData, {
+      headers: {
+        SECRET_HEADER_KEY: 'SERVER_SECRET_TOKEN'
+      }
+    })
+    expect(resp.status).toBe(204)
+
+    await serve.dispose()
+  }, 1000)
+  await serve.exec()
+  expect(Testing.vars.body).toEqual(jobData)
+})
+
 test('Check basic authentication via headers', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
@@ -107,7 +149,7 @@ test('Check basic authentication via headers', async () => {
   expect(Testing.vars.body).toEqual(jobData)
 })
 
-test('Test job response', async () => {
+test('Test response', async () => {
   serve = await Testing.createElementProxy(HttpServer, {
     address: '0.0.0.0:3004',
     runs: [

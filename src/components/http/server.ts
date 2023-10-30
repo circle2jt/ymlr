@@ -1,12 +1,14 @@
 import assert from 'assert'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { parse } from 'querystring'
+import { bindFunctionScript } from 'src/libs/async-function'
 import { promisify } from 'util'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import type Group from '../group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 import { BasicAuth } from './auth/BasicAuth'
+import { CustomAuth } from './auth/CustomAuth'
 import { type IVerify } from './auth/IVerify'
 
 /** |**  http'server
@@ -19,6 +21,11 @@ import { type IVerify } from './auth/IVerify'
           basic:                                # 'Basic ' + base64(`${username}:${password}`)
             username: username
             password: password
+          custom:
+            secret: 'SERVER_SECRET_TOKEN'
+            secretKey: SECRET_HEADER_KEY
+            verify(): |
+              return $parentState.headers[this.secretKey] === this.secret
         runs:                                   # Execute when a request comes
           - echo: ${ $parentState.path }        # Get request path
           - echo: ${ $parentState.method }      # Get request method
@@ -48,6 +55,10 @@ export class HttpServer implements Element {
       username: string
       password: string
     }
+    custom?: {
+      [prop: string]: any
+      verify: string
+    }
   }
 
   private authVerifier?: IVerify
@@ -67,6 +78,10 @@ export class HttpServer implements Element {
     assert(this.address)
     if (this.auth?.basic) {
       this.authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
+    } else if (this.auth?.custom) {
+      const { 'verify()': verify, ...props } = this.auth.custom
+      this.authVerifier = new CustomAuth(props)
+      this.authVerifier.verify = bindFunctionScript(verify, this.authVerifier, '$parentState')
     }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
@@ -102,10 +117,13 @@ export class HttpServer implements Element {
     } as any
     try {
       if (this.authVerifier) {
-        const userToken = parentState.headers.authorization || parentState.query.authorization
-        const isAuth = await this.authVerifier.verify(userToken)
-        if (!isAuth) {
+        const code = await this.authVerifier.verify(parentState)
+        if (code === false) {
           res.statusCode = 401
+          return
+        }
+        if (typeof code === 'number') {
+          res.statusCode = code
           return
         }
       }

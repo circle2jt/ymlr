@@ -7,3 +7,9 @@ export async function callFunctionScript(script: string, ctx: any, others: Recor
   const vl: any = await func.call(ctx, ...keys.map(k => args[k]))
   return vl
 }
+
+export function bindFunctionScript(script: string, ctx: any, ...prmsName: string[]) {
+  const func = new AsyncFunction(...prmsName, script)
+  const vl: any = func.bind(ctx)
+  return vl
+}

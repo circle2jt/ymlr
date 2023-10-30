@@ -1339,6 +1339,11 @@ Example:
         basic:                                # 'Basic ' + base64(`${username}:${password}`)
           username: username
           password: password
+        custom:
+          secret: 'SERVER_SECRET_TOKEN'
+          secretKey: SECRET_HEADER_KEY
+          verify(): |
+            return $parentState.headers[this.secretKey] === this.secret
       runs:                                   # Execute when a request comes
         - echo: ${ $parentState.path }        # Get request path
         - echo: ${ $parentState.method }      # Get request method
