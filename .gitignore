@@ -114,3 +114,4 @@ src/pnpm-lock.yaml
 src/yarn.lock
 *.rm
 *.rm.*
+ignore-it/

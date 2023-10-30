@@ -6,8 +6,8 @@ import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import type Group from '../group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
-import { BasicAuth } from './jobs/auth/BasicAuth'
-import { type IVerify } from './jobs/auth/IVerify'
+import { BasicAuth } from './auth/BasicAuth'
+import { type IVerify } from './auth/IVerify'
 
 /** |**  http'server
   Create a http server to serve content via http
@@ -17,8 +17,8 @@ import { type IVerify } from './jobs/auth/IVerify'
         address: 0.0.0.0:8811                   # Address to listen
         auth:                                   # Check authentication
           basic:                                # 'Basic ' + base64(`${username}:${password}`)
-              username: username
-              password: password
+            username: username
+            password: password
         runs:                                   # Execute when a request comes
           - echo: ${ $parentState.path }        # Get request path
           - echo: ${ $parentState.method }      # Get request method

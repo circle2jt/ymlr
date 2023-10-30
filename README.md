@@ -142,8 +142,6 @@ runs:
 | [http'post](#http'post) | Send a http request with POST method |
 | [http'put](#http'put) | Send a http request with PUT method |
 | [http'server](#http'server) | Create a http server to serve content via http |
-| [http/jobs](#http/jobs) | Create a jobs queue to do something step by step |
-| [http/jobs'add](#http/jobs'add) | Add a job to the queue |
 | [include](#include) | Include a scene file or list scene files in a folder |
 | [input'confirm](#input'confirm) | Get user confirm (yes/no) |
 | [input'multiselect](#input'multiselect) | Suggest a list of choices for user then allow pick multiple choices |
@@ -1339,8 +1337,8 @@ Example:
       address: 0.0.0.0:8811                   # Address to listen
       auth:                                   # Check authentication
         basic:                                # 'Basic ' + base64(`${username}:${password}`)
-            username: username
-            password: password
+          username: username
+          password: password
       runs:                                   # Execute when a request comes
         - echo: ${ $parentState.path }        # Get request path
         - echo: ${ $parentState.method }      # Get request method
@@ -1359,65 +1357,6 @@ Example:
             $parentState.res.statusMessage = 'OK'
             $parentState.res.write('OK')
             $parentState.res.end()
-```  
-
-
-## <a id="http/jobs"></a>http/jobs  
-  
-Create a jobs queue to do something step by step  
-
-Example:  
-
-```yaml
-  - file'store:                       # Defined a file store to save data to file
-      path: /tmp/test.queue,
-      initData: [],
-      vars:
-        fileStorage: '${this}'
-
-  - http/jobs:
-      address: 0.0.0.0:8811           # Address to listen to add a new job to
-      queue:                          # Wait to finish a job before keep doing the next. If not set, it's will run ASAP when received requests
-        concurrent: 1                 # Num of jobs can be run parallel
-        storage: ${$vars.fileStorage}  # Set a storage to queue
-      runs:                           # Steps to do a job
-        - ${$parentState.jobData}      # {$parentState.jobData} is job data in the queue which is included both querystring and request body
-        - ${$parentState.jobInfo}      # {$parentState.jobInfo} is job information
-                                      # {$parentState.jobInfo.path} request path
-                                      # {$parentState.jobInfo.method} request method
-                                      # {$parentState.jobInfo.query} request query string
-                                      # {$parentState.jobInfo.headers} request headers
-        - stop:                       # Stop job here, dont listen anymore
-```  
-
-
-## <a id="http/jobs'add"></a>http/jobs'add  
-  
-Add a job to the queue  
-
-Example:  
-
-Add a job by default
-```yaml
-  - http/jobs'add:
-      address: 0.0.0.0:3007         # Address to listen to add a new job to queue
-      data:                         # Steps to do a job
-        name: name1
-        age: 2
-```
-
-Use a "GET" http request to add a job
-```yaml
-  - http'get:
-      url: http://0.0.0.0:3007?name=name1&age=2
-```
-
-Use a "POST" http request to add a job
-```yaml
-  - http'post:
-      url: http://0.0.0.0:3007?name=name1
-      body:
-        age: 2
 ```  
 
 

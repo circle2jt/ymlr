@@ -4,5 +4,4 @@ export const put = () => require('./put').Put
 export const patch = () => require('./patch').Patch
 export const head = () => require('./head').Head
 export const del = () => require('./del').Del
-
-export * from './jobs'
+export const server = () => require('./server').HttpServer
