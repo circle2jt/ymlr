@@ -1,9 +1,8 @@
 import assert from 'assert'
 import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
-import { type ElementClass, type Element } from 'src/components/element.interface'
+import { type Element, type ElementClass } from 'src/components/element.interface'
 import { type Scene } from 'src/components/scene/scene'
-import { PackagesManagerFactory } from './packages-manager-factory'
 
 export const ClassInFileCharacter = "'"
 
@@ -59,8 +58,9 @@ export class TagsManager {
           do {
             packs = this.packages.splice(0, this.packages.length)
             this.logger.debug('Preparing to install the lack packages...')
+            const { PackagesManagerFactory } = await import('./packages-manager-factory')
             const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
-            await packagesManager.install(...packs)
+            await packagesManager.deref()?.install(...packs)
           } while (this.packages.length)
           resolve(undefined)
         } catch (err) {

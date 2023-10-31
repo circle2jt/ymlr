@@ -45,6 +45,6 @@ export class Install extends InstallAbstract {
 
   override async action(...packsInstall: string[]) {
     const packageManager = PackagesManagerFactory.GetInstance(this.logger)
-    await packageManager.install(...packsInstall)
+    await packageManager.deref()?.install(...packsInstall)
   }
 }

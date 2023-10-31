@@ -17,10 +17,10 @@ test('auto install external tags', async () => {
     const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene)
     expect(newClass).toBeDefined()
   } catch {
-    const [isInstalled] = packagesManager.getInstalledPackages('lodash')
+    const [isInstalled] = packagesManager.deref()?.getInstalledPackages('lodash') || []
     expect(isInstalled).toBeTruthy()
   } finally {
-    await packagesManager.uninstall('lodash')
+    await packagesManager.deref()?.uninstall('lodash')
   }
 })
 

@@ -2,7 +2,6 @@ import 'src/managers/modules-manager'
 
 import assert from 'assert'
 import chalk from 'chalk'
-import { readFile } from 'fs/promises'
 import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
@@ -11,10 +10,10 @@ import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
+  const { program } = await import('commander')
   let t = Promise.resolve()
-  let { program } = await import('commander')
-  program
-    .name(name)
+  let wk = new WeakRef(program)
+  wk.deref()?.name(name)
     .aliases(Object.keys(bin).filter(e => e !== name))
     .description(description)
     .version(version, '-v, --version')
@@ -33,12 +32,15 @@ import { LoggerLevel } from './libs/logger/logger-level'
       t = new Promise(async (resolve, reject) => {
         try {
           const { debug, env = [], tagDirs, envFile = [], debugContext } = opts
-          for (const efile of envFile) {
-            const envFileContent = (await readFile(resolvePath(efile))).toString()
-            env.splice(0, 0, ...envFileContent
-              .split('\n')
-              .filter(e => e?.trim().length)
-            )
+          if (envFile.length) {
+            const { readFileSync } = await import('fs')
+            for (const efile of envFile) {
+              const envFileContent = readFileSync(resolvePath(efile)).toString()
+              env.splice(0, 0, ...envFileContent
+                .split('\n')
+                .filter(e => e?.trim().length)
+              )
+            }
           }
           env.filter((keyValue: string) => keyValue.includes('='))
             .forEach((keyValue: string) => {
@@ -81,7 +83,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).deref()?.install(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -101,7 +103,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).deref()?.upgrade(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -121,7 +123,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).deref()?.uninstall(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -141,6 +143,6 @@ import { LoggerLevel } from './libs/logger/logger-level'
 ✔ Docker Image  : https://hub.docker.com/repository/docker/circle2jt/${name}
 `)
     .parse(process.argv)
-  program = null as any
+  wk = null as any
   await t
 })()

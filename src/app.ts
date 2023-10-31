@@ -1,7 +1,7 @@
 import assert from 'assert'
 import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
-import { Summary } from './analystic/summary'
+import { type Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
 import { type RootSceneProps } from './components/root-scene.props'
 import { type Logger } from './libs/logger'
@@ -30,7 +30,11 @@ export class App {
   }
 
   async exec() {
-    const summary = this.rootSceneProxy.logger.is(LoggerLevel.DEBUG) ? new Summary(this.rootSceneProxy) : undefined
+    let summary: Summary | undefined
+    if (this.rootSceneProxy.logger.is(LoggerLevel.DEBUG)) {
+      const { Summary } = await import('./analystic/summary')
+      summary = new Summary(this.rootSceneProxy)
+    }
     try {
       await this.rootSceneProxy.exec()
     } catch (err: any) {
