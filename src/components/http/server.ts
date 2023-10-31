@@ -47,7 +47,7 @@ import { type IVerify } from './auth/IVerify'
   ```
 */
 export class HttpServer implements Element {
-  ignoreEvalProps = ['server', 'auth']
+  ignoreEvalProps = ['server']
   proxy!: ElementProxy<this>
   address: string = '0.0.0.0:8811'
   auth?: {
@@ -103,7 +103,6 @@ export class HttpServer implements Element {
   }
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
-    this.logger.debug('%s %s \t%s', '⥃', req.method, req.url)
     const [path, qstr] = req.url?.split('?') || []
     const parentState = {
       path,
@@ -112,9 +111,19 @@ export class HttpServer implements Element {
       query: parse(qstr),
       body: undefined,
       response: undefined,
+      get data() {
+        return {
+          ...parentState.headers,
+          ...parentState.query,
+          ...parentState.body
+        }
+      },
       req,
       res
     } as any
+    this.logger
+      .debug('%s %s \t%s', '⥃', req.method, req.url)
+      .trace('%j', parentState)
     try {
       if (this.authVerifier) {
         const code = await this.authVerifier.verify(parentState)
