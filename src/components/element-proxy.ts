@@ -444,6 +444,11 @@ export class ElementProxy<T extends Element> {
   loopKey?: any
   loopValue?: any
 
+  owner?: Element
+  get ownerProxy() {
+    return this.owner?.proxy
+  }
+
   parent?: Group<any, any>
   get parentProxy() {
     return this.parent?.proxy
@@ -515,12 +520,12 @@ export class ElementProxy<T extends Element> {
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
-    let parent: Element | undefined = this.parent
-    while (parent) {
-      if (ClazzTypes.some(ClazzType => parent instanceof ClazzType)) {
-        return parent.proxy as ElementProxy<T>
+    let owner: Element | undefined = this.owner
+    while (owner) {
+      if (ClazzTypes.some(ClazzType => owner instanceof ClazzType)) {
+        return owner.proxy as ElementProxy<T>
       }
-      parent = parent?.proxy.parent
+      owner = owner.proxy.owner
     }
     return undefined
   }

@@ -67,6 +67,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
     elemProxy.parent = this
+    elemProxy.owner = this
     elemProxy.scene = this.innerScene
     elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene
     Object.assign(elemProxy, loopObj)
@@ -78,6 +79,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       innerRuns.hideName = true
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
       innerRunsProxy.tag = 'inner-group'
+      innerRunsProxy.owner = elem
       innerRunsProxy.parent = elemProxy.parent
       innerRunsProxy.scene = elemProxy.scene
       innerRunsProxy.rootScene = elemProxy.rootScene
