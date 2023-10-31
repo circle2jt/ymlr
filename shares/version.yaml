@@ -147,3 +147,12 @@ runs:
           git add ${$vars.changeDir}
           ${$vars.gitCommitFiles}
           git commit -m "${$vars.lastCommit}${$vars.lastCommitContent.replace(/"/g, '\\"')}"
+
+  - input'confirm:
+      title: Do you want to push to repository ?
+      default: false
+    vars: isCommit
+
+  - if: ${ $vars.isCommit }
+    exec'sh: |
+      git push
