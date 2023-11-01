@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.5.md](#1698837322807)  -  _11/1/2023, 6:15:22 PM_
 - [1.2.4.md](#1698761917287)  -  _10/31/2023, 9:18:37 PM_
 - [1.2.3.md](#1698730747072)  -  _10/31/2023, 12:39:07 PM_
 - [1.2.3-alpha.9.md](#1698657631734)  -  _10/30/2023, 4:20:31 PM_
@@ -47,6 +48,14 @@
 
 ## Details
 
+<a id="1698837322807"></a>
+### 1.2.5
+
+* feat: Support "runs" in proxy and element (e9189aa)
+* ci: Remove unused env in docker image (2a4c453)
+* refactor(exec): optimization (9ec2cf2)
+* refactor(sh): optimization (2dfdc6f)
+  
 <a id="1698761917287"></a>
 ### 1.2.4
 
