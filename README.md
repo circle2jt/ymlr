@@ -550,6 +550,23 @@ Example:
 ```  
 
 
+## <a id="runs"></a>runs  
+`It's a property in a tag`  
+Steps will be run in the running element  
+
+Example:  
+
+```yaml
+  - http'server:
+      address: 0.0.0.0:1234
+    runs:
+      - echo: Do something when a request comes
+      - echo: Do something when a request comes...
+      ...
+
+```  
+
+
 ## <a id="skip"></a>skip  
 `It's a property in a tag`  
 No run this  
@@ -1344,24 +1361,24 @@ Example:
           secretKey: SECRET_HEADER_KEY
           verify(): |
             return $parentState.headers[this.secretKey] === this.secret
-      runs:                                   # Execute when a request comes
-        - echo: ${ $parentState.path }        # Get request path
-        - echo: ${ $parentState.method }      # Get request method
-        - echo: ${ $parentState.headers }     # Get request headers
-        - echo: ${ $parentState.query }       # Get request query string
-        - echo: ${ $parentState.body }        # Get request body
-        - echo: ${ $parentState.response }    # Set response data
-                                              # - status: 200       - http response status
-                                              # - statusMessage: OK - http response status message
-                                              # - headers: {}       - Set response headers
-                                              # - data: {}          - Set response data
-        - echo: ${ $parentState.req }         # Ref to req in http.IncomingMessage in nodejs
-        - echo: ${ $parentState.res }         # Ref to res in http.ServerResponse in nodejs
-        - js: |                               # Handle response by yourself (When $parentState.response is undefined)
-            $parentState.res.status = 200
-            $parentState.res.statusMessage = 'OK'
-            $parentState.res.write('OK')
-            $parentState.res.end()
+    runs:                                   # Execute when a request comes
+      - echo: ${ $parentState.path }        # Get request path
+      - echo: ${ $parentState.method }      # Get request method
+      - echo: ${ $parentState.headers }     # Get request headers
+      - echo: ${ $parentState.query }       # Get request query string
+      - echo: ${ $parentState.body }        # Get request body
+      - echo: ${ $parentState.response }    # Set response data
+                                            # - status: 200       - http response status
+                                            # - statusMessage: OK - http response status message
+                                            # - headers: {}       - Set response headers
+                                            # - data: {}          - Set response data
+      - echo: ${ $parentState.req }         # Ref to req in http.IncomingMessage in nodejs
+      - echo: ${ $parentState.res }         # Ref to res in http.ServerResponse in nodejs
+      - js: |                               # Handle response by yourself (When $parentState.response is undefined)
+          $parentState.res.status = 200
+          $parentState.res.statusMessage = 'OK'
+          $parentState.res.write('OK')
+          $parentState.res.end()
 ```  
 
 
@@ -1725,6 +1742,9 @@ Execute a bash script
       bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
       timeout: 10m                    # Time to run before force quit
       process: true                   # Create a new child process to execute it. Default is false
+      opts:                           # Ref: "SpawnOptionsWithoutStdio", "ExecFileOptions" in nodeJS
+        detached: true
+        ...
     vars: log                         # !optional
 ```  
 

@@ -45,5 +45,5 @@ export class YamlType {
     return DEFAULT_SCHEMA.extend(this.types)
   }
 
-  constructor(public readonly scene: Scene) { }
+  constructor(public readonly scene?: Scene) { }
 }

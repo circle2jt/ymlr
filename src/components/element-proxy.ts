@@ -7,6 +7,7 @@ import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
+import { type GroupItemProps } from './group/group.props'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
@@ -428,6 +429,22 @@ export class ElementProxy<T extends Element> {
     ```
   */
   async?: boolean | string
+  /** |**  runs
+    Steps will be run in the running element
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - http'server:
+          address: 0.0.0.0:1234
+        runs:
+          - echo: Do something when a request comes
+          - echo: Do something when a request comes...
+          ...
+
+    ```
+  */
+  runs?: GroupItemProps[]
 
   private _parentState?: Record<string, any>
 

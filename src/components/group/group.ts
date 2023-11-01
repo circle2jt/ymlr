@@ -26,7 +26,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   readonly ignoreEvalProps = ['runs']
   readonly proxy!: ElementProxy<this>
 
-  protected runs: GIP[] = []
   protected get scene() { return this.proxy?.scene }
   protected get rootScene() { return this.proxy?.rootScene }
   protected get logger() { return this.proxy?.logger }
@@ -34,32 +33,21 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return this.scene
   }
 
-  constructor(props: GP | GIP[]) {
+  private runs?: GroupItemProps[]
+
+  constructor(props?: GP | GIP[]) {
     this.lazyInitRuns(props)
   }
 
   async dispose() { }
 
-  lazyInitRuns(props: GP | GIP[]) {
+  lazyInitRuns(props?: GP | GIP[]) {
     if (Array.isArray(props)) {
-      props = {
-        runs: props
-      } as any
+      this.runs = props
+    } else if (props) {
+      this.resolveShortcutAsync(props)
+      Object.assign(this, props)
     }
-    Object.assign(this, props)
-    this.runs = this.runs?.filter(e => e) || []
-  }
-
-  private async newElement(nameOrClass: string | ElementClass, props: any) {
-    let ElemClass: ElementClass
-    if (typeof nameOrClass === 'string') {
-      const name = nameOrClass
-      ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
-    } else {
-      ElemClass = nameOrClass
-    }
-    const elem = new ElemClass(props)
-    return elem
   }
 
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
@@ -98,8 +86,18 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   }
 
   async preExec(parentState?: Record<string, any>) {
+    this.resolveShortcutAsync(this.proxy)
+    if (!this.proxy.runs?.length) {
+      this.proxy.runs = this.runs || []
+    } else {
+      this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
+    }
+    this.runs = undefined
+    if (!this.proxy.runs.length) {
+      return true
+    }
     // Preload includes tag
-    const includes = this.runs
+    const includes = this.proxy.runs
       .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
       .filter(e => e)
     if (includes.length) {
@@ -110,16 +108,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         })
       ) as Array<{ idx: number, runs: any[] }>
       for (let i = runs.length - 1; i >= 0; i--) {
-        this.runs.splice(runs[i].idx, 1, ...runs[i].runs)
+        this.proxy.runs.splice(runs[i].idx, 1, ...runs[i].runs)
       }
     }
-    // Ignore skip tags
-    this.runs = this.runs.filter(r => !r.skip)
 
     // Check tags which are picked to run then ignore others
-    const hasRunOnly = this.runs.some(r => r.only === true)
+    const hasRunOnly = this.proxy.runs.some(r => r.only === true)
     if (hasRunOnly) {
-      this.runs = this.runs.filter(r => (r.only === true) || (r.template))
+      this.proxy.runs = this.proxy.runs.filter(r => (r.only === true) || (r.template))
+    } else {
+      // Ignore skip tags
+      this.proxy.runs = this.proxy.runs.filter(r => !r.skip)
     }
 
     return true
@@ -129,32 +128,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return await this.runEachOfElements(parentState)
   }
 
-  private getTagName(props: any) {
-    const keys = Object.keys(props)
-    let tagName: string | undefined
-    for (let key of keys) {
-      if (key.startsWith('~')) {
-        const oldKey = key
-        key = key.substring(1)
-        props[key] = props[oldKey]
-        props[oldKey] = undefined
-        props.async = true
-      }
-      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
-        tagName = key
-        break
-      }
-    }
-    return tagName
-  }
-
   async runEachOfElements(parentState?: Record<string, any>) {
+    if (!this.proxy.runs) {
+      return
+    }
     const asyncJobs = new Array<Promise<any>>()
     const result = DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let isPassedCondition = false
 
     // Loop to execute each of tags
-    for (const run of this.runs) {
+    for (const run of this.proxy.runs) {
       const allProps = cloneDeep(run)
 
       if (isPassedCondition) {
@@ -164,14 +147,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
       // Init props
       const props: any = allProps || {}
-      if (props.runs || props['~runs']) {
-        const runs = props.runs || props['~runs']
-        props.async = !!props['~runs']
-        props.group = {
-          runs
-        }
-        props.runs = props['~runs'] = undefined
-      }
       let { '<-': inheritKeys, '->': exposeKey, skip, only, ...eProps } = props
       let tagName = this.getTagName(eProps)
       const isTemplate = !!eProps.template
@@ -185,7 +160,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -200,6 +175,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (tagName) {
         // This is a tag
         elemProps = eProps[tagName]
+      } else if (runs) {
+        // This is a empty tag
+        tagName = 'group'
+        elemProps = undefined
       } else {
         // This is a empty tag
         tagName = 'base'
@@ -214,6 +193,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         force,
         debug,
         vars,
+        runs,
         detach,
         async,
         loop,
@@ -276,6 +256,33 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return result
   }
 
+  private resolveShortcutAsync(props?: any) {
+    if (props?.['~runs']) {
+      props.runs = props['~runs']
+      props.async = true
+      props['~runs'] = undefined
+    }
+  }
+
+  private getTagName(props: any) {
+    const keys = Object.keys(props)
+    let tagName: string | undefined
+    for (let key of keys) {
+      if (key.startsWith('~')) {
+        const oldKey = key
+        key = key.substring(1)
+        props[key] = props[oldKey]
+        props[oldKey] = undefined
+        props.async = true
+      }
+      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
+        tagName = key
+        break
+      }
+    }
+    return tagName
+  }
+
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj: { loopKey?: any, loopValue?: any } = {}) {
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     elemProxy.parentState = parentState
@@ -325,5 +332,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       }
     }
     return elemProxy
+  }
+
+  private async newElement(nameOrClass: string | ElementClass, props: any) {
+    let ElemClass: ElementClass
+    if (typeof nameOrClass === 'string') {
+      const name = nameOrClass
+      ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
+    } else {
+      ElemClass = nameOrClass
+    }
+    const elem = new ElemClass(props)
+    return elem
   }
 }

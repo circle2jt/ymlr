@@ -208,9 +208,9 @@ test('skipNext', async () => {
 })
 
 test('only', async () => {
-  group = await Testing.createElementProxy(Group, {
+  group = await Testing.createElementProxy(Group, undefined, {
     name: 'Test group',
-    runs: [
+    '~runs': [
       {
         echo: 0
       },
@@ -229,14 +229,15 @@ test('only', async () => {
   })
   await group.exec()
   expect(group.result).toHaveLength(2)
+  expect(group.name).toBe('Test group')
   expect(group.result[0].result).toBe(1)
   expect(group.result[1].result).toBe(3)
 })
 
-test('execute template', async () => {
+test.only('execute template', async () => {
   group = await Testing.createElementProxy(Group, {
     name: 'Test group',
-    runs: [
+    '~runs': [
       {
         '->': 'echo0',
         template: true,
