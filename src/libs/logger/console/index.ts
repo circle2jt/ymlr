@@ -24,8 +24,6 @@ export class ConsoleLogger extends Logger {
     return this._context
   }
 
-  static Dispose() { }
-
   constructor(level?: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
     super(level, context, indent)
     this.context = context

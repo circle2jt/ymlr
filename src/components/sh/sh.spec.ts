@@ -32,16 +32,29 @@ test('should be executed', async () => {
   const txt = 'hello world'
   sh = await Testing.createElementProxy(Sh, {
     script: `echo "${txt}"`
+  }, {
+    vars: 'log'
   })
   const msg = await sh.exec()
   expect(msg).toBe(txt)
+  expect(Testing.vars.log).toBe(txt)
 })
 
 test('should get expression value from global vars', async () => {
   Testing.vars.txt = 'hello world'
-  sh = await Testing.createElementProxy(Sh, 'echo "${$vars.txt}"')
+  sh = await Testing.createElementProxy(Sh, 'echo "${$vars.txt}"', {
+    vars: 'log'
+  })
   const msg = await sh.exec()
   expect(msg).toBe(Testing.vars.txt)
+  expect(Testing.vars.log).toBe(Testing.vars.txt)
+})
+
+test('should not trace logs when not set vars', async () => {
+  Testing.vars.txt = 'hello world'
+  sh = await Testing.createElementProxy(Sh, 'echo "${$vars.txt}"')
+  const msg = await sh.exec()
+  expect(msg).toBeUndefined()
 })
 
 test('should run from external file', async () => {
@@ -51,9 +64,12 @@ test('should run from external file', async () => {
   try {
     sh = await Testing.createElementProxy(Sh, {
       path: tmpFile.file
+    }, {
+      vars: 'log'
     })
     const msg = await sh.exec()
     expect(msg).toBe(txt)
+    expect(Testing.vars.log).toBe(txt)
   } finally {
     tmpFile.remove()
   }

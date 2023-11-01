@@ -1,9 +1,9 @@
 import assert from 'assert'
-import chalk from 'chalk'
-import { execFile, spawn } from 'child_process'
+import { type StdioOptions, execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio } from 'child_process'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
+import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type ShProps } from './sh.props'
@@ -29,10 +29,14 @@ import { type ShProps } from './sh.props'
         bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
         timeout: 10m                    # Time to run before force quit
         process: true                   # Create a new child process to execute it. Default is false
+        opts:                           # Ref: "SpawnOptionsWithoutStdio", "ExecFileOptions" in nodeJS
+          detached: true
+          ...
       vars: log                         # !optional
   ```
 */
 export class Sh implements Element {
+  readonly ignoreEvalProps = ['abortController']
   readonly proxy!: ElementProxy<this>
 
   private get scene() { return this.proxy.scene }
@@ -43,6 +47,9 @@ export class Sh implements Element {
   timeout?: string | number
   process?: boolean
   bin = '/bin/sh'
+  opts?: SpawnOptionsWithoutStdio | ExecFileOptions
+
+  private abortController?: AbortController
 
   constructor(props: ShProps) {
     if (typeof props === 'string') {
@@ -66,27 +73,54 @@ export class Sh implements Element {
       const rs = await (this.process === true ? this.execLongScript(tmpFile, timeout) : this.ShortScript(tmpFile, timeout))
       return rs
     } finally {
+      this.abortController = undefined
       tmpFile.remove()
     }
   }
 
   private async execLongScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
-      const logs: string[] = []
-      const c = spawn(this.bin, [tmpFile.file], { env: process.env, cwd: this.scene?.curDir, timeout })
-      c.stdout?.on('data', msg => {
-        msg = msg.toString()
-        logs.push(msg)
-        this.logger.debug(msg)
+      let logs: string[] | undefined
+      this.abortController = new AbortController()
+      let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
+      if (this.proxy.vars) {
+        stdio = 'pipe'
+        logs = []
+      } else if (this.logger.is(LoggerLevel.ERROR)) {
+        stdio = ['pipe', 'ignore', 'pipe']
+      } else if (this.logger.is(LoggerLevel.TRACE)) {
+        stdio = 'pipe'
+      }
+      const c = spawn(this.bin, [tmpFile.file], {
+        stdio,
+        env: process.env,
+        cwd: this.scene?.curDir,
+        timeout,
+        signal: this.abortController.signal,
+        ...this.opts
       })
-      c.stderr?.on('data', msg => {
-        msg = msg.toString()
-        logs.push(msg)
-        this.logger.debug(chalk.red(msg))
-      })
+      if (logs || this.logger.is(LoggerLevel.TRACE)) {
+        c.stdout?.on('data', msg => {
+          msg = msg.toString()
+          logs?.push(msg)
+          this.logger.trace(msg)
+        })
+      }
+      if (logs || this.logger.is(LoggerLevel.ERROR)) {
+        c.stderr?.on('data', msg => {
+          msg = msg.toString()
+          logs?.push(msg)
+          this.logger.error(msg)
+        })
+      }
       c.on('close', (code: number) => {
-        if (code) { reject(new Error(logs.join(''))); return }
-        resolve(logs.join(''))
+        if (code) {
+          const err = new Error(logs?.join(''))
+          err.cause = `Exit code is ${code}`
+          reject(err)
+          return
+        }
+        resolve(logs?.join(''))
       })
       c.on('error', reject)
     })
@@ -94,14 +128,30 @@ export class Sh implements Element {
 
   private async ShortScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
-      execFile(this.bin, [tmpFile.file], { env: process.env, cwd: this.scene.curDir, timeout }, (err, stdout, stderr) => {
-        if (err) { reject(err); return }
-        stdout && this.logger.debug(chalk.gray(stdout))
-        stderr && this.logger.debug(chalk.red(stderr))
-        resolve((stdout + '\r\n' + stderr).trim())
+      this.abortController = new AbortController()
+      execFile(this.bin, [tmpFile.file], {
+        env: process.env,
+        cwd: this.scene.curDir,
+        timeout,
+        signal: this.abortController.signal,
+        ...this.opts
+      }, (err, stdout, stderr) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        if (stdout && this.logger.is(LoggerLevel.TRACE)) {
+          this.logger.trace(stdout)
+        }
+        if (stderr && this.logger.is(LoggerLevel.ERROR)) {
+          this.logger.error(stderr)
+        }
+        resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)
       })
     })
   }
 
-  dispose() { }
+  dispose() {
+    this.abortController?.abort()
+  }
 }
