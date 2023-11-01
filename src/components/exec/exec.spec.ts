@@ -20,6 +20,16 @@ afterAll(() => {
 
 test('should be executed', async () => {
   exec = await Testing.createElementProxy(Exec, ['/bin/sh', tmpShFile.file])
-  const { signal } = await exec.exec()
+  const { signal, logs } = await exec.exec()
   expect(signal).toBeNull()
+  expect(logs).toBeUndefined()
+})
+
+test('should be executed and return logs', async () => {
+  exec = await Testing.createElementProxy(Exec, ['/bin/sh', tmpShFile.file], {
+    vars: 'log'
+  })
+  const { signal, logs } = await exec.exec()
+  expect(signal).toBeNull()
+  expect(logs).toBe('sh here')
 })
