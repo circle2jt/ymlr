@@ -8,7 +8,6 @@ ARG VERSION=latest
 
 ENV NODE_ENV=production
 ENV PACKAGE_MANAGERS=yarn,npm
-ENV OPTIMIZE_MODE=best
 
 RUN mkdir /my-tags && \
     echo -e '- echo: Welcome to ymlr container' > /scripts/index.yaml
