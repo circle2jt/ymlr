@@ -54,14 +54,13 @@ export class TagsManager {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       this.prInstall = new Promise<any>(async (resolve, reject) => {
         try {
-          let packs: string[]
-          do {
-            packs = this.packages.splice(0, this.packages.length)
+          const { PackagesManagerFactory } = await import('./packages-manager-factory')
+          const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
+          while (this.packages.length) {
+            const packs = this.packages.splice(0, this.packages.length)
             this.logger.debug('Preparing to install the lack packages...')
-            const { PackagesManagerFactory } = await import('./packages-manager-factory')
-            const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
-            await packagesManager.deref()?.install(...packs)
-          } while (this.packages.length)
+            await packagesManager.install(...packs)
+          }
           resolve(undefined)
         } catch (err) {
           reject(err)

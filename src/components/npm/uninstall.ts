@@ -23,6 +23,6 @@ export class Uninstall extends InstallAbstract {
 
   override async action(...packsInstall: string[]) {
     const packageManager = PackagesManagerFactory.GetInstance(this.logger)
-    await packageManager.deref()?.uninstall(...packsInstall)
+    await packageManager.uninstall(...packsInstall)
   }
 }

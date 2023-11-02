@@ -27,13 +27,13 @@ export class PackagesManagerFactory {
     }
     switch (this.PackageManagerType) {
       case 'bun':
-        return new WeakRef(new Bun(logger))
+        return new Bun(logger)
       case 'yarn':
-        return new WeakRef(new Yarn(logger))
+        return new Yarn(logger)
       case 'pnpm':
-        return new WeakRef(new Pnpm(logger))
+        return new Pnpm(logger)
       default:
-        return new WeakRef(new Npm(logger))
+        return new Npm(logger)
     }
   }
 }
