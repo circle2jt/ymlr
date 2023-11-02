@@ -10,10 +10,14 @@ import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
-  const { program } = await import('commander')
+  const t = cli()
+  await t
+})()
+
+async function cli() {
+  const { program } = require('commander')
   let t = Promise.resolve()
-  let wk = new WeakRef(program)
-  wk.deref()?.name(name)
+  program.name(name)
     .aliases(Object.keys(bin).filter(e => e !== name))
     .description(description)
     .version(version, '-v, --version')
@@ -83,7 +87,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).deref()?.install(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -103,7 +107,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).deref()?.upgrade(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -123,7 +127,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
             assert(packages?.length, '"package(s)" is requried')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).deref()?.uninstall(...packages)
+            await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
             resolve(undefined)
           } catch (err) {
             reject(err)
@@ -143,6 +147,5 @@ import { LoggerLevel } from './libs/logger/logger-level'
 ✔ Docker Image  : https://hub.docker.com/repository/docker/circle2jt/${name}
 `)
     .parse(process.argv)
-  wk = null as any
   await t
-})()
+}

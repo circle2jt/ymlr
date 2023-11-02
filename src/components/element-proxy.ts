@@ -605,11 +605,6 @@ export class ElementProxy<T extends Element> {
 
   async exec(parentState?: any) {
     if (parentState !== undefined) this.parentState = parentState
-    // Object.defineProperty(this, 'parentState', {
-    //   get() {
-    //     return parentState
-    //   }
-    // })
     if (this.elementAsyncProps && this.element.asyncConstructor) await this.element.asyncConstructor(this.elementAsyncProps)
 
     this.rootScene?.event.emit('element/exec:before', this)

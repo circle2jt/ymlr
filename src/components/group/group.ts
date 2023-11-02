@@ -39,8 +39,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.lazyInitRuns(props)
   }
 
-  async dispose() { }
-
   lazyInitRuns(props?: GP | GIP[]) {
     if (Array.isArray(props)) {
       this.runs = props
@@ -66,7 +64,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
       innerRuns.hideName = true
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
-      innerRunsProxy.tag = 'inner-group'
+      innerRunsProxy.tag = 'inner-runs-proxy'
       innerRunsProxy.owner = elem
       innerRunsProxy.parent = elemProxy.parent
       innerRunsProxy.scene = elemProxy.scene
@@ -89,8 +87,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.runs || []
-    } else {
-      this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
+      if (this.proxy.runs.length && this.proxy.parent) {
+        this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
+      }
     }
     this.runs = undefined
     if (!this.proxy.runs.length) {
@@ -255,6 +254,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
     return result
   }
+
+  async dispose() { }
 
   private resolveShortcutAsync(props?: any) {
     if (props?.['~runs']) {
