@@ -603,7 +603,7 @@ export class ElementProxy<T extends Element> {
     return rs
   }
 
-  async exec(parentState?: any) {
+  async exec(parentState?: Record<string, any>) {
     if (parentState !== undefined) this.parentState = parentState
     if (this.elementAsyncProps && this.element.asyncConstructor) await this.element.asyncConstructor(this.elementAsyncProps)
 
@@ -651,5 +651,6 @@ export class ElementProxy<T extends Element> {
 
   async dispose() {
     await this.element.dispose?.()
+    this.parentState = undefined
   }
 }

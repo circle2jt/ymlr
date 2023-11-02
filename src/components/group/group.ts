@@ -33,6 +33,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return this.scene
   }
 
+  protected get isRoot() {
+    return !this.proxy.parent
+  }
+
   private runs?: GroupItemProps[]
 
   constructor(props?: GP | GIP[]) {
@@ -55,7 +59,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     elemProxy.parent = this
     elemProxy.owner = this
     elemProxy.scene = this.innerScene
-    elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.scene.rootScene) as RootScene
+    elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene
     Object.assign(elemProxy, loopObj)
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
@@ -87,7 +91,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.runs || []
-      if (this.proxy.runs.length && this.proxy.parent) {
+      if (this.proxy.runs.length && this.isRoot) {
         this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
       }
     }

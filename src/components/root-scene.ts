@@ -53,9 +53,8 @@ export class RootScene extends Scene {
 
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
-    this.isRoot = true
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager', 'onAppExit', '_backgroundJobs', 'event')
   }
 
   override async asyncConstructor() {
@@ -63,17 +62,17 @@ export class RootScene extends Scene {
     await super.asyncConstructor()
   }
 
-  pushToBackgroundJob(task: ElementProxy<Element>, parentState: any) {
+  pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {
     this._backgroundJobs.push({
       p: task.exec(parentState),
       ctx: task
     })
   }
 
-  override async exec() {
+  override async exec(parentState?: Record<string, any>) {
     this.event.emit('scene/exec:before')
     try {
-      const rs = await super.exec()
+      const rs = await super.exec(parentState)
       await this._workerManager?.exec()
       if (this._backgroundJobs.length) {
         await Promise.all(this._backgroundJobs.map(async ({ p, ctx }) => {

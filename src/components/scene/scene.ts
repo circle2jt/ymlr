@@ -43,7 +43,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   content?: string
   curDir = ''
   localVars: Record<string, any> = {}
-  isRoot = false
 
   private updateGlobalVarsListener?: any
 
@@ -58,7 +57,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     const { path, content, password, vars, ...props } = eProps
     super(props)
     Object.assign(this, { path, content, password, vars })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'isRoot', 'event')
+    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'event')
   }
 
   async asyncConstructor() {
@@ -68,7 +67,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
     }
-    this.proxy.rootScene.event.on('update/global-vars', this.updateGlobalVarsListener)
+    this.rootScene.event.on('update/global-vars', this.updateGlobalVarsListener)
   }
 
   async handleFile() {
@@ -103,11 +102,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
   }
 
-  override async exec() {
+  override async exec(parentState?: Record<string, any>) {
     if (this.name) this.logger.info(this.name)
-    // if (this.isRoot) this.logger.debug('')
     try {
-      const results = await super.exec()
+      const results = await super.exec(parentState)
       return results || []
     } finally {
       this.copyVarsToGlobal()
@@ -115,7 +113,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async dispose() {
-    if (this.updateGlobalVarsListener) this.proxy.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
+    if (this.updateGlobalVarsListener) this.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
     await super.dispose()
   }
 
@@ -172,7 +170,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       keys.forEach(key => {
         this.rootScene.localVars[key] = localVars[key]
       })
-      this.proxy.rootScene.event.emit('update/global-vars', this.name || this.path)
+      this.rootScene.event.emit('update/global-vars', this.name || this.path)
     }
   }
 
