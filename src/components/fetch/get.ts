@@ -59,7 +59,7 @@ export class Get extends Head {
     if (this.responseType === 'stream') this.isDownload = true
     if (this.isDownload) {
       // eslint-disable-next-line no-case-declarations
-      if (this.logger.is(LoggerLevel.TRACE)) {
+      if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
         this.onDownloadProgress = moreOptions.onDownloadProgress = (data: any) => {
           const { bytes, loaded } = data

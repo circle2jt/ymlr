@@ -1,10 +1,14 @@
 export enum LoggerLevel {
-  ALL = 'trace',
-  TRACE = 'trace',
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error',
-  FATAL = 'fatal',
-  SILENT = 'silent'
+  all = 1,
+  trace = 2,
+  debug = 4,
+  info = 6,
+  warn = 8,
+  error = 10,
+  fatal = 11,
+  silent = 12
+}
+
+export function GetLoggerLevel(name: string): LoggerLevel {
+  return LoggerLevel[name as any] as any
 }

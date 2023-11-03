@@ -2,8 +2,21 @@ import chalk from 'chalk'
 
 export class Indent {
   indentString = ''
-  indent = 0
-  indentStringLength = 0
+
+  #indent = 0
+
+  get indentStringLength() {
+    return this.indent * 2
+  }
+
+  set indent(indent: number) {
+    this.#indent = indent
+    this.indentString = chalk.gray.dim(new Array(indent).fill('╎ ').join(''))
+  }
+
+  get indent() {
+    return this.#indent
+  }
 
   constructor(indent = 0) {
     if (indent) {
@@ -17,8 +30,6 @@ export class Indent {
 
   update(indent: number) {
     this.indent = indent
-    this.indentString = this.getIndentString(this.indent)
-    this.indentStringLength = this.indent * 2
   }
 
   format(str: string) {
@@ -27,10 +38,5 @@ export class Indent {
 
   clone() {
     return new Indent(this.indent)
-  }
-
-  private getIndentString(indent: number) {
-    const str = new Array(indent).fill('╎ ').join('')
-    return str && chalk.gray.dim(str)
   }
 }

@@ -187,7 +187,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
-      if (debug === true) debug = LoggerLevel.DEBUG
+      if (debug === true) debug = LoggerLevel.debug
       const baseProps: ElementBaseProps = {
         id,
         name,

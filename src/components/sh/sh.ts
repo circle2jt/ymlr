@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { type StdioOptions, execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio } from 'child_process'
+import { execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio, type StdioOptions } from 'child_process'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
@@ -86,9 +86,9 @@ export class Sh implements Element {
       if (this.proxy.vars) {
         stdio = 'pipe'
         logs = []
-      } else if (this.logger.is(LoggerLevel.ERROR)) {
+      } else if (this.logger.is(LoggerLevel.error)) {
         stdio = ['pipe', 'ignore', 'pipe']
-      } else if (this.logger.is(LoggerLevel.TRACE)) {
+      } else if (this.logger.is(LoggerLevel.trace)) {
         stdio = 'pipe'
       }
       const c = spawn(this.bin, [tmpFile.file], {
@@ -99,14 +99,14 @@ export class Sh implements Element {
         signal: this.abortController.signal,
         ...this.opts
       })
-      if (logs || this.logger.is(LoggerLevel.TRACE)) {
+      if (logs || this.logger.is(LoggerLevel.trace)) {
         c.stdout?.on('data', msg => {
           msg = msg.toString()
           logs?.push(msg)
           this.logger.trace(msg)
         })
       }
-      if (logs || this.logger.is(LoggerLevel.ERROR)) {
+      if (logs || this.logger.is(LoggerLevel.error)) {
         c.stderr?.on('data', msg => {
           msg = msg.toString()
           logs?.push(msg)
@@ -140,10 +140,10 @@ export class Sh implements Element {
           reject(err)
           return
         }
-        if (stdout && this.logger.is(LoggerLevel.TRACE)) {
+        if (stdout && this.logger.is(LoggerLevel.trace)) {
           this.logger.trace(stdout)
         }
-        if (stderr && this.logger.is(LoggerLevel.ERROR)) {
+        if (stderr && this.logger.is(LoggerLevel.error)) {
           this.logger.error(stderr)
         }
         resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)

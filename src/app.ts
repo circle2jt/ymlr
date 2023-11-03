@@ -1,3 +1,5 @@
+import 'src/managers/modules-manager'
+
 import assert from 'assert'
 import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
@@ -31,14 +33,14 @@ export class App {
 
   async exec() {
     let summary: Summary | undefined
-    if (this.rootSceneProxy.logger.is(LoggerLevel.DEBUG)) {
+    if (this.rootSceneProxy.logger.is(LoggerLevel.debug)) {
       const { Summary } = await import('./analystic/summary')
       summary = new Summary(this.rootSceneProxy)
     }
     try {
       await this.rootSceneProxy.exec()
     } catch (err: any) {
-      this.logger.error(`${err.message}\t${chalk.gray(err.cause || '')}`, LoggerLevel.ERROR)
+      this.logger.error(`${err.message}\t${chalk.gray(err.cause || '')}`, LoggerLevel.error)
       throw err
     } finally {
       await this.rootSceneProxy.dispose()

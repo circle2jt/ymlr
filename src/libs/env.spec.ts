@@ -3,7 +3,7 @@ import { Env } from './env'
 import { LoggerFactory } from './logger/logger-factory'
 import { LoggerLevel } from './logger/logger-level'
 
-const logger = LoggerFactory.NewLogger(LoggerLevel.SILENT)
+const logger = LoggerFactory.NewLogger(LoggerLevel.silent)
 
 test('Should load env from files and objects', async () => {
   const tmpFile = new FileTemp('.env')

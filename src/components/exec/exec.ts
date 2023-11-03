@@ -44,9 +44,9 @@ export class Exec implements Element {
         if (this.proxy.vars) {
           stdio = 'pipe'
           logs = []
-        } else if (this.logger.is(LoggerLevel.ERROR)) {
+        } else if (this.logger.is(LoggerLevel.error)) {
           stdio = ['pipe', 'ignore', 'pipe']
-        } else if (this.logger.is(LoggerLevel.TRACE)) {
+        } else if (this.logger.is(LoggerLevel.trace)) {
           stdio = 'pipe'
         }
         const [bin, ...args] = this.commands
@@ -56,14 +56,14 @@ export class Exec implements Element {
           cwd: this.scene?.curDir,
           signal: this.abortController.signal
         })
-        if (logs || this.logger.is(LoggerLevel.TRACE)) {
+        if (logs || this.logger.is(LoggerLevel.trace)) {
           c.stdout?.on('data', msg => {
             msg = msg.toString().replace(/\n$/, '')
             logs?.push(msg)
             this.logger.trace(msg)
           })
         }
-        if (logs || this.logger.is(LoggerLevel.ERROR)) {
+        if (logs || this.logger.is(LoggerLevel.error)) {
           c.stderr?.on('data', msg => {
             msg = msg.toString().replace(/\n$/, '')
             logs?.push(msg)

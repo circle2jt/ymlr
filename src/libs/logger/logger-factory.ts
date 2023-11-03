@@ -1,7 +1,6 @@
 import { type Indent } from './indent'
 import { type Level } from './level'
-import { LevelNumber } from './level-number'
-import { LoggerLevel } from './logger-level'
+import { GetLoggerLevel, LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
   static PROCESS_ID = '0'
@@ -12,15 +11,16 @@ export class LoggerFactory {
   static DEFAULT_LOGGER: any
 
   static LoadFromEnv() {
-    const DEBUG = process.env.DEBUG as LoggerLevel | undefined | 'true'
+    const DEBUG = process.env.DEBUG
     // Validate --debug
     if (DEBUG === 'true') {
-      LoggerFactory.DEBUG = LoggerLevel.DEBUG
+      LoggerFactory.DEBUG = LoggerLevel.debug
     } else if (DEBUG) {
-      if (!LevelNumber[DEBUG]) {
+      const debug = GetLoggerLevel(DEBUG)
+      if (!debug) {
         console.warn(`--debug "${DEBUG}", Log level is not valid`)
       } else {
-        LoggerFactory.DEBUG = DEBUG
+        LoggerFactory.DEBUG = debug
       }
     }
     // Validate --debug-context
@@ -29,11 +29,12 @@ export class LoggerFactory {
       .reduce((sum: Record<string, LoggerLevel>, keyValue: string) => {
         const idx = keyValue.indexOf('=')
         const key = keyValue.substring(0, idx)
-        const vl = keyValue.substring(idx + 1) as LoggerLevel
-        if (!LevelNumber[vl]) {
+        const vl = keyValue.substring(idx + 1)
+        const llv = GetLoggerLevel(vl)
+        if (!llv) {
           console.warn(`--debug-context "${key}=${vl}", Log level is not valid`)
         } else {
-          sum[key] = vl
+          sum[key] = llv
         }
         return sum
       }, {})
@@ -56,12 +57,12 @@ export class LoggerFactory {
   }
 
   // static Event?: EventEmitter
-  // static On(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => any) {
+  // static On(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
   //   if (!this.Event) this.Event = new EventEmitter().setMaxListeners(0)
   //   eventNames.forEach(eventName => this.Event?.on(eventName, cb))
   // }
 
-  // static Off(eventNames: Array<LoggerLevel.WARN | LoggerLevel.ERROR | LoggerLevel.FATAL>, cb: () => any) {
+  // static Off(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
   //   this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
   // }
 }
