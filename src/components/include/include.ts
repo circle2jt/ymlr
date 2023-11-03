@@ -6,6 +6,7 @@ import { FileRemote } from 'src/libs/file-remote'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { YamlType } from '../scene/yaml-type'
+import { type IncludeProps } from './include.props'
 
 /** |**  include
   Include a scene file or list scene files in a folder
@@ -13,15 +14,35 @@ import { YamlType } from '../scene/yaml-type'
   ```yaml
     - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
 
-    - include: ./my-scenes              # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+    - include:
+        file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+        cached: true                    # Load file for the first time, the next will get from caches
   ```
 */
 export class Include implements Element {
   readonly proxy!: ElementProxy<this>
 
-  constructor(public file: string) { }
+  file!: string
+  cached?: boolean
+
+  #caches?: any[]
+
+  get #logger() { return this.proxy.logger }
+
+  constructor(public opts: IncludeProps) {
+    if (typeof opts === 'string') {
+      Object.assign(this, { file: opts })
+    } else {
+      Object.assign(this, opts)
+    }
+  }
 
   async exec() {
+    if (this.#caches) {
+      this.#logger.trace('Get include data from cached')
+      return this.#caches
+    }
+
     assert(this.file)
 
     const files = []
@@ -45,7 +66,11 @@ export class Include implements Element {
         const yamlType = new YamlType(this.proxy.scene)
         return load(content, { schema: yamlType.spaceSchema })
       }))
-      return elementProxies.flat(1)
+      const childs = elementProxies.flat(1)
+      if (this.cached) {
+        this.#caches = childs
+      }
+      return childs
     }
     return []
   }
