@@ -3,7 +3,7 @@ import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { type Logger } from 'src/libs/logger'
 import { type Level } from 'src/libs/logger/level'
-import { type LoggerLevel } from 'src/libs/logger/logger-level'
+import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
@@ -531,9 +531,9 @@ export class ElementProxy<T extends Element> {
     })
   }
 
-  setDebug(debug: LoggerLevel) {
-    this.debug = debug
-    this._logger?.setLevelFromName(this.debug)
+  setDebug(debug: string) {
+    this.debug = GetLoggerLevel(debug)
+    this._logger?.setLevel(this.debug)
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {

@@ -1,13 +1,12 @@
-import { DebugLevel } from './debug-level'
-import { ErrorLevel } from './error-level'
-import { FatalLevel } from './fatal-level'
-import { InfoLevel } from './info-level'
 import { type Level } from './level'
-import { LevelNumber } from './level-number'
-import { LogLevel } from './log-level'
+import { DebugLevel } from './level/debug-level'
+import { ErrorLevel } from './level/error-level'
+import { FatalLevel } from './level/fatal-level'
+import { InfoLevel } from './level/info-level'
+import { LogLevel } from './level/log-level'
+import { TraceLevel } from './level/trace-level'
+import { WarnLevel } from './level/warn-level'
 import { LoggerLevel } from './logger-level'
-import { TraceLevel } from './trace-level'
-import { WarnLevel } from './warn-level'
 
 export class LevelFactory {
   private static readonly _Instance = new Map<number, Level>()
@@ -22,51 +21,29 @@ export class LevelFactory {
     return levelObj
   }
 
-  static GetNameFromInstance(instance: Level | undefined) {
-    if (instance instanceof TraceLevel) {
-      return LoggerLevel.TRACE
-    }
-    if (instance instanceof DebugLevel) {
-      return LoggerLevel.DEBUG
-    }
-    if (instance instanceof InfoLevel) {
-      return LoggerLevel.INFO
-    }
-    if (instance instanceof WarnLevel) {
-      return LoggerLevel.WARN
-    }
-    if (instance instanceof ErrorLevel) {
-      return LoggerLevel.ERROR
-    }
-    if (instance instanceof FatalLevel) {
-      return LoggerLevel.FATAL
-    }
-    return undefined
-  }
-
-  static GetInstance(_level: LoggerLevel | LevelNumber) {
-    const level = typeof _level === 'number' ? _level : LevelNumber[_level]
+  static GetInstance(level?: LoggerLevel) {
+    if (!level) return
     let levelObj = this._Instance.get(level)
     if (levelObj) { return levelObj }
 
     switch (level) {
-      case LevelNumber.all:
-      case LevelNumber.trace:
+      case LoggerLevel.all:
+      case LoggerLevel.trace:
         levelObj = new TraceLevel()
         break
-      case LevelNumber.debug:
+      case LoggerLevel.debug:
         levelObj = new DebugLevel()
         break
-      case LevelNumber.info:
+      case LoggerLevel.info:
         levelObj = new InfoLevel()
         break
-      case LevelNumber.warn:
+      case LoggerLevel.warn:
         levelObj = new WarnLevel()
         break
-      case LevelNumber.error:
+      case LoggerLevel.error:
         levelObj = new ErrorLevel()
         break
-      case LevelNumber.fatal:
+      case LoggerLevel.fatal:
         levelObj = new FatalLevel()
         break
       default:

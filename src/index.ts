@@ -1,5 +1,3 @@
-import 'src/managers/modules-manager'
-
 import assert from 'assert'
 import chalk from 'chalk'
 import { resolve as resolvePath } from 'path'
@@ -85,7 +83,7 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
             resolve(undefined)
@@ -105,7 +103,7 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
             resolve(undefined)
@@ -125,7 +123,7 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.ALL)
+            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
             resolve(undefined)

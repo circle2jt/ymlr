@@ -1,10 +1,10 @@
 import chalk from 'chalk'
-import { Level } from './level'
-import { LevelNumber } from './level-number'
+import { Level } from '../level'
+import { LoggerLevel } from '../logger-level'
 
 export class DebugLevel extends Level {
   constructor() {
-    super(LevelNumber.debug)
+    super(LoggerLevel.debug)
   }
 
   override format(msg: string) {

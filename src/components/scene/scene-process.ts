@@ -49,7 +49,7 @@ export class SceneProcess extends Scene {
       globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
       vars: this.vars
     }, {
-      debug: this.proxy.logger.levelName
+      debug: this.proxy.logger.level?.level
     }, {
       id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),

@@ -4,7 +4,7 @@ import { sleep } from '../time'
 import { type Job } from './job'
 import { JobsManager } from './jobs-manager'
 
-const logger = LoggerFactory.NewLogger(LoggerLevel.SILENT)
+const logger = LoggerFactory.NewLogger(LoggerLevel.silent)
 
 class MyJob implements Job {
   constructor(public name: string, private readonly time: number) { }

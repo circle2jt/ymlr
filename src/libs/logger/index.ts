@@ -1,14 +1,13 @@
 import { Indent } from './indent'
-import { type Level } from './level'
+import { Level } from './level'
 import { LevelFactory } from './level-factory'
-import { LevelNumber } from './level-number'
 import { LoggerFactory } from './logger-factory'
 import { type LoggerLevel } from './logger-level'
 
 export abstract class Logger {
   public level?: Level
-  public get levelName(): LoggerLevel | undefined {
-    return LevelFactory.GetNameFromInstance(this.level)
+  public get levelName(): string | undefined {
+    return this.level?.name
   }
 
   set context(ctx: string) {
@@ -19,18 +18,23 @@ export abstract class Logger {
     return this._context
   }
 
-  constructor(level?: LoggerLevel | Level | undefined, protected _context = '', public indent = new Indent()) {
+  protected _context = ''
+
+  constructor(level?: LoggerLevel | Level | undefined, context = '', public indent = new Indent()) {
+    if (context) {
+      this.context = context
+    }
     if (LoggerFactory.DEBUG_CONTEXTS?.[this.context]) {
-      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG_CONTEXTS[this.context]])
-    } else {
-      if (typeof level === 'string') {
-        this.setLevelFromName(level)
-      } else {
+      this.level = LevelFactory.GetInstance(LoggerFactory.DEBUG_CONTEXTS[this.context])
+    } else if (level) {
+      if (level instanceof Level) {
         this.level = level
+      } else {
+        this.setLevel(level)
       }
     }
     if (this.level === undefined && LoggerFactory.DEBUG) {
-      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG])
+      this.level = LevelFactory.GetInstance(LoggerFactory.DEBUG)
     }
   }
 
@@ -43,8 +47,8 @@ export abstract class Logger {
   abstract fatal(...args: any[]): this
   abstract clone(context?: string | undefined, level?: Level | LoggerLevel | undefined): Logger
 
-  is(levelName: LoggerLevel) {
-    return this.level?.is(LevelNumber[levelName])
+  is(level: LoggerLevel) {
+    return this.level?.is(level)
   }
 
   addIndent(indent = 1) {
@@ -55,9 +59,9 @@ export abstract class Logger {
     this.indent.add(indent * -1)
   }
 
-  setLevelFromName(level: LoggerLevel) {
+  setLevel(level: LoggerLevel) {
     if (!LoggerFactory.DEBUG_CONTEXTS?.[this.context] && !LoggerFactory.DEBUG) {
-      this.level = LevelFactory.GetInstance(LevelNumber[level])
+      this.level = LevelFactory.GetInstance(level)
     }
   }
 }

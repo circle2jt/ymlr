@@ -1,12 +1,10 @@
 import chalk from 'chalk'
 import { Logger } from '..'
 import { formatFixLengthNumber } from '../../format'
-import { type Indent } from '../indent'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
-import { LevelNumber } from '../level-number'
 import { LoggerFactory } from '../logger-factory'
-import { type LoggerLevel } from '../logger-level'
+import { LoggerLevel } from '../logger-level'
 
 export class ConsoleLogger extends Logger {
   private static MaxContextLength = 0
@@ -22,23 +20,6 @@ export class ConsoleLogger extends Logger {
 
   override get context() {
     return this._context
-  }
-
-  constructor(level?: LoggerLevel | Level | undefined, context = '', indent?: Indent) {
-    super(level, context, indent)
-    this.context = context
-    if (LoggerFactory.DEBUG_CONTEXTS?.[this.context]) {
-      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG_CONTEXTS[this.context]])
-    } else {
-      if (typeof level === 'string') {
-        this.setLevelFromName(level)
-      } else {
-        this.level = level
-      }
-    }
-    if (this.level === undefined && LoggerFactory.DEBUG) {
-      this.level = LevelFactory.GetInstance(LevelNumber[LoggerFactory.DEBUG])
-    }
   }
 
   get prefix() {
@@ -64,81 +45,81 @@ export class ConsoleLogger extends Logger {
   }
 
   override info(msg: any, ...prms: any) {
-    if (!this.level || this.level?.is(LevelNumber.info)) {
+    if (!this.level || this.level?.is(LoggerLevel.info)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.info), ...prms).forEach((msgs: any[]) => { console.info(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.info), ...prms).forEach((msgs: any[]) => { console.info(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.info(this.format('%j', LevelFactory.GetInstance(LevelNumber.info)), ...prms)
+        console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), ...prms)
       }
     }
     return this
   }
 
   override debug(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.debug)) {
+    if (this.level?.is(LoggerLevel.debug)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.debug), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.debug), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.debug(this.format('%j', LevelFactory.GetInstance(LevelNumber.debug)), ...prms)
+        console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), ...prms)
       }
     }
     return this
   }
 
   override warn(msg: any, ...prms: any) {
-    if (!this.level || this.level?.is(LevelNumber.warn)) {
-      // Logger.Event?.emit(LoggerLevel.WARN)
+    if (!this.level || this.level?.is(LoggerLevel.warn)) {
+      // Logger.Event?.emit(LoggerLevel.warn)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.warn), ...prms).forEach((msgs: any[]) => { console.warn(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.warn), ...prms).forEach((msgs: any[]) => { console.warn(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.warn(this.format('%o', LevelFactory.GetInstance(LevelNumber.warn)), ...prms)
+        console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), ...prms)
       }
     }
     return this
   }
 
   override trace(msg: any, ...prms: any) {
-    if (this.level?.is(LevelNumber.trace)) {
+    if (this.level?.is(LoggerLevel.trace)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.trace), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.trace), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.debug(this.format('%o', LevelFactory.GetInstance(LevelNumber.trace)), ...prms)
+        console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), ...prms)
       }
     }
     return this
   }
 
   override error(msg: any, ...prms: any) {
-    if (!this.level || this.level?.is(LevelNumber.error)) {
-      // Logger.Event?.emit(LoggerLevel.ERROR)
+    if (!this.level || this.level?.is(LoggerLevel.error)) {
+      // Logger.Event?.emit(LoggerLevel.error)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.error), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.error), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.error(this.format('%o', LevelFactory.GetInstance(LevelNumber.error)), ...prms)
+        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), ...prms)
       }
     }
     return this
   }
 
   override fatal(msg: any, ...prms: any) {
-    if (!this.level || this.level?.is(LevelNumber.fatal)) {
-      // Logger.Event?.emit(LoggerLevel.FATAL)
+    if (!this.level || this.level?.is(LoggerLevel.fatal)) {
+      // Logger.Event?.emit(LoggerLevel.fatal)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LevelNumber.fatal), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.fatal), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
       } else {
         prms.splice(0, 0, msg)
-        console.error(this.format('%o', LevelFactory.GetInstance(LevelNumber.fatal)), ...prms)
+        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), ...prms)
       }
     }
     return this

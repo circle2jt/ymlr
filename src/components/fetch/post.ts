@@ -65,7 +65,7 @@ export class Post extends Get {
     const body = await this.getRequestBody()
     if (this.isUpload) {
       // eslint-disable-next-line no-case-declarations
-      if (this.logger.is(LoggerLevel.TRACE)) {
+      if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
         moreOptions.onUploadProgress = (data: any) => {
           const { bytes, loaded } = data
