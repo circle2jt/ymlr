@@ -91,7 +91,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.runs || []
-      if (this.proxy.runs.length && this.isRoot) {
+      if (this.proxy.runs.length && !this.isRoot) {
         this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
       }
     }
