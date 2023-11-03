@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.1.md](#1699011149554)  -  _11/3/2023, 6:32:29 PM_
 - [1.2.6-alpha.0.md](#1698925879891)  -  _11/2/2023, 6:51:19 PM_
 - [1.2.5.md](#1698837322807)  -  _11/1/2023, 6:15:22 PM_
 - [1.2.4.md](#1698761917287)  -  _10/31/2023, 9:18:37 PM_
@@ -49,6 +50,14 @@
 
 ## Details
 
+<a id="1699011149554"></a>
+### 1.2.6-alpha.1
+
+* refactor: Replace class template managers by Map (d950d8f)
+* optimize: Reuse LoggerLevel to replace LevelNumber (5366054)
+* fix: auto install packages failed (73b9474)
+* fix: remove unused warning for "runs" in element (2630130)
+  
 <a id="1698925879891"></a>
 ### 1.2.6-alpha.0
 
