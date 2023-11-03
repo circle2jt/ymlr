@@ -3,7 +3,6 @@ import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import { cloneDeep } from 'src/libs/variable'
 import { TagsManager } from 'src/managers/tags-manager'
-import { TemplatesManager } from 'src/managers/templates-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
 import { type ElementProxy } from './element-proxy'
@@ -44,7 +43,7 @@ export class RootScene extends Scene {
   private readonly _backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
 
   readonly tagsManager = new TagsManager(this)
-  readonly templatesManager = new TemplatesManager()
+  readonly templatesManager = new Map<string, any>()
   readonly globalUtils = new UtilityFunctionManager()
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
@@ -107,7 +106,7 @@ export class RootScene extends Scene {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
     ids.forEach(id => {
-      let cached = this.templatesManager.getFromCached(id)
+      let cached = this.templatesManager.get(id)
       if (!cached) {
         this.logger.warn(`Could not found element with id "${id}"`)
         cached = {
@@ -131,7 +130,7 @@ export class RootScene extends Scene {
       props[tagName] = props.template
       props.template = undefined
     }
-    this.templatesManager.pushToCached(id, cached)
+    this.templatesManager.set(id, cached)
     this.logger.trace('->    \t%s', id)
   }
 

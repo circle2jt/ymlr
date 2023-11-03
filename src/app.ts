@@ -27,7 +27,7 @@ export class App {
 
   setTemplates(cached: any) {
     Object.keys(cached).forEach((key: string) => {
-      this.rootSceneProxy.element.templatesManager.pushToCached(key, cached[key])
+      this.rootSceneProxy.element.templatesManager.set(key, cached[key])
     })
   }
 

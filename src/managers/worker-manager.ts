@@ -31,7 +31,7 @@ export class WorkerManager {
   createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: {
     id: string
     tagDirs?: string[]
-    templates?: Record<string, any>
+    templates?: Map<string, any>
     loggerDebugContexts?: Record<string, LoggerLevel>
     loggerDebug?: LoggerLevel
   }) {
