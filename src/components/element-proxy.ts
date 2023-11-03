@@ -495,7 +495,7 @@ export class ElementProxy<T extends Element> {
 
   private _logger?: Logger
   private get loggerLevel(): Level | LoggerLevel | undefined {
-    return this?.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level
+    return this.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level
   }
 
   get logger(): Logger {
@@ -637,9 +637,6 @@ export class ElementProxy<T extends Element> {
         return
       }
       await this.setVarsAfterExec()
-      // if (this.name && !this.$.hideName) {
-      //   this.logger.passed(this.name, LoggerLevel.DEBUG)
-      // }
     } finally {
       this.rootScene?.event.emit('element/exec:end', this)
       if (isAddIndent) {
