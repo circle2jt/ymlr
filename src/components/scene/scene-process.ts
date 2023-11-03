@@ -53,7 +53,7 @@ export class SceneProcess extends Scene {
     }, {
       id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
-      templates: this.rootScene.templatesManager.cached,
+      templates: this.rootScene.templatesManager,
       loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
       loggerDebug: LoggerFactory.DEBUG
     })
