@@ -35,13 +35,12 @@ Root scene file includes all of steps to run
 ```
 */
 export class RootScene extends Scene {
-  private _workerManager?: WorkerManager
+  #workerManager?: WorkerManager
   get workerManager() {
-    return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
+    return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
-  private readonly _backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
-
+  readonly #backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new Map<string, any>()
   readonly globalUtils = new UtilityFunctionManager()
@@ -53,7 +52,7 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '_workerManager', 'onAppExit', '_backgroundJobs', 'event')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '#workerManager', 'onAppExit', '#backgroundJobs', 'event')
   }
 
   override async asyncConstructor() {
@@ -62,7 +61,7 @@ export class RootScene extends Scene {
   }
 
   pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {
-    this._backgroundJobs.push({
+    this.#backgroundJobs.push({
       p: task.exec(parentState),
       ctx: task
     })
@@ -72,9 +71,9 @@ export class RootScene extends Scene {
     this.event.emit('scene/exec:before')
     try {
       const rs = await super.exec(parentState)
-      await this._workerManager?.exec()
-      if (this._backgroundJobs.length) {
-        await Promise.all(this._backgroundJobs.map(async ({ p, ctx }) => {
+      await this.#workerManager?.exec()
+      if (this.#backgroundJobs.length) {
+        await Promise.all(this.#backgroundJobs.map(async ({ p, ctx }) => {
           try {
             await p
           } finally {
@@ -93,7 +92,7 @@ export class RootScene extends Scene {
     this.event.emit('scene/dispose:before')
     try {
       proms.push(super.dispose())
-      if (this._workerManager) proms.push(this._workerManager.dispose())
+      if (this.#workerManager) proms.push(this.#workerManager.dispose())
       if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
       await Promise.all(proms)
     } finally {

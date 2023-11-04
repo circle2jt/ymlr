@@ -32,17 +32,23 @@ export abstract class PM {
 
   async install(...packages: string[]) {
     const newPackages = this.getNotInstalledPackages(...packages)
-    newPackages.length && await this.exec('Install', this.cmdInstall, newPackages)
+    if (newPackages.length) {
+      await this.exec('Install', this.cmdInstall, newPackages)
+    }
   }
 
   async upgrade(...packages: string[]) {
     const existsPackages = this.getInstalledPackages(...packages)
-    existsPackages.length && await this.exec('Upgrade', this.cmdUpgrade, existsPackages)
+    if (existsPackages.length) {
+      await this.exec('Upgrade', this.cmdUpgrade, existsPackages)
+    }
   }
 
   async uninstall(...packages: string[]) {
     const existsPackages = this.getInstalledPackages(...packages)
-    existsPackages.length && await this.exec('Uninstall', this.cmdUninstall, existsPackages)
+    if (existsPackages.length) {
+      await this.exec('Uninstall', this.cmdUninstall, existsPackages)
+    }
   }
 
   async clean() {

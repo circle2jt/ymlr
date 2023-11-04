@@ -14,13 +14,13 @@ export abstract class InstallAbstract implements Element {
   packages: Record<string, string> = {}
 
   constructor(eprops: InstallProps) {
-    let _packages: undefined | any[]
+    let packages: undefined | any[]
     if (Array.isArray(eprops)) {
-      _packages = eprops
+      packages = eprops
     } else if (typeof eprops === 'string') {
-      _packages = eprops.split(',').map(e => e.trim().split(' ').map(e => e.trim())).flat().filter(e => e)
+      packages = eprops.split(',').map(e => e.trim().split(' ').map(e => e.trim())).flat().filter(e => e)
     }
-    _packages?.forEach((pack: any) => {
+    packages?.forEach((pack: any) => {
       if (typeof pack === 'string') {
         this.packages[pack] = pack
       } else if (typeof pack === 'object') {

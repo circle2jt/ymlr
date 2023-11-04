@@ -13,13 +13,13 @@ export class ConsoleLogger extends Logger {
   private maxContextLength = 0
 
   override set context(ctx: string) {
-    this._context = ctx
-    const maxLength = this.indent.indentStringLength + this._context.length
+    super.context = ctx
+    const maxLength = this.indent.indentStringLength + this.context.length
     if (ConsoleLogger.MaxContextLength < maxLength) ConsoleLogger.MaxContextLength = maxLength
   }
 
   override get context() {
-    return this._context
+    return super.context
   }
 
   get prefix() {
@@ -131,7 +131,7 @@ export class ConsoleLogger extends Logger {
 
   override addIndent(indent = 1) {
     super.addIndent(indent)
-    const maxLength = this.indent.indentStringLength + this._context.length
+    const maxLength = this.indent.indentStringLength + this.context.length
     if (ConsoleLogger.MaxContextLength < maxLength) ConsoleLogger.MaxContextLength = maxLength
   }
 

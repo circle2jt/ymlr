@@ -5,26 +5,27 @@ import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { Worker } from './worker'
 
 export class WorkerManager {
-  workers = new Set<Worker>()
+  readonly #workers = new Set<Worker>()
+
   constructor(private readonly logger: Logger) { }
 
   async exec() {
-    const wks = Array.from(this.workers)
+    const wks = Array.from(this.#workers)
     await Promise.all(wks.map(async wk => {
       try {
         await wk.exec()
       } finally {
         await wk.dispose()
-        this.workers.delete(wk)
+        this.#workers.delete(wk)
       }
     }))
   }
 
   async dispose() {
-    const wks = Array.from(this.workers)
+    const wks = Array.from(this.#workers)
     await Promise.all(wks.map(async wk => {
       await wk.dispose()
-      this.workers.delete(wk)
+      this.#workers.delete(wk)
     }))
   }
 
@@ -36,7 +37,7 @@ export class WorkerManager {
     loggerDebug?: LoggerLevel
   }) {
     const wk = new Worker(props, baseProps, this.logger.clone(`worker:${others.id}`), others)
-    this.workers.add(wk)
+    this.#workers.add(wk)
     return wk
   }
 }

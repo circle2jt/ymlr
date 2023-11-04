@@ -9,21 +9,21 @@ import { WarnLevel } from './level/warn-level'
 import { LoggerLevel } from './logger-level'
 
 export class LevelFactory {
-  private static readonly _Instance = new Map<number, Level>()
+  static readonly #Instance = new Map<number, Level>()
 
   static GetLogInstance() {
     const level = -1
-    let levelObj = this._Instance.get(level)
+    let levelObj = this.#Instance.get(level)
     if (levelObj) { return levelObj }
 
     levelObj = new LogLevel()
-    this._Instance.set(level, levelObj)
+    this.#Instance.set(level, levelObj)
     return levelObj
   }
 
   static GetInstance(level?: LoggerLevel) {
     if (!level) return
-    let levelObj = this._Instance.get(level)
+    let levelObj = this.#Instance.get(level)
     if (levelObj) { return levelObj }
 
     switch (level) {
@@ -49,7 +49,7 @@ export class LevelFactory {
       default:
         return undefined
     }
-    this._Instance.set(level, levelObj)
+    this.#Instance.set(level, levelObj)
     return levelObj
   }
 }

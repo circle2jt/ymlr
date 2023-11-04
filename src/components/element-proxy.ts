@@ -446,22 +446,29 @@ export class ElementProxy<T extends Element> {
   */
   runs?: GroupItemProps[]
 
-  private _parentState?: Record<string, any>
-
+  #parentState?: Record<string, any>
   get parentState() {
-    if (this._parentState !== undefined) return this._parentState
+    if (this.#parentState !== undefined) return this.#parentState
     return this.parentProxy?.parentState
   }
 
   set parentState(parentState: Record<string, any> | undefined) {
-    this._parentState = parentState
+    this.#parentState = parentState
   }
 
   tag!: string
   loopKey?: any
   loopValue?: any
 
-  owner?: Element
+  #owner?: Group<any, any>
+  set owner(owner: Group<any, any> | undefined) {
+    this.#owner = owner
+  }
+
+  get owner() {
+    return this.#owner || this.parent
+  }
+
   get ownerProxy() {
     return this.owner?.proxy
   }
@@ -493,20 +500,20 @@ export class ElementProxy<T extends Element> {
     return this.skipNext === null || !!this.skipNext
   }
 
-  private _logger?: Logger
-  private get loggerLevel(): Level | LoggerLevel | undefined {
-    return this.debug || this.parentProxy?.loggerLevel || this.rootScene?.proxy.logger.level
+  get loggerLevel(): Level | LoggerLevel | undefined {
+    return this.debug || this.parentProxy?.loggerLevel
   }
 
+  #logger?: Logger
   get logger(): Logger {
-    if (!this._logger) {
-      this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.loggerLevel)
+    if (!this.#logger) {
+      this.#logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.loggerLevel)
     }
-    return this._logger
+    return this.#logger
   }
 
-  set logger(logger: Logger) {
-    this._logger = logger
+  set logger(logger: Logger | undefined) {
+    this.#logger = logger
   }
 
   result?: any
@@ -533,7 +540,7 @@ export class ElementProxy<T extends Element> {
 
   setDebug(debug: string) {
     this.debug = GetLoggerLevel(debug)
-    this._logger?.setLevel(this.debug)
+    this.#logger?.setLevel(this.debug)
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
@@ -649,5 +656,6 @@ export class ElementProxy<T extends Element> {
   async dispose() {
     await this.element.dispose?.()
     this.parentState = undefined
+    this.logger = undefined
   }
 }

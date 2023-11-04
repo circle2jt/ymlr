@@ -8,8 +8,8 @@ export class AES implements Encrypt {
     this.salt = Buffer.from(salt)
   }
 
-  encrypt(text: string, _salt?: string) {
-    const salt = _salt ? Buffer.from(_salt) : this.salt
+  encrypt(text: string, saltStr?: string) {
+    const salt = saltStr ? Buffer.from(saltStr) : this.salt
     const key = new Uint8Array(createHash('sha1').update(salt).digest()).slice(0, 16)
     const iv = randomBytes(16)
     const cipher = createCipheriv('aes-128-cbc', key, iv)
@@ -17,8 +17,8 @@ export class AES implements Encrypt {
     return encrypted.toString('base64')
   }
 
-  decrypt(buf: string, _salt?: string) {
-    const salt = _salt ? Buffer.from(_salt) : this.salt
+  decrypt(buf: string, saltStr?: string) {
+    const salt = saltStr ? Buffer.from(saltStr) : this.salt
     let bufContent: Buffer = Buffer.from(buf, 'base64')
     const iv = bufContent.subarray(0, 16)
     bufContent = bufContent.subarray(16)

@@ -10,15 +10,14 @@ export abstract class Logger {
     return this.level?.name
   }
 
+  #context = ''
   set context(ctx: string) {
-    this._context = ctx
+    this.#context = ctx
   }
 
   get context() {
-    return this._context
+    return this.#context
   }
-
-  protected _context = ''
 
   constructor(level?: LoggerLevel | Level | undefined, context = '', public indent = new Indent()) {
     if (context) {
