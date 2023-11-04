@@ -1,10 +1,6 @@
 import assert from 'assert'
-import chalk from 'chalk'
 import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
-import { App } from './app'
-import { LoggerFactory } from './libs/logger/logger-factory'
-import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
@@ -24,6 +20,7 @@ async function cli() {
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
+    .option('--tty', 'allocate a pseudo-TTY')
     .option('--debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
     .option('--debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
     .option('--tag-dirs <path...>', 'path to folder which includes external tags')
@@ -33,7 +30,9 @@ async function cli() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, env = [], tagDirs, envFile = [], debugContext } = opts
+          const { debug, tty, env = [], tagDirs, envFile = [], debugContext } = opts
+          process.env.FORCE_COLOR = !tty ? '0' : '1'
+
           if (envFile.length) {
             const { readFileSync } = await import('fs')
             for (const efile of envFile) {
@@ -54,11 +53,14 @@ async function cli() {
           if (debug) {
             process.env.DEBUG = debug
           }
+          const { App } = require('./app')
+          const { LoggerFactory } = require('./libs/logger/logger-factory')
           if (debugContext?.length > 0) {
             LoggerFactory.DEBUG_CONTEXTS = debugContext
           }
           LoggerFactory.LoadFromEnv()
           const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG)
+          const chalk = require('chalk')
           appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
           appLogger.log('')
           const app = new App(appLogger, {
@@ -83,6 +85,8 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = require('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
@@ -103,6 +107,8 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = require('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
@@ -123,6 +129,8 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = require('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
@@ -134,6 +142,7 @@ async function cli() {
       })
     )
     .addHelpText('after', () => {
+      const chalk = require('chalk')
       const { dependencies = {} } = require('./package.json')
       const msg = ['Sub modules version']
       Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}`))
