@@ -126,7 +126,7 @@ export class ConsoleLogger extends Logger {
   }
 
   override clone(context?: string, level?: LoggerLevel | Level) {
-    return new ConsoleLogger(level || this.level, context || this.context, this.indent.clone())
+    return new ConsoleLogger(level || this.level?.level, context || this.context, this.indent.clone())
   }
 
   override addIndent(indent = 1) {

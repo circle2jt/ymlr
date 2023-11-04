@@ -1,6 +1,6 @@
 import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT } from 'src/env'
-import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
@@ -186,7 +186,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         tagName = 'base'
         elemProps = undefined
       }
-      if (debug === true) debug = LoggerLevel.debug
+      if (debug === true) {
+        debug = LoggerLevel.debug
+      } else if (debug) {
+        debug = GetLoggerLevel(debug)
+      }
       const baseProps: ElementBaseProps = {
         id,
         name,
