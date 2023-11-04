@@ -514,16 +514,12 @@ export class ElementProxy<T extends Element> {
   result?: any
   error?: Error
 
-  private get ignoreEvalPropsKeys() {
-    return this.element.ignoreEvalProps
-  }
-
-  private readonly elementAsyncProps?: any
+  #elementAsyncProps?: any
 
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
 
-    if (this.element.asyncConstructor) this.elementAsyncProps = props
+    if (this.element.asyncConstructor) this.#elementAsyncProps = props
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     Object.defineProperties(this.element, {
       proxy: {
@@ -566,7 +562,7 @@ export class ElementProxy<T extends Element> {
     const props = Object.keys(elem)
     const proms = props
       .filter(key => {
-        return !this.ignoreEvalPropsKeys?.includes(key) &&
+        return !this.element.ignoreEvalProps?.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {
@@ -608,7 +604,10 @@ export class ElementProxy<T extends Element> {
 
   async exec(parentState?: Record<string, any>) {
     if (parentState !== undefined) this.parentState = parentState
-    if (this.elementAsyncProps && this.element.asyncConstructor) await this.element.asyncConstructor(this.elementAsyncProps)
+    if (this.#elementAsyncProps && this.element.asyncConstructor) {
+      await this.element.asyncConstructor(this.#elementAsyncProps)
+      this.#elementAsyncProps = undefined
+    }
 
     this.rootScene?.event.emit('element/exec:before', this)
 
