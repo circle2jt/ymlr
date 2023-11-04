@@ -1391,7 +1391,9 @@ Example:
 ```yaml
   - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
 
-  - include: ./my-scenes              # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+  - include:
+      file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+      cached: true                    # Load file for the first time, the next will get from caches
 ```  
 
 
