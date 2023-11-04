@@ -1,6 +1,6 @@
 import chalk from 'chalk'
+import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { Logger } from '..'
-import { formatFixLengthNumber } from '../../format'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
 import { LoggerFactory } from '../logger-factory'
@@ -30,16 +30,14 @@ export class ConsoleLogger extends Logger {
   }
 
   get time() {
-    const date = new Date()
-    return chalk.gray(`#${LoggerFactory.PROCESS_ID} `) + chalk.dim(`${formatFixLengthNumber(date.getHours(), 2)}:${formatFixLengthNumber(date.getMinutes(), 2)}:${formatFixLengthNumber(date.getSeconds(), 2)}.${formatFixLengthNumber(date.getMilliseconds(), 3)}`)
+    return chalk.gray(`#${LoggerFactory.PROCESS_ID} `) + chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))
   }
 
   override log(msg: any, ...prms: any) {
     if (typeof msg === 'string') {
       this.splitRawMsg(msg, LevelFactory.GetLogInstance(), ...prms).forEach((msgs: any[]) => { console.log(...msgs) })
     } else {
-      prms.splice(0, 0, msg)
-      console.log(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, ...prms)
+      console.log(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, msg, ...prms)
     }
     return this
   }
@@ -50,8 +48,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.info), ...prms).forEach((msgs: any[]) => { console.info(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), ...prms)
+        console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), msg, ...prms)
       }
     }
     return this
@@ -63,8 +60,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.debug), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), ...prms)
+        console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), msg, ...prms)
       }
     }
     return this
@@ -77,8 +73,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.warn), ...prms).forEach((msgs: any[]) => { console.warn(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), ...prms)
+        console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), msg, ...prms)
       }
     }
     return this
@@ -90,8 +85,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.trace), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), ...prms)
+        console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), msg, ...prms)
       }
     }
     return this
@@ -104,8 +98,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.error), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), ...prms)
+        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), msg, ...prms)
       }
     }
     return this
@@ -118,8 +111,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.fatal), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
       } else {
-        prms.splice(0, 0, msg)
-        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), ...prms)
+        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), msg, ...prms)
       }
     }
     return this
@@ -138,7 +130,7 @@ export class ConsoleLogger extends Logger {
   private syncTab() {
     if (this.maxContextLength === ConsoleLogger.MaxContextLength) return
     this.maxContextLength = ConsoleLogger.MaxContextLength
-    this.tab = chalk.gray(new Array(this.maxContextLength - this.context.length).fill(' ').join(''))
+    this.tab = new Array(this.maxContextLength - this.context.length).fill(' ').join('')
   }
 
   private splitMsg(msg: string, level: Level | undefined, ...prms: any): string[][] {

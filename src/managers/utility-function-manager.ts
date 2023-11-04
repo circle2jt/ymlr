@@ -3,6 +3,14 @@ import { type Base64 } from 'src/libs/encrypt/base64'
 import { type MD5 } from 'src/libs/encrypt/md5'
 
 export class UtilityFunctionManager {
+  static #Instance: UtilityFunctionManager
+  static get Instance() {
+    if (!this.#Instance) {
+      this.#Instance = new UtilityFunctionManager()
+    }
+    return this.#Instance
+  }
+
   /** |**  $utils.base64
     Base64 encrypt/decrypt a string
     @position bottom

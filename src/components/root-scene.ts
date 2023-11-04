@@ -43,7 +43,7 @@ export class RootScene extends Scene {
   readonly #backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new Map<string, any>()
-  readonly globalUtils = new UtilityFunctionManager()
+  readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
   readonly event = new EventEmitter({ captureRejections: false }).setMaxListeners(0)

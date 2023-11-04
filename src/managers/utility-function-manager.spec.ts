@@ -3,7 +3,7 @@ import { Base64 } from 'src/libs/encrypt/base64'
 import { MD5 } from 'src/libs/encrypt/md5'
 import { UtilityFunctionManager } from './utility-function-manager'
 
-const globalUtils = new UtilityFunctionManager()
+const globalUtils = UtilityFunctionManager.Instance
 
 test('base64 encrypt/decrypt', async () => {
   const raw = 'thanh'
