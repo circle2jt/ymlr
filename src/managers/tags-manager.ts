@@ -48,29 +48,6 @@ export class TagsManager {
     this.modules = {}
   }
 
-  async install(...packages: string[]) {
-    packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
-    if (!this.prInstall) {
-      // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-      this.prInstall = new Promise<any>(async (resolve, reject) => {
-        try {
-          const { PackagesManagerFactory } = await import('./packages-manager-factory')
-          const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
-          while (this.packages.length) {
-            const packs = this.packages.splice(0, this.packages.length)
-            this.logger.debug('Preparing to install the lack packages...')
-            await packagesManager.install(...packs)
-          }
-          resolve(undefined)
-        } catch (err) {
-          reject(err)
-        }
-      })
-    }
-    await this.prInstall
-    this.prInstall = undefined
-  }
-
   async loadElementClass(name: string, scene: Scene) {
     const logger = scene.proxy.logger
     let ElementModule: any
@@ -148,5 +125,28 @@ export class TagsManager {
     // Class type
     if (tagName) ElementClazz.tag = tagName
     return ElementClazz as ElementClass
+  }
+
+  private async install(...packages: string[]) {
+    packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
+    if (!this.prInstall) {
+      // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+      this.prInstall = new Promise<any>(async (resolve, reject) => {
+        try {
+          const { PackagesManagerFactory } = await import('./packages-manager-factory')
+          const packagesManager = PackagesManagerFactory.GetInstance(this.logger)
+          while (this.packages.length) {
+            const packs = this.packages.splice(0, this.packages.length)
+            this.logger.debug('Preparing to install the lack packages...')
+            await packagesManager.install(...packs)
+          }
+          resolve(undefined)
+        } catch (err) {
+          reject(err)
+        }
+      })
+    }
+    await this.prInstall
+    this.prInstall = undefined
   }
 }
