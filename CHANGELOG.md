@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.3.md](#1699179498300)  -  _11/5/2023, 5:18:18 PM_
 - [1.2.6-alpha.2.md](#1699084967671)  -  _11/4/2023, 3:02:47 PM_
 - [1.2.6-alpha.1.md](#1699011149554)  -  _11/3/2023, 6:32:29 PM_
 - [1.2.6-alpha.0.md](#1698925879891)  -  _11/2/2023, 6:51:19 PM_
@@ -51,6 +52,17 @@
 
 ## Details
 
+<a id="1699179498300"></a>
+### 1.2.6-alpha.3
+
+* fix: use "npm" is default package manager to test (39f9217)
+* perf: optimize scene, rootScene (c7c0258)
+* fix(http'server'): support return response header (e699088)
+* fix: summary for debug mode (9ae8d26)
+* feat: add --tty to enable/disable output color in logger (be75b17)
+* refactor: replace utils to singleton (cbb1a5c)
+* fix: logger level should be inherited from parent (bcf53f8)
+  
 <a id="1699084967671"></a>
 ### 1.2.6-alpha.2
 

@@ -673,7 +673,7 @@ Example:
       excludeDirs:
         - node_modules
       prependMDs:                                     # Prepend content in the document (Optional)
-        - path: ${$utils.curDir}/../INSTALLATION.md    # |- {path}: Read file content then copy it into document
+        - path: ../INSTALLATION.md                    # |- {path}: Read file content then copy it into document
         - ---                                         # |- string: Markdown content
       appendMDs:                                      # Append content in the document
         - ---
