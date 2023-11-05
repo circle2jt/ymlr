@@ -160,7 +160,14 @@ export class HttpServer implements Element {
         if (response.status) {
           res.statusCode = response.status
         }
-        if (response.statusMessage) res.statusMessage = response.statusMessage
+        if (response.statusMessage) {
+          res.statusMessage = response.statusMessage
+        }
+        if (response.headers) {
+          for (const k in response.headers) {
+            res.setHeader(k, response.headers[k]?.toString() || '')
+          }
+        }
         const resData = response.data
         if (resData !== undefined && resData !== null) {
           if (!response.status) {

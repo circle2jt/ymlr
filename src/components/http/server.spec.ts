@@ -149,14 +149,16 @@ test('Check basic authentication via headers', async () => {
   expect(Testing.vars.body).toEqual(jobData)
 })
 
-test('Test response', async () => {
+test('Test response by code', async () => {
   serve = await Testing.createElementProxy(HttpServer, {
     address: '0.0.0.0:3004',
     runs: [
       {
         "exec'js": `
           await new Promise(r => setTimeout(r, 500))
-          $parentState.res.writeHead(200)
+          $parentState.res.writeHead(200, {
+            key1: 'value 1'
+          })
           $parentState.res.write('ok')
         `
       },
@@ -165,11 +167,45 @@ test('Test response', async () => {
       }
     ]
   })
+  let resp: any
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   setTimeout(async () => {
-    const resp = await axios.post('http://0.0.0.0:3004')
-    expect(resp.status).toBe(200)
-    expect(resp.data).toBe('ok')
+    resp = await axios.post('http://0.0.0.0:3004')
   }, 1000)
   await serve.exec()
+  expect(resp.status).toBe(200)
+  expect(resp.data).toBe('ok')
+  expect(resp.headers.key1).toBe('value 1')
+})
+
+test('Test response by return data', async () => {
+  serve = await Testing.createElementProxy(HttpServer, {
+    address: '0.0.0.0:3005',
+    runs: [
+      {
+        "exec'js": `
+          await new Promise(r => setTimeout(r, 500))
+          $parentState.response = {
+            status: 200,
+            headers: {
+              key1: 'value 1'
+            },
+            data: {
+              ok: true
+            }
+          }
+        `
+      }
+    ]
+  })
+  let resp: any
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  setTimeout(async () => {
+    resp = await axios.post('http://0.0.0.0:3005')
+    await serve.dispose()
+  }, 3000)
+  await serve.exec()
+  expect(resp.status).toBe(200)
+  expect(resp.headers.key1).toBe('value 1')
+  expect(resp.data?.ok).toBe(true)
 })
