@@ -1,4 +1,3 @@
-import { type RootScene } from 'src/components/root-scene'
 import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { type Logger } from 'src/libs/logger'
@@ -7,6 +6,7 @@ import { isGetEvalExp } from 'src/libs/variable'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
 import { type GroupItemProps } from './group/group.props'
+import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
@@ -477,12 +477,28 @@ export class ElementProxy<T extends Element> {
     return this.parent?.proxy
   }
 
-  scene!: Scene
-  get sceneProxy() {
-    return this.scene.proxy
+  #scene!: WeakRef<Scene>
+  set scene(scene: Scene) {
+    this.#scene = new WeakRef(scene)
   }
 
-  rootScene!: RootScene
+  get scene() {
+    return this.#scene?.deref() as Scene
+  }
+
+  get sceneProxy() {
+    return this.scene?.proxy
+  }
+
+  #rootScene!: WeakRef<RootScene>
+  set rootScene(rootScene: RootScene) {
+    this.#rootScene = new WeakRef(rootScene)
+  }
+
+  get rootScene() {
+    return this.#rootScene?.deref() as RootScene
+  }
+
   get rootSceneProxy() {
     return this.rootScene?.proxy
   }
@@ -507,7 +523,7 @@ export class ElementProxy<T extends Element> {
     return this.#logger
   }
 
-  set logger(logger: Logger | undefined) {
+  set logger(logger: Logger) {
     this.#logger = logger
   }
 
@@ -518,10 +534,9 @@ export class ElementProxy<T extends Element> {
 
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
-
-    if (this.element.asyncConstructor) this.#elementAsyncProps = props
+    if (element.asyncConstructor) this.#elementAsyncProps = props
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    Object.defineProperties(this.element, {
+    Object.defineProperties(element, {
       proxy: {
         value: this,
         writable: false
@@ -559,10 +574,9 @@ export class ElementProxy<T extends Element> {
 
   async evalPropsBeforeExec() {
     const elem = this.element
-    const props = Object.keys(elem)
-    const proms = props
+    const proms = Object.keys(elem)
       .filter(key => {
-        return !this.element.ignoreEvalProps?.includes(key) &&
+        return !elem.ignoreEvalProps?.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {
@@ -604,9 +618,10 @@ export class ElementProxy<T extends Element> {
 
   async exec(parentState?: Record<string, any>) {
     if (parentState !== undefined) this.parentState = parentState
-    if (this.#elementAsyncProps && this.element.asyncConstructor) {
+    if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.#elementAsyncProps)
       this.#elementAsyncProps = undefined
+      this.element.asyncConstructor = undefined
     }
 
     this.rootScene?.event.emit('element/exec:before', this)
@@ -651,6 +666,6 @@ export class ElementProxy<T extends Element> {
   async dispose() {
     await this.element.dispose?.()
     this.parentState = undefined
-    this.logger = undefined
+    this.logger = undefined as any
   }
 }
