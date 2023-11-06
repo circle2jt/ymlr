@@ -26,6 +26,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
       scene:
         name: Scene name
         path: https://.../another.yaml    # path can be URL or local path
+        cached: false                     # caches yaml content to ram to prevent reload content from a file
         password:                         # password to decode when the file is encrypted
         vars:                             # They will only overrides vars in the parents to this scene
                                           # - Global variables is always passed into this scene
@@ -37,14 +38,22 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
 export class Scene extends Group<GroupProps, GroupItemProps> {
   name?: string
   path?: string
-  encryptedPath?: string
-  password?: string
   vars?: Record<string, any>
-  content?: string
+  cached?: boolean
   curDir = ''
+
   localVars: Record<string, any> = {}
 
-  private updateGlobalVarsListener?: any
+  readonly localCaches = new Map<string, any[]>()
+  protected readonly password?: string
+
+  #updateGlobalVarsListener?: any
+  #content?: string
+
+  get encryptedPath() {
+    const name = basename(this.path as string)
+    return join(this.curDir, name.substring(0, name.lastIndexOf('.')))
+  }
 
   protected get innerScene() {
     return this
@@ -56,18 +65,20 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
     const { path, content, password, vars, ...props } = eProps
     super(props)
-    Object.assign(this, { path, content, password, vars })
-    this.ignoreEvalProps.push('content', 'curDir', 'localVars', 'event')
+    this.password = password
+    this.#content = content
+    Object.assign(this, { path, vars })
+    this.ignoreEvalProps.push('curDir', 'localVars', 'localCaches')
   }
 
   async asyncConstructor() {
     this.setupVars()
     await this.handleFile()
-    this.updateGlobalVarsListener = (name: string) => {
+    this.#updateGlobalVarsListener = (name: string) => {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
     }
-    this.rootScene.event.on('update/global-vars', this.updateGlobalVarsListener)
+    this.rootScene.event.on('update/global-vars', this.#updateGlobalVarsListener)
   }
 
   async handleFile() {
@@ -113,7 +124,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async dispose() {
-    if (this.updateGlobalVarsListener) this.rootScene.event.off('update/global-vars', this.updateGlobalVarsListener)
+    if (this.#updateGlobalVarsListener) this.rootScene.event.off('update/global-vars', this.#updateGlobalVarsListener)
     await super.dispose()
   }
 
@@ -175,25 +186,39 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async getRemoteFileProps() {
+    let props: any
     this.path = await this.scene.getVars(this.path)
-    if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.scene || this)
-      this.content = await fileRemote.getTextContent()
+    let fileRemote: FileRemote | undefined
+    let content = this.#content
+    if (!content && this.path) {
+      fileRemote = new FileRemote(this.path, this.scene || this)
       if (!fileRemote.isRemote) {
         this.path = resolve(fileRemote.uri)
         const dirPath = dirname(this.path)
         if (this.isRoot) this.rootScene.rootDir = dirPath
         this.curDir = dirPath
       }
+      if (this.cached) {
+        props = this.scene.localCaches.get(fileRemote.uri)
+        if (props) {
+          return props
+        }
+      }
+      content = await fileRemote.getTextContent()
     }
-    assert(this.content, 'Scene file is not valid format')
+    assert(content, 'Scene file is not valid format')
     if (this.password) {
-      this.content = await this.decryptContent(this.content, this.password)
-      return JSON.parse(this.content)
+      content = await this.decryptContent(content, this.password)
+      props = JSON.parse(content)
+    } else {
+      const yamlType = new YamlType(this)
+      content = await this.prehandleFile(content)
+      props = load(content, { schema: yamlType.spaceSchema })
     }
-    const yamlType = new YamlType(this)
-    this.content = await this.prehandleFile(this.content)
-    return load(this.content, { schema: yamlType.spaceSchema })
+    if (this.cached && fileRemote) {
+      this.scene.localCaches.set(fileRemote.uri, props)
+    }
+    return props
   }
 
   /** |**  # @include
@@ -248,7 +273,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   private async generateEncryptedFile(contentObject?: any, password?: string) {
     if (!password || !this.path || !contentObject) return
     const content = JSON.stringify(contentObject)
-    this.encryptedPath = join(this.curDir, basename(this.path).split('.')[0])
     this.logger.trace('Encrypted to\t%s', this.encryptedPath)
     const econtent = this.rootScene.globalUtils.aes.encrypt(content, `${SAND_SCENE_PASSWORD}${password}`)
     const { writeFile } = await import('fs/promises')

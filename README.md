@@ -1658,6 +1658,7 @@ Example:
     scene:
       name: Scene name
       path: https://.../another.yaml    # path can be URL or local path
+      cached: false                     # caches yaml content to ram to prevent reload content from a file
       password:                         # password to decode when the file is encrypted
       vars:                             # They will only overrides vars in the parents to this scene
                                         # - Global variables is always passed into this scene
