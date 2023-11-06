@@ -25,8 +25,6 @@ export class Include implements Element {
   file!: string
   cached?: boolean
 
-  #caches?: any[]
-
   get #logger() { return this.proxy.logger }
 
   constructor(public opts: IncludeProps) {
@@ -38,15 +36,14 @@ export class Include implements Element {
   }
 
   async exec() {
-    if (this.#caches) {
-      this.#logger.trace('Get include data from cached')
-      return this.#caches
-    }
-
     assert(this.file)
-
-    const files = []
     const f = new FileRemote(this.file, this.proxy.scene)
+    const cached = this.proxy.scene.localCaches.get(f.uri)
+    if (cached) {
+      this.#logger.trace('Get include data from cached')
+      return cached
+    }
+    const files = []
     const isDir = f.isDirectory
     if (isDir) {
       const listFiles = await readdir(f.uri)
@@ -68,7 +65,7 @@ export class Include implements Element {
       }))
       const childs = elementProxies.flat(1)
       if (this.cached) {
-        this.#caches = childs
+        this.proxy.scene.localCaches.set(f.uri, childs)
       }
       return childs
     }
