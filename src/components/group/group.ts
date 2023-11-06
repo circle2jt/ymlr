@@ -48,7 +48,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       this.runs = props
     } else if (props) {
       this.resolveShortcutAsync(props)
-      Object.assign(this, props)
+      this.runs = props.runs
+      this.hideName = props.hideName
     }
   }
 
@@ -56,7 +57,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
-    elemProxy.parent = this
+    if (this.proxy.tag === 'inner-runs-proxy') {
+      elemProxy.parent = this.proxy.parent
+    } else {
+      elemProxy.parent = this
+    }
     elemProxy.scene = this.innerScene
     elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene
     Object.assign(elemProxy, loopObj)
@@ -68,8 +73,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       innerRuns.hideName = true
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
-      innerRunsProxy.owner = elem as Group<any, any>
-      innerRunsProxy.parent = elemProxy.parent
+      innerRunsProxy.parent = elem
       innerRunsProxy.scene = elemProxy.scene
       innerRunsProxy.rootScene = elemProxy.rootScene
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
@@ -218,7 +222,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         let loopCondition = await this.innerScene.getVars(loop, this.proxy)
         if (loopCondition) {
           if (Array.isArray(loopCondition)) {
-            for (let i = 0; i < loopCondition.length; i++) {
+            for (let i = 0; i < loopCondition.length; ++i) {
               const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: i,
@@ -230,7 +234,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             }
           } else if (typeof loopCondition === 'object') {
             const keys = Object.keys(loopCondition)
-            for (let i = 0; i < keys.length; i++) {
+            for (let i = 0; i < keys.length; ++i) {
               const key = keys[i]
               const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {

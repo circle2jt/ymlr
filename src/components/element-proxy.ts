@@ -459,20 +459,15 @@ export class ElementProxy<T extends Element> {
   loopKey?: any
   loopValue?: any
 
-  #owner?: Group<any, any>
-  set owner(owner: Group<any, any> | undefined) {
-    this.#owner = owner
+  #parent!: WeakRef<Element>
+  set parent(parent: Element) {
+    this.#parent = new WeakRef(parent)
   }
 
-  get owner() {
-    return this.#owner || this.parent
+  get parent() {
+    return this.#parent?.deref() as Element
   }
 
-  get ownerProxy() {
-    return this.owner?.proxy
-  }
-
-  parent?: Group<any, any>
   get parentProxy() {
     return this.parent?.proxy
   }
@@ -551,12 +546,12 @@ export class ElementProxy<T extends Element> {
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
-    let owner: Element | undefined = this.owner
-    while (owner) {
-      if (ClazzTypes.some(ClazzType => owner instanceof ClazzType)) {
-        return owner.proxy as ElementProxy<T>
+    let parentElement: Element | undefined = this.parent
+    while (parentElement) {
+      if (ClazzTypes.some(ClazzType => parentElement instanceof ClazzType)) {
+        return parentElement.proxy as ElementProxy<T>
       }
-      owner = owner.proxy.owner
+      parentElement = parentElement.proxy.parent
     }
     return undefined
   }
