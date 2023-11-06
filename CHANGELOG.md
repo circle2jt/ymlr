@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.4.md](#1699281916054)  -  _11/6/2023, 9:45:16 PM_
 - [1.2.6-alpha.3.md](#1699179498300)  -  _11/5/2023, 5:18:18 PM_
 - [1.2.6-alpha.2.md](#1699084967671)  -  _11/4/2023, 3:02:47 PM_
 - [1.2.6-alpha.1.md](#1699011149554)  -  _11/3/2023, 6:32:29 PM_
@@ -52,6 +53,13 @@
 
 ## Details
 
+<a id="1699281916054"></a>
+### 1.2.6-alpha.4
+
+* fix(include): load content from cached in scene (c652a38)
+* feat: support "cached" for scene (747b09f)
+* perf: optimize ram (528af24)
+  
 <a id="1699179498300"></a>
 ### 1.2.6-alpha.3
 
