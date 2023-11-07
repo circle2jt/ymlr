@@ -1,3 +1,4 @@
+import { Console } from 'console'
 import { type Indent } from './indent'
 import { type Level } from './level'
 import { GetLoggerLevel, LoggerLevel } from './logger-level'
@@ -47,11 +48,23 @@ export class LoggerFactory {
     LoggerFactory.DEFAULT_LOGGER?.Dispose?.()
   }
 
-  static NewLogger(level: LoggerLevel | Level | undefined, context?: string, indent?: Indent) {
-    if (!LoggerFactory.DEFAULT_LOGGER) {
+  static Configure(name = 'console' as 'console' | 'file', opts = {} as any) {
+    if (name === 'file') {
+      const { FileLogger } = require('./file')
+      FileLogger.SetOutput(opts.stdout, opts.stderr)
+      LoggerFactory.DEFAULT_LOGGER = FileLogger
+    } else {
       const { ConsoleLogger } = require('./console')
+      ConsoleLogger.SetConsole(new Console({
+        stdout: process.stdout,
+        stderr: process.stderr,
+        ...opts
+      }))
       LoggerFactory.DEFAULT_LOGGER = ConsoleLogger
     }
+  }
+
+  static NewLogger(level: LoggerLevel | Level | undefined, context?: string, indent?: Indent) {
     const logger = new LoggerFactory.DEFAULT_LOGGER(level, context, indent)
     return logger
   }

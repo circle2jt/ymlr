@@ -19,7 +19,7 @@ export abstract class Logger {
     return this.#context
   }
 
-  constructor(level?: LoggerLevel | Level | undefined, context = '', public indent = new Indent()) {
+  constructor(level: LoggerLevel | Level | undefined, context = '', public indent = new Indent()) {
     if (context) {
       this.context = context
     }

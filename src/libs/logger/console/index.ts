@@ -7,15 +7,16 @@ import { LoggerFactory } from '../logger-factory'
 import { LoggerLevel } from '../logger-level'
 
 export class ConsoleLogger extends Logger {
-  private static MaxContextLength = 0
+  static #MaxContextLength = 0
+  static #Console: Console
 
-  private tab = ''
-  private maxContextLength = 0
+  #tab = ''
+  #maxContextLength = 0
 
   override set context(ctx: string) {
     super.context = ctx
     const maxLength = this.indent.indentStringLength + this.context.length
-    if (ConsoleLogger.MaxContextLength < maxLength) ConsoleLogger.MaxContextLength = maxLength
+    if (ConsoleLogger.#MaxContextLength < maxLength) ConsoleLogger.#MaxContextLength = maxLength
   }
 
   override get context() {
@@ -26,18 +27,22 @@ export class ConsoleLogger extends Logger {
     if (!this.level) {
       return ''
     }
-    return `${this.time} ${chalk.blue(this.context)} ${this.tab}`
+    return `${this.time} ${chalk.blue(this.context)} ${this.#tab}`
   }
 
   get time() {
     return chalk.gray(`#${LoggerFactory.PROCESS_ID} `) + chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))
   }
 
+  static SetConsole(console: Console) {
+    ConsoleLogger.#Console = console
+  }
+
   override log(msg: any, ...prms: any) {
     if (typeof msg === 'string') {
-      this.splitRawMsg(msg, LevelFactory.GetLogInstance(), ...prms).forEach((msgs: any[]) => { console.log(...msgs) })
+      this.splitRawMsg(msg, LevelFactory.GetLogInstance(), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.log(...msgs) })
     } else {
-      console.log(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, msg, ...prms)
+      ConsoleLogger.#Console.log(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, msg, ...prms)
     }
     return this
   }
@@ -46,9 +51,9 @@ export class ConsoleLogger extends Logger {
     if (!this.level || this.level?.is(LoggerLevel.info)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.info), ...prms).forEach((msgs: any[]) => { console.info(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.info), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.info(...msgs) })
       } else {
-        console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), msg, ...prms)
+        ConsoleLogger.#Console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), msg, ...prms)
       }
     }
     return this
@@ -58,9 +63,9 @@ export class ConsoleLogger extends Logger {
     if (this.level?.is(LoggerLevel.debug)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.debug), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.debug), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.debug(...msgs) })
       } else {
-        console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), msg, ...prms)
+        ConsoleLogger.#Console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), msg, ...prms)
       }
     }
     return this
@@ -71,9 +76,9 @@ export class ConsoleLogger extends Logger {
       // Logger.Event?.emit(LoggerLevel.warn)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.warn), ...prms).forEach((msgs: any[]) => { console.warn(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.warn), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.warn(...msgs) })
       } else {
-        console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), msg, ...prms)
+        ConsoleLogger.#Console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), msg, ...prms)
       }
     }
     return this
@@ -83,9 +88,9 @@ export class ConsoleLogger extends Logger {
     if (this.level?.is(LoggerLevel.trace)) {
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.trace), ...prms).forEach((msgs: any[]) => { console.debug(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.trace), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.debug(...msgs) })
       } else {
-        console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), msg, ...prms)
+        ConsoleLogger.#Console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), msg, ...prms)
       }
     }
     return this
@@ -96,9 +101,9 @@ export class ConsoleLogger extends Logger {
       // Logger.Event?.emit(LoggerLevel.error)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.error), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.error), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.error(...msgs) })
       } else {
-        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), msg, ...prms)
+        ConsoleLogger.#Console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), msg, ...prms)
       }
     }
     return this
@@ -109,9 +114,9 @@ export class ConsoleLogger extends Logger {
       // Logger.Event?.emit(LoggerLevel.fatal)
       this.syncTab()
       if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.fatal), ...prms).forEach((msgs: any[]) => { console.error(...msgs) })
+        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.fatal), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.error(...msgs) })
       } else {
-        console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), msg, ...prms)
+        ConsoleLogger.#Console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), msg, ...prms)
       }
     }
     return this
@@ -124,13 +129,13 @@ export class ConsoleLogger extends Logger {
   override addIndent(indent = 1) {
     super.addIndent(indent)
     const maxLength = this.indent.indentStringLength + this.context.length
-    if (ConsoleLogger.MaxContextLength < maxLength) ConsoleLogger.MaxContextLength = maxLength
+    if (ConsoleLogger.#MaxContextLength < maxLength) ConsoleLogger.#MaxContextLength = maxLength
   }
 
   private syncTab() {
-    if (this.maxContextLength === ConsoleLogger.MaxContextLength) return
-    this.maxContextLength = ConsoleLogger.MaxContextLength
-    this.tab = new Array(this.maxContextLength - this.context.length).fill(' ').join('')
+    if (this.#maxContextLength === ConsoleLogger.#MaxContextLength) return
+    this.#maxContextLength = ConsoleLogger.#MaxContextLength
+    this.#tab = new Array(this.#maxContextLength - this.context.length).fill(' ').join('')
   }
 
   private splitMsg(msg: string, level: Level | undefined, ...prms: any): string[][] {
