@@ -21,8 +21,7 @@ export class LevelFactory {
     return levelObj
   }
 
-  static GetInstance(level?: LoggerLevel) {
-    if (!level) return
+  static GetInstance(level: LoggerLevel) {
     let levelObj = this.#Instance.get(level)
     if (levelObj) { return levelObj }
 
@@ -46,8 +45,12 @@ export class LevelFactory {
       case LoggerLevel.fatal:
         levelObj = new FatalLevel()
         break
-      default:
-        return undefined
+      case LoggerLevel.log:
+        levelObj = new LogLevel()
+        break
+    }
+    if (!levelObj) {
+      throw new Error('LogLevel is not valid')
     }
     this.#Instance.set(level, levelObj)
     return levelObj

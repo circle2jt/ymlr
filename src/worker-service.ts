@@ -4,10 +4,12 @@ import { LoggerFactory } from './libs/logger/logger-factory'
 
 void (async () => {
   try {
-    const { baseProps = {}, props = {}, tagDirs, templates, id, loggerDebugContexts, loggerDebug } = workerData
+    const { baseProps = {}, props = {}, tagDirs, templates, id, loggerDebugContexts, loggerDebug, loggerConfig } = workerData
     LoggerFactory.DEBUG = loggerDebug
     LoggerFactory.DEBUG_CONTEXTS = loggerDebugContexts
-    LoggerFactory.PROCESS_ID = id
+    LoggerFactory.DEFAULT_LOGGER_CONFIG = loggerConfig
+    LoggerFactory.PROCESS_ID = `#${id}`
+    LoggerFactory.Configure(LoggerFactory.DEFAULT_LOGGER_CONFIG?.name, LoggerFactory.DEFAULT_LOGGER_CONFIG?.opts)
     LoggerFactory.LoadFromEnv()
     const appLogger = LoggerFactory.NewLogger(baseProps.debug || LoggerFactory.DEBUG)
     const app = new App(appLogger, props)

@@ -6,118 +6,61 @@ import { LevelFactory } from '../level-factory'
 import { LoggerFactory } from '../logger-factory'
 import { LoggerLevel } from '../logger-level'
 
+const SPACE = chalk.gray('╎')
+
 export class ConsoleLogger extends Logger {
+  static readonly DISABLE_PREFIX = Symbol('DISABLE_PREFIX')
   static #MaxContextLength = 0
   static #Console: Console
 
   #tab = ''
-  #maxContextLength = 0
-
-  override set context(ctx: string) {
-    super.context = ctx
-    const maxLength = this.indent.indentStringLength + this.context.length
-    if (ConsoleLogger.#MaxContextLength < maxLength) ConsoleLogger.#MaxContextLength = maxLength
-  }
-
-  override get context() {
-    return super.context
-  }
-
-  get prefix() {
-    if (!this.level) {
-      return ''
-    }
-    return `${this.time} ${chalk.blue(this.context)} ${this.#tab}`
-  }
-
-  get time() {
-    return chalk.gray(`#${LoggerFactory.PROCESS_ID} `) + chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))
-  }
 
   static SetConsole(console: Console) {
     ConsoleLogger.#Console = console
   }
 
   override log(msg: any, ...prms: any) {
-    if (typeof msg === 'string') {
-      this.splitRawMsg(msg, LevelFactory.GetLogInstance(), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.log(...msgs) })
-    } else {
-      ConsoleLogger.#Console.log(`${this.formatRaw('%j', LevelFactory.GetLogInstance())}`, msg, ...prms)
-    }
-    return this
+    return this.print(LoggerLevel.log, msg, ...prms)
   }
 
   override info(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.info)) {
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.info), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.info(...msgs) })
-      } else {
-        ConsoleLogger.#Console.info(this.format('%j', LevelFactory.GetInstance(LoggerLevel.info)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.info, msg, ...prms)
     }
     return this
   }
 
   override debug(msg: any, ...prms: any) {
     if (this.level?.is(LoggerLevel.debug)) {
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.debug), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.debug(...msgs) })
-      } else {
-        ConsoleLogger.#Console.debug(this.format('%j', LevelFactory.GetInstance(LoggerLevel.debug)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.debug, msg, ...prms)
     }
     return this
   }
 
   override warn(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.warn)) {
-      // Logger.Event?.emit(LoggerLevel.warn)
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.warn), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.warn(...msgs) })
-      } else {
-        ConsoleLogger.#Console.warn(this.format('%o', LevelFactory.GetInstance(LoggerLevel.warn)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.warn, msg, ...prms)
     }
     return this
   }
 
   override trace(msg: any, ...prms: any) {
     if (this.level?.is(LoggerLevel.trace)) {
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.trace), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.debug(...msgs) })
-      } else {
-        ConsoleLogger.#Console.debug(this.format('%o', LevelFactory.GetInstance(LoggerLevel.trace)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.trace, msg, ...prms)
     }
     return this
   }
 
   override error(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.error)) {
-      // Logger.Event?.emit(LoggerLevel.error)
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.error), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.error(...msgs) })
-      } else {
-        ConsoleLogger.#Console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.error)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.error, msg, ...prms)
     }
     return this
   }
 
   override fatal(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.fatal)) {
-      // Logger.Event?.emit(LoggerLevel.fatal)
-      this.syncTab()
-      if (typeof msg === 'string') {
-        this.splitMsg(msg, LevelFactory.GetInstance(LoggerLevel.fatal), ...prms).forEach((msgs: any[]) => { ConsoleLogger.#Console.error(...msgs) })
-      } else {
-        ConsoleLogger.#Console.error(this.format('%o', LevelFactory.GetInstance(LoggerLevel.fatal)), msg, ...prms)
-      }
+      return this.print(LoggerLevel.fatal, msg, ...prms)
     }
     return this
   }
@@ -126,49 +69,36 @@ export class ConsoleLogger extends Logger {
     return new ConsoleLogger(level || this.level?.level, context || this.context, this.indent.clone())
   }
 
-  override addIndent(indent = 1) {
-    super.addIndent(indent)
-    const maxLength = this.indent.indentStringLength + this.context.length
-    if (ConsoleLogger.#MaxContextLength < maxLength) ConsoleLogger.#MaxContextLength = maxLength
+  private print(loggerLevel: LoggerLevel, msg: any, ...prms: any) {
+    const isPrefix = prms[prms.length - 1] !== ConsoleLogger.DISABLE_PREFIX
+    if (!isPrefix) {
+      prms.splice(prms.length - 1, 1)
+    }
+    this.syncTab()
+    if (typeof msg === 'string') {
+      ConsoleLogger.#Console.info(this.format(msg, loggerLevel, isPrefix), ...prms)
+    } else {
+      ConsoleLogger.#Console.info(this.format('%j', loggerLevel, isPrefix), msg, ...prms)
+    }
+    return this
   }
 
   private syncTab() {
-    if (this.#maxContextLength === ConsoleLogger.#MaxContextLength) return
-    this.#maxContextLength = ConsoleLogger.#MaxContextLength
-    this.#tab = new Array(this.#maxContextLength - this.context.length).fill(' ').join('')
-  }
-
-  private splitMsg(msg: string, level: Level | undefined, ...prms: any): string[][] {
-    return msg
-      .split('\n')
-      .map((msg: string, i: number) => {
-        msg = (i === 0 ? '' : '  ') + msg
-        return [this.format(msg, i !== 0 ? undefined : level), ...prms]
-      })
-  }
-
-  private splitRawMsg(msg: string, level: Level | undefined, ...prms: any): string[][] {
-    return msg
-      .split('\n')
-      .map((msg: string, i: number) => {
-        msg = (i === 0 ? '' : '  ') + msg
-        return [this.formatRaw(msg, i !== 0 ? undefined : level), ...prms]
-      })
-  }
-
-  private formatRaw(msg: string, level?: Level) {
-    if (level) {
-      const [icon, txt] = level.format(msg)
-      return icon + this.indent.format(txt)
+    if (ConsoleLogger.#MaxContextLength < this.context.length) {
+      ConsoleLogger.#MaxContextLength = this.context.length
     }
-    return this.indent.format(msg)
+    const tabCount = ConsoleLogger.#MaxContextLength - this.context.length
+    if (this.#tab.length !== tabCount) {
+      this.#tab = new Array(tabCount).fill('┄').join('')
+    }
   }
 
-  private format(msg: string, level?: Level) {
-    if (level) {
-      const [icon, txt] = level.format(msg)
-      return this.prefix + icon + this.indent.format(txt)
+  private format(msg: string, loggerLevel: LoggerLevel, isPrefix: boolean) {
+    const level = LevelFactory.GetInstance(loggerLevel)
+    let prefix = ''
+    if (isPrefix && this.level) {
+      prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${level.icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
     }
-    return this.prefix + this.indent.format(msg)
+    return prefix + this.indent.format(level.format(msg) ?? msg)
   }
 }

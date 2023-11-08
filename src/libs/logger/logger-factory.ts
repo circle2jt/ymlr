@@ -4,12 +4,13 @@ import { type Level } from './level'
 import { GetLoggerLevel, LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
-  static PROCESS_ID = '0'
+  static PROCESS_ID = '#0'
 
   static DEBUG?: LoggerLevel
   static DEBUG_CONTEXTS?: Record<string, LoggerLevel>
 
   static DEFAULT_LOGGER: any
+  static DEFAULT_LOGGER_CONFIG: any
 
   static LoadFromEnv() {
     const DEBUG = process.env.DEBUG
@@ -49,6 +50,10 @@ export class LoggerFactory {
   }
 
   static Configure(name = 'console' as 'console' | 'file', opts = {} as any) {
+    LoggerFactory.DEFAULT_LOGGER_CONFIG = {
+      name,
+      opts
+    }
     if (name === 'file') {
       const { FileLogger } = require('./file')
       FileLogger.SetOutput(opts.stdout, opts.stderr)

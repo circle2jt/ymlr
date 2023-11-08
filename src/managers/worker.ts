@@ -22,6 +22,7 @@ export class Worker {
       templates?: Record<string, any>
       loggerDebugContexts?: Record<string, LoggerLevel>
       loggerDebug?: LoggerLevel
+      loggerConfig?: any
     }) {
     this.worker = new WorkerThread(join(__dirname, '../worker-service.js'), {
       workerData: {

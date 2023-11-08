@@ -3,11 +3,13 @@ import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
 export class InfoLevel extends Level {
+  readonly icon = chalk.green('I')
+
   constructor() {
     super(LoggerLevel.info)
   }
 
   override format(msg: string) {
-    return [chalk.bgGreen.bold('[I]') + ' ', chalk.green(msg)]
+    return chalk.green(msg)
   }
 }

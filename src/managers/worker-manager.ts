@@ -35,6 +35,7 @@ export class WorkerManager {
     templates?: Map<string, any>
     loggerDebugContexts?: Record<string, LoggerLevel>
     loggerDebug?: LoggerLevel
+    loggerConfig?: any
   }) {
     const wk = new Worker(props, baseProps, this.logger.clone(`worker:${others.id}`), others)
     this.#workers.add(wk)
