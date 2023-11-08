@@ -4,6 +4,7 @@ import { ErrorLevel } from './level/error-level'
 import { FatalLevel } from './level/fatal-level'
 import { InfoLevel } from './level/info-level'
 import { LogLevel } from './level/log-level'
+import { SilentLevel } from './level/silent-level'
 import { TraceLevel } from './level/trace-level'
 import { WarnLevel } from './level/warn-level'
 import { LoggerLevel } from './logger-level'
@@ -22,7 +23,7 @@ export class LevelFactory {
   }
 
   static GetInstance(level: LoggerLevel) {
-    let levelObj = this.#Instance.get(level)
+    let levelObj: Level | undefined | null = this.#Instance.get(level)
     if (levelObj) { return levelObj }
 
     switch (level) {
@@ -48,11 +49,13 @@ export class LevelFactory {
       case LoggerLevel.log:
         levelObj = new LogLevel()
         break
+      case LoggerLevel.silent:
+        levelObj = new SilentLevel()
+        break
     }
-    if (!levelObj) {
-      throw new Error('LogLevel is not valid')
+    if (levelObj) {
+      this.#Instance.set(level, levelObj)
     }
-    this.#Instance.set(level, levelObj)
     return levelObj
   }
 }

@@ -11,6 +11,6 @@ export abstract class Level {
   abstract format(msg: string): string
 
   is(level: LoggerLevel) {
-    return level === LoggerLevel.silent ? (this.level === level) : this.level <= level
+    return this.level <= level
   }
 }

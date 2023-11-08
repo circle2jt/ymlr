@@ -102,7 +102,6 @@ Example:
       .description('add external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        LoggerFactory.Configure()
         // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
         t = new Promise(async (resolve, reject) => {
           try {
@@ -123,7 +122,6 @@ Example:
       .description('upgrade external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        LoggerFactory.Configure()
         // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
         t = new Promise(async (resolve, reject) => {
           try {
@@ -144,7 +142,6 @@ Example:
       .description('remove external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        LoggerFactory.Configure()
         // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
         t = new Promise(async (resolve, reject) => {
           try {

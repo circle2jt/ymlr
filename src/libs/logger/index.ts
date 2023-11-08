@@ -5,7 +5,7 @@ import { LoggerFactory } from './logger-factory'
 import { type LoggerLevel } from './logger-level'
 
 export abstract class Logger {
-  public level?: Level
+  public level?: Level | null
   public get levelName(): string | undefined {
     return this.level?.name
   }

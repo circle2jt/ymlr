@@ -20,7 +20,10 @@ export class ConsoleLogger extends Logger {
   }
 
   override log(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.log, msg, ...prms)
+    if (this.level?.level !== LoggerLevel.silent) {
+      return this.print(LoggerLevel.log, msg, ...prms)
+    }
+    return this
   }
 
   override info(msg: any, ...prms: any) {
@@ -94,11 +97,18 @@ export class ConsoleLogger extends Logger {
   }
 
   private format(msg: string, loggerLevel: LoggerLevel, isPrefix: boolean) {
-    const level = LevelFactory.GetInstance(loggerLevel)
     let prefix = ''
-    if (isPrefix && this.level) {
-      prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${level.icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
+    let icon = ''
+    let txt = msg
+    const level = LevelFactory.GetInstance(loggerLevel)
+    if (level) {
+      icon = level.icon
+      txt = level.format(txt)
     }
-    return prefix + this.indent.format(level.format(msg) ?? msg)
+
+    if (isPrefix && this.level) {
+      prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
+    }
+    return prefix + this.indent.format(txt)
   }
 }

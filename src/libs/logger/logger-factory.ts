@@ -1,6 +1,5 @@
 import { Console } from 'console'
 import { type Indent } from './indent'
-import { type Level } from './level'
 import { GetLoggerLevel, LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
@@ -69,7 +68,10 @@ export class LoggerFactory {
     }
   }
 
-  static NewLogger(level: LoggerLevel | Level | undefined, context?: string, indent?: Indent) {
+  static NewLogger(level: LoggerLevel | undefined, context?: string, indent?: Indent) {
+    if (!LoggerFactory.DEFAULT_LOGGER) {
+      this.Configure()
+    }
     const logger = new LoggerFactory.DEFAULT_LOGGER(level, context, indent)
     return logger
   }
