@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.5.md](#1699426184200)  -  _11/8/2023, 1:49:44 PM_
 - [1.2.6-alpha.4.md](#1699281916054)  -  _11/6/2023, 9:45:16 PM_
 - [1.2.6-alpha.3.md](#1699179498300)  -  _11/5/2023, 5:18:18 PM_
 - [1.2.6-alpha.2.md](#1699084967671)  -  _11/4/2023, 3:02:47 PM_
@@ -53,6 +54,13 @@
 
 ## Details
 
+<a id="1699426184200"></a>
+### 1.2.6-alpha.5
+
+* fix: console.log with "silent" level (086ed2c)
+* refactor: update format to log console (7a69148)
+* feat(cli): Support write log to file (707814f)
+  
 <a id="1699281916054"></a>
 ### 1.2.6-alpha.4
 
