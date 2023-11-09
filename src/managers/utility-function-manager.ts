@@ -1,6 +1,8 @@
+import type EventEmitter from 'events'
 import { type AES } from 'src/libs/encrypt/aes'
 import { type Base64 } from 'src/libs/encrypt/base64'
 import { type MD5 } from 'src/libs/encrypt/md5'
+import { GlobalEvent } from 'src/libs/global-event'
 
 export class UtilityFunctionManager {
   static #Instance: UtilityFunctionManager
@@ -9,6 +11,25 @@ export class UtilityFunctionManager {
       this.#Instance = new UtilityFunctionManager()
     }
     return this.#Instance
+  }
+
+  /** |**  $utils.globalEvent
+    Reference global event in application
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+      - js: |
+          $utils.globalEvent.on('say', (name) => {
+            this.logger.info('Hello', name)
+          })
+
+      - js: |
+          $utils.globalEvent.emit('say', 'Thanh 01')
+    ```
+  */
+  get globalEvent(): EventEmitter {
+    return GlobalEvent
   }
 
   /** |**  $utils.base64

@@ -1,5 +1,6 @@
 import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
+import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
@@ -530,10 +531,10 @@ export class ElementProxy<T extends Element> {
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
     if (element.asyncConstructor) this.#elementAsyncProps = props
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const wf = new WeakRef(this)
     Object.defineProperties(element, {
       proxy: {
-        value: this,
+        value: wf.deref(),
         writable: false
       }
     })
@@ -619,7 +620,7 @@ export class ElementProxy<T extends Element> {
       this.element.asyncConstructor = undefined
     }
 
-    this.rootScene?.event.emit('element/exec:before', this)
+    GlobalEvent.emit('@app/proxy/before:exec:exec', this)
 
     const isAddIndent = this.parentProxy?.name !== undefined
     if (isAddIndent) {
@@ -650,17 +651,22 @@ export class ElementProxy<T extends Element> {
       }
       await this.setVarsAfterExec()
     } finally {
-      this.rootScene?.event.emit('element/exec:end', this)
       if (isAddIndent) {
         this.logger.removeIndent()
       }
+      GlobalEvent.emit('@app/proxy/after:exec', this)
     }
     return this.result
   }
 
   async dispose() {
-    await this.element.dispose?.()
-    this.parentState = undefined
-    this.logger = undefined as any
+    GlobalEvent.emit('@app/proxy/before:exec:dispose', this)
+    try {
+      await this.element.dispose?.()
+      this.parentState = undefined
+      this.logger = undefined as any
+    } finally {
+      GlobalEvent.emit('@app/proxy/after:dispose', this)
+    }
   }
 }

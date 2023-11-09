@@ -1,7 +1,9 @@
 import chalk from 'chalk'
 import { type ElementProxy } from 'src/components/element-proxy'
-import { type RootScene } from 'src/components/root-scene'
+import { type Element } from 'src/components/element.interface'
+import { RootScene } from 'src/components/root-scene'
 import { formatDuration } from 'src/libs/format'
+import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 
 export class Summary {
@@ -13,41 +15,35 @@ export class Summary {
   }
 
   readonly #time = {
-    exec: 0,
-    dispose: 0,
     execution: 0
   }
 
   constructor(private readonly rootSceneProxy: ElementProxy<RootScene>) {
     this.#logger = this.rootSceneProxy.logger.clone('Summary')
-    this.rootSceneProxy.$.event
-      .on('element/exec:before', () => {
-        this.#count.exec++
+    GlobalEvent
+      .on('@app/proxy/before:exec:exec', (proxy: ElementProxy<Element>) => {
+        if (proxy instanceof RootScene) {
+          this.#time.execution = Date.now()
+        } else {
+          this.#count.exec++
+        }
       })
-      .on('element/dispose', () => {
-        this.#count.dispose++
-      })
-      .on('scene/exec:before', () => {
-        this.#time.exec = Date.now()
-      })
-      .on('scene/exec:end', () => {
-        this.#time.exec = Date.now() - this.#time.exec
-      })
-      .on('scene/dispose:before', () => {
-        this.#time.dispose = Date.now()
-      })
-      .on('scene/dispose:end', () => {
-        this.#time.dispose = Date.now() - this.#time.dispose
+      .on('@app/proxy/after:dispose', (proxy: ElementProxy<Element>) => {
+        if (proxy instanceof RootScene) {
+          this.#time.execution = Date.now() - this.#time.execution
+        } else {
+          this.#count.dispose++
+        }
       })
   }
 
   print() {
     this.#logger.log('')
     this.#logger.log(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
+    this.#logger.log('%s\t%s', 'Duration', `${formatDuration(this.#time.execution)}`)
     this.#logger.log('%s\t%s', 'Runs    ', `${this.#count.exec}(items)`)
-    this.#logger.log('%s\t%s', 'Duration', `${formatDuration(Date.now() - this.#time.execution)}`)
-    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items) in %s'), 'execute', this.#count.exec, formatDuration(this.#time.exec))
-    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items) in %s'), 'dispose', this.#count.dispose, formatDuration(this.#time.dispose))
+    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items)'), 'executed', this.#count.exec)
+    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items)'), 'disposed', this.#count.dispose)
     this.#logger.log(chalk.gray('«««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««'))
   }
 }

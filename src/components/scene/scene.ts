@@ -5,6 +5,7 @@ import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { SAND_SCENE_PASSWORD } from 'src/env'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
+import { GlobalEvent } from 'src/libs/global-event'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { getVars, setVars } from 'src/libs/variable'
 import { type ElementProxy } from '../element-proxy'
@@ -76,7 +77,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
     }
-    this.rootScene.event.on('update/global-vars', this.#updateGlobalVarsListener)
+    GlobalEvent.on('@app/scene/update-global-vars', this.#updateGlobalVarsListener)
     this.copyVarsToGlobal(this.scene.localVars)
     await this.handleFile()
   }
@@ -124,7 +125,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async dispose() {
-    if (this.#updateGlobalVarsListener) this.rootScene.event.off('update/global-vars', this.#updateGlobalVarsListener)
+    if (this.#updateGlobalVarsListener) GlobalEvent.off('@app/scene/update-global-vars', this.#updateGlobalVarsListener)
     await super.dispose()
   }
 
@@ -173,7 +174,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       .forEach(key => {
         this.rootScene.localVars[key] = localVars[key]
       })
-    this.rootScene.event.emit('update/global-vars', this.name || this.path)
+    GlobalEvent.emit('@app/scene/update-global-vars', this.name || this.path)
   }
 
   private async getRemoteFileProps() {

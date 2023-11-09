@@ -1,6 +1,7 @@
 import { AES } from 'src/libs/encrypt/aes'
 import { Base64 } from 'src/libs/encrypt/base64'
 import { MD5 } from 'src/libs/encrypt/md5'
+import { sleep } from 'src/libs/time'
 import { UtilityFunctionManager } from './utility-function-manager'
 
 const globalUtils = UtilityFunctionManager.Instance
@@ -24,4 +25,15 @@ test('aes encrypt/decrypt', async () => {
   const enc = new AES().encrypt(raw, salt)
   expect(globalUtils.aes.encrypt(raw, salt)).not.toBe(enc)
   expect(globalUtils.aes.decrypt(enc, salt)).toBe(raw)
+})
+
+test('emit/on in global event', async () => {
+  let name = ''
+  globalUtils.globalEvent.on('say', user => {
+    name = user
+  })
+  await sleep(500)
+  globalUtils.globalEvent.emit('say', 'thanh')
+  await sleep(500)
+  expect(name).toBe('thanh')
 })
