@@ -54,6 +54,7 @@ export class SceneProcess extends Scene {
       id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
       templates: this.rootScene.templatesManager,
+      loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
       loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
       loggerDebug: LoggerFactory.DEBUG
     })

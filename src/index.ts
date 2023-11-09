@@ -1,7 +1,6 @@
 import assert from 'assert'
 import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
-import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -41,26 +40,6 @@ Example:
         try {
           const { debug, tty, out = '', env = [], tagDirs, envFile = [], debugContext } = opts
           process.env.FORCE_COLOR = !tty ? '0' : '1'
-          let [outType, config] = out.split(':')
-          let outOpts: any
-          if (outType === 'event') {
-            outOpts = {
-              console: config === 'console'
-            }
-          } else if (outType === 'file') {
-            const [outFile, errorFile] = config.split(',').map((e: string) => e.trim())
-            outOpts = {
-              stdout: outFile,
-              stderr: errorFile || undefined
-            }
-          } else {
-            outType = 'console'
-            // --out console
-            outOpts = {
-              colorMode: !!tty
-            }
-          }
-          LoggerFactory.Configure(outType, outOpts)
 
           if (envFile.length) {
             const { readFileSync } = await import('fs')
@@ -82,7 +61,29 @@ Example:
           if (debug) {
             process.env.DEBUG = debug
           }
-          const { App } = require('./app')
+
+          let [outType, config] = out.split(':')
+          let outOpts: any
+          if (outType === 'event') {
+            outOpts = {
+              console: config === 'console'
+            }
+          } else if (outType === 'file') {
+            const [outFile, errorFile] = config.split(',').map((e: string) => e.trim())
+            outOpts = {
+              stdout: outFile,
+              stderr: errorFile || undefined
+            }
+          } else {
+            outType = 'console'
+            // --out console
+            outOpts = {
+              colorMode: !!tty
+            }
+          }
+          const { LoggerFactory } = await import('./libs/logger/logger-factory')
+          LoggerFactory.Configure(outType, outOpts)
+
           if (debugContext?.length > 0) {
             LoggerFactory.DEBUG_CONTEXTS = debugContext
           }
@@ -91,6 +92,7 @@ Example:
           const chalk = require('chalk')
           appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
           appLogger.log('')
+          const { App } = require('./app')
           const app = new App(appLogger, {
             path,
             password
@@ -113,6 +115,7 @@ Example:
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
@@ -133,6 +136,7 @@ Example:
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
@@ -153,6 +157,7 @@ Example:
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
+            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)

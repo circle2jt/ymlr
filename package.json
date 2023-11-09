@@ -50,7 +50,7 @@
     "ci:prebuild": "yarn clean",
     "ci:build": "yarn ci:prebuild && tsc --project tsconfig.build.json && node bin/tsconfig && yarn ci:postbuild",
     "ci:postbuild": "cp src/package.json ./dist/src/ && cp README.md ./dist/",
-    "ci:pretest": "yarn ci:lint && yarn ci:build",
+    "ci:pretest": "yarn ci:lint && yarn ci:build && rm -rf src/node_modules",
     "ci:test": "yarn ci:pretest && yarn jest --config=.jest/config.js && yarn ci:posttest",
     "ci:posttest": "yarn clean",
     "ci:tag": "yarn start ./scripts/create-tag.yaml",

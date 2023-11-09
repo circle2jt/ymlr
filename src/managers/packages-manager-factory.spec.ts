@@ -15,7 +15,7 @@ afterAll(async () => {
 })
 
 test('Install a new modules', async () => {
-  const moduleNames = ['lodash.merge']
+  const moduleNames = ['lodash.isequal']
   try {
     await packageManager.install(...moduleNames)
     const dependencies = packageManager.dependencies
