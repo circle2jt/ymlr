@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import { ENABLE_LOGGER_PREFIX } from 'src/env'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { format } from 'util'
 import { Logger } from '..'
@@ -126,9 +127,9 @@ export class ConsoleLogger extends Logger {
   }
 
   private format(msg: string, loggerLevel: LoggerLevel, ...prms: any[]) {
-    const isPrefix = prms[prms.length - 1] !== ConsoleLogger.DISABLE_PREFIX
-    if (!isPrefix) {
-      prms.splice(prms.length - 1, 1)
+    const isDisabledPrefix = prms[prms.length - 1] === ConsoleLogger.DISABLE_PREFIX
+    if (isDisabledPrefix) {
+      prms.pop()
     }
     this.syncTab()
     let prefix = ''
@@ -140,7 +141,9 @@ export class ConsoleLogger extends Logger {
       txt = level.format(txt)
     }
 
-    if (isPrefix && this.level) {
+    if (!isDisabledPrefix && (
+      (this.level && !ENABLE_LOGGER_PREFIX) || (ENABLE_LOGGER_PREFIX === '1')
+    )) {
       prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
     }
     return format(prefix + this.indent.format(txt), ...prms)
