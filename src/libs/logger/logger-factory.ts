@@ -48,7 +48,7 @@ export class LoggerFactory {
     LoggerFactory.DEFAULT_LOGGER?.Dispose?.()
   }
 
-  static Configure(name = 'console' as 'console' | 'file', opts = {} as any) {
+  static Configure(name = 'console' as 'console' | 'file' | 'event', opts = {} as any) {
     LoggerFactory.DEFAULT_LOGGER_CONFIG = {
       name,
       opts
@@ -57,6 +57,10 @@ export class LoggerFactory {
       const { FileLogger } = require('./file')
       FileLogger.SetOutput(opts.stdout, opts.stderr)
       LoggerFactory.DEFAULT_LOGGER = FileLogger
+    } else if (name === 'event') {
+      const { EventLogger } = require('./event')
+      EventLogger.SetOutput(opts.console)
+      LoggerFactory.DEFAULT_LOGGER = EventLogger
     } else {
       const { ConsoleLogger } = require('./console')
       ConsoleLogger.SetConsole(new Console({
