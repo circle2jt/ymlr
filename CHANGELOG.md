@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.6.md](#1699542888522)  -  _11/9/2023, 10:14:48 PM_
 - [1.2.6-alpha.5.md](#1699426184200)  -  _11/8/2023, 1:49:44 PM_
 - [1.2.6-alpha.4.md](#1699281916054)  -  _11/6/2023, 9:45:16 PM_
 - [1.2.6-alpha.3.md](#1699179498300)  -  _11/5/2023, 5:18:18 PM_
@@ -54,6 +55,18 @@
 
 ## Details
 
+<a id="1699542888522"></a>
+### 1.2.6-alpha.6
+
+* fix: unit test (8d95dfe)
+* feat(cli): support handle logs via event in scene (3282fe2)
+* feat: expose ENABLE_LOGGER_PREFIX to env (24a0d73)
+* perf: auto inject some default properties to proxy (249e805)
+* fix: update logger (2a3a35e)
+* refactor: Integrated event in rootScene to global (b5ab896)
+* feat: add new "event" element (ee27e57)
+* perf: optimze localVars in scene (0d6d67e)
+  
 <a id="1699426184200"></a>
 ### 1.2.6-alpha.5
 

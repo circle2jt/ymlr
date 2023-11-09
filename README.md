@@ -122,6 +122,8 @@ runs:
 | [echo](#echo) | Print to console screen |
 | [echo'debug](#echo'debug) | Add more information when print to console screen |
 | [clear](#clear) | Clear console screen |
+| [event'emit](#event'emit) | Send data via global event |
+| [event'on](#event'on) | Handle global events in app |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -744,6 +746,35 @@ Example:
 
 ```yaml
   - clear:
+```  
+
+
+## <a id="event'emit"></a>event'emit  
+  
+Send data via global event  
+
+Example:  
+
+```yaml
+  - event'emit:
+      name: test-event
+      data:
+        name: Test event
+        data: Hello
+```  
+
+
+## <a id="event'on"></a>event'on  
+  
+Handle global events in app  
+
+Example:  
+
+```yaml
+  - event'on:
+      name: test-event
+    runs:
+      - echo: ${ $parentState.eventData }
 ```  
 
 
@@ -1909,6 +1940,23 @@ Example:
 - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
 
 - echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
+```  
+
+
+## <a id="$utils.globalEvent"></a>$utils.globalEvent  
+`Utility function`  
+Reference global event in application  
+
+Example:  
+
+```yaml
+  - js: |
+      $utils.globalEvent.on('say', (name) => {
+        this.logger.info('Hello', name)
+      })
+
+  - js: |
+      $utils.globalEvent.emit('say', 'Thanh 01')
 ```  
 
 
