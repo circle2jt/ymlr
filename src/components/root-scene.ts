@@ -69,7 +69,7 @@ export class RootScene extends Scene {
       }
     })
     // this.proxy.scene = this.proxy.rootScene = this
-    await super.asyncConstructor()
+    await this.handleFile()
   }
 
   pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {

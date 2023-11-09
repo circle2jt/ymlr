@@ -93,7 +93,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
       innerRuns.hideName = true
-      const wParent = new WeakRef<Element>(this)
+      const wParent = new WeakRef<Element>(elem)
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
       Object.defineProperties(innerRunsProxy, {

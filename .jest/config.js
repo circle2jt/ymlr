@@ -3,7 +3,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['src'],
-  testTimeout: 60000,
+  testTimeout: 15000,
   testRegex: '\\.spec\\.[jt]sx?$',
   rootDir: '..',
   moduleNameMapper: {
