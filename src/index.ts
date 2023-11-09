@@ -41,16 +41,19 @@ Example:
           process.env.FORCE_COLOR = !tty ? '0' : '1'
           let outType = out
           let outOpts: any
-          if (out !== 'console') {
+          if (out === 'event') {
+            outType = 'event'
+            outOpts = {}
+          } else if (out === 'console') {
+            outOpts = {
+              colorMode: !!tty
+            }
+          } else {
             outType = 'file'
             const [outFile, errorFile] = out.split(',').map((e: string) => e.trim())
             outOpts = {
               stdout: outFile,
               stderr: errorFile || undefined
-            }
-          } else {
-            outOpts = {
-              colorMode: !!tty
             }
           }
           LoggerFactory.Configure(outType, outOpts)

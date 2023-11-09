@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
+import { format } from 'util'
 import { Logger } from '..'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
@@ -78,10 +79,30 @@ export class ConsoleLogger extends Logger {
       prms.splice(prms.length - 1, 1)
     }
     this.syncTab()
+    let mes: string
     if (typeof msg === 'string') {
-      ConsoleLogger.#Console.info(this.format(msg, loggerLevel, isPrefix), ...prms)
+      mes = format(this.format(msg, loggerLevel, isPrefix), ...prms)
     } else {
-      ConsoleLogger.#Console.info(this.format('%j', loggerLevel, isPrefix), msg, ...prms)
+      mes = format(this.format('%j', loggerLevel, isPrefix), msg, ...prms)
+    }
+    switch (loggerLevel) {
+      case LoggerLevel.debug:
+      case LoggerLevel.trace:
+        ConsoleLogger.#Console.debug(mes)
+        break
+      case LoggerLevel.info:
+        ConsoleLogger.#Console.info(mes)
+        break
+      case LoggerLevel.error:
+      case LoggerLevel.fatal:
+        ConsoleLogger.#Console.error(mes)
+        break
+      case LoggerLevel.warn:
+        ConsoleLogger.#Console.warn(mes)
+        break
+      default:
+        ConsoleLogger.#Console.log(mes)
+        break
     }
     return this
   }

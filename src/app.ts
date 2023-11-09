@@ -15,8 +15,9 @@ export class App {
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
     assert(rootSceneProps.path, 'Scene file is required')
-    this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps))
-    this.#rootSceneProxy.scene = this.#rootSceneProxy.rootScene = this.#rootSceneProxy.element
+    const rootScene = new RootScene(rootSceneProps)
+    this.#rootSceneProxy = new ElementProxy(rootScene)
+    // this.#rootSceneProxy.scene = this.#rootSceneProxy.rootScene = rootScene
     this.#rootSceneProxy.logger = this.logger.clone('root-scene')
   }
 

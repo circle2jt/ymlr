@@ -319,17 +319,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       } else {
         const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
         if (async) {
-          // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-          asyncJobs.push(new Promise<any>(async (resolve, reject) => {
+          asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
             try {
               const rs = await elemProxy.exec(parentState)
-              resolve(rs)
-            } catch (err) {
-              reject(err)
+              return rs
             } finally {
               await elemProxy.dispose()
             }
-          }))
+          })(elemProxy))
         } else {
           if (asyncJobs.length) {
             await Promise.all(asyncJobs)

@@ -21,10 +21,10 @@ export class Testing {
   }
 
   static async reset(content = '[]') {
-    const rootScene = new RootScene({ content })
-    const proxy = new ElementProxy(rootScene)
+    Testing.rootScene = new RootScene({ content })
+    const proxy = new ElementProxy(Testing.rootScene)
     proxy.logger = LoggerFactory.NewLogger(LoggerLevel.silent)
-    Testing.rootScene = proxy.scene = proxy.rootScene = rootScene
+    // Testing.rootScene = proxy.scene = proxy.rootScene = rootScene
     return await proxy.exec()
   }
 

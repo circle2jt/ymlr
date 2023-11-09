@@ -1,4 +1,3 @@
-import EventEmitter from 'events'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import { cloneDeep } from 'src/libs/variable'
@@ -46,7 +45,6 @@ export class RootScene extends Scene {
   readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
-  readonly event = new EventEmitter({ captureRejections: false }).setMaxListeners(0)
   rootDir = ''
 
   constructor({ globalVars, ...props }: RootSceneProps) {
@@ -68,37 +66,25 @@ export class RootScene extends Scene {
   }
 
   override async exec(parentState?: Record<string, any>) {
-    this.event.emit('scene/exec:before')
-    try {
-      const rs = await super.exec(parentState)
-      await this.#workerManager?.exec()
-      if (this.#backgroundJobs.length) {
-        await Promise.all(this.#backgroundJobs.map(async ({ p, ctx }) => {
-          try {
-            await p
-          } finally {
-            await ctx.dispose()
-          }
-        }))
-      }
-      return rs
-    } finally {
-      this.event.emit('scene/exec:end')
+    const rs = await super.exec(parentState)
+    await this.#workerManager?.exec()
+    if (this.#backgroundJobs.length) {
+      await Promise.all(this.#backgroundJobs.map(async ({ p, ctx }) => {
+        try {
+          await p
+        } finally {
+          await ctx.dispose()
+        }
+      }))
     }
+    return rs
   }
 
   override async dispose() {
-    const proms = []
-    this.event.emit('scene/dispose:before')
-    try {
-      proms.push(super.dispose())
-      if (this.#workerManager) proms.push(this.#workerManager.dispose())
-      if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
-      await Promise.all(proms)
-    } finally {
-      this.event.emit('scene/dispose:end')
-      this.event.removeAllListeners()
-    }
+    const proms = [super.dispose()]
+    if (this.#workerManager) proms.push(this.#workerManager.dispose())
+    if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
+    await Promise.all(proms)
   }
 
   extend(tagName: string | undefined, baseProps: any, ids: string[] | string) {

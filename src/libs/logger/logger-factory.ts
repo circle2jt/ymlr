@@ -48,7 +48,7 @@ export class LoggerFactory {
     LoggerFactory.DEFAULT_LOGGER?.Dispose?.()
   }
 
-  static Configure(name = 'console' as 'console' | 'file', opts = {} as any) {
+  static Configure(name = 'console' as 'console' | 'file' | 'event', opts = {} as any) {
     LoggerFactory.DEFAULT_LOGGER_CONFIG = {
       name,
       opts
@@ -57,6 +57,10 @@ export class LoggerFactory {
       const { FileLogger } = require('./file')
       FileLogger.SetOutput(opts.stdout, opts.stderr)
       LoggerFactory.DEFAULT_LOGGER = FileLogger
+    } else if (name === 'event') {
+      const { EventLogger } = require('./event')
+      EventLogger.SetOutput()
+      LoggerFactory.DEFAULT_LOGGER = EventLogger
     } else {
       const { ConsoleLogger } = require('./console')
       ConsoleLogger.SetConsole(new Console({
@@ -75,14 +79,4 @@ export class LoggerFactory {
     const logger = new LoggerFactory.DEFAULT_LOGGER(level, context, indent)
     return logger
   }
-
-  // static Event?: EventEmitter
-  // static On(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
-  //   if (!this.Event) this.Event = new EventEmitter().setMaxListeners(0)
-  //   eventNames.forEach(eventName => this.Event?.on(eventName, cb))
-  // }
-
-  // static Off(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
-  //   this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
-  // }
 }
