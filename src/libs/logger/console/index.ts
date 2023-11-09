@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
+import { format } from 'util'
 import { Logger } from '..'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
@@ -21,69 +22,97 @@ export class ConsoleLogger extends Logger {
 
   override log(msg: any, ...prms: any) {
     if (this.level?.level !== LoggerLevel.silent) {
-      return this.print(LoggerLevel.log, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.log, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.log, msg, ...prms)
+      }
+      ConsoleLogger.#Console.log(mes)
     }
     return this
   }
 
   override info(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.info)) {
-      return this.print(LoggerLevel.info, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.info, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.info, msg, ...prms)
+      }
+      ConsoleLogger.#Console.info(mes)
     }
     return this
   }
 
   override debug(msg: any, ...prms: any) {
     if (this.level?.is(LoggerLevel.debug)) {
-      return this.print(LoggerLevel.debug, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.debug, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.debug, msg, ...prms)
+      }
+      ConsoleLogger.#Console.debug(mes)
     }
     return this
   }
 
   override warn(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.warn)) {
-      return this.print(LoggerLevel.warn, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.warn, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.warn, msg, ...prms)
+      }
+      ConsoleLogger.#Console.warn(mes)
     }
     return this
   }
 
   override trace(msg: any, ...prms: any) {
     if (this.level?.is(LoggerLevel.trace)) {
-      return this.print(LoggerLevel.trace, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.trace, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.trace, msg, ...prms)
+      }
+      ConsoleLogger.#Console.debug(mes)
     }
     return this
   }
 
   override error(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.error)) {
-      return this.print(LoggerLevel.error, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.error, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.error, msg, ...prms)
+      }
+      ConsoleLogger.#Console.error(mes)
     }
     return this
   }
 
   override fatal(msg: any, ...prms: any) {
     if (!this.level || this.level?.is(LoggerLevel.fatal)) {
-      return this.print(LoggerLevel.fatal, msg, ...prms)
+      let mes: string
+      if (typeof msg === 'string') {
+        mes = this.format(msg, LoggerLevel.fatal, ...prms)
+      } else {
+        mes = this.format('%j', LoggerLevel.fatal, msg, ...prms)
+      }
+      ConsoleLogger.#Console.error(mes)
     }
     return this
   }
 
   override clone(context?: string, level?: LoggerLevel | Level) {
     return new ConsoleLogger(level || this.level?.level, context || this.context, this.indent.clone())
-  }
-
-  private print(loggerLevel: LoggerLevel, msg: any, ...prms: any) {
-    const isPrefix = prms[prms.length - 1] !== ConsoleLogger.DISABLE_PREFIX
-    if (!isPrefix) {
-      prms.splice(prms.length - 1, 1)
-    }
-    this.syncTab()
-    if (typeof msg === 'string') {
-      ConsoleLogger.#Console.info(this.format(msg, loggerLevel, isPrefix), ...prms)
-    } else {
-      ConsoleLogger.#Console.info(this.format('%j', loggerLevel, isPrefix), msg, ...prms)
-    }
-    return this
   }
 
   private syncTab() {
@@ -96,7 +125,12 @@ export class ConsoleLogger extends Logger {
     }
   }
 
-  private format(msg: string, loggerLevel: LoggerLevel, isPrefix: boolean) {
+  private format(msg: string, loggerLevel: LoggerLevel, ...prms: any[]) {
+    const isPrefix = prms[prms.length - 1] !== ConsoleLogger.DISABLE_PREFIX
+    if (!isPrefix) {
+      prms.splice(prms.length - 1, 1)
+    }
+    this.syncTab()
     let prefix = ''
     let icon = ''
     let txt = msg
@@ -109,6 +143,6 @@ export class ConsoleLogger extends Logger {
     if (isPrefix && this.level) {
       prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
     }
-    return prefix + this.indent.format(txt)
+    return format(prefix + this.indent.format(txt), ...prms)
   }
 }
