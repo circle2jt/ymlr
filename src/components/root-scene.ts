@@ -55,7 +55,20 @@ export class RootScene extends Scene {
   }
 
   override async asyncConstructor() {
-    this.proxy.scene = this.proxy.rootScene = this
+    const wf = new WeakRef(this)
+    Object.defineProperties(this.proxy, {
+      scene: {
+        get() {
+          return wf.deref()
+        }
+      },
+      rootScene: {
+        get() {
+          return wf.deref()
+        }
+      }
+    })
+    // this.proxy.scene = this.proxy.rootScene = this
     await super.asyncConstructor()
   }
 

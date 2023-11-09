@@ -57,13 +57,35 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
+    let wParent: WeakRef<Element>
     if (this.proxy.tag === 'inner-runs-proxy') {
-      elemProxy.parent = this.proxy.parent
+      wParent = new WeakRef<Element>(this.proxy.parent as any)
+      // elemProxy.parent = this.proxy.parent
     } else {
-      elemProxy.parent = this
+      wParent = new WeakRef<Element>(this)
+      // elemProxy.parent = this
     }
-    elemProxy.scene = this.innerScene
-    elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene
+    const wScene = new WeakRef(this.innerScene)
+    const wRootScene = new WeakRef((this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene)
+    Object.defineProperties(elemProxy, {
+      parent: {
+        get() {
+          return wParent.deref()
+        }
+      },
+      scene: {
+        get() {
+          return wScene.deref()
+        }
+      },
+      rootScene: {
+        get() {
+          return wRootScene.deref()
+        }
+      }
+    })
+    // elemProxy.scene = this.innerScene
+    // elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene
     Object.assign(elemProxy, loopObj)
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
@@ -71,11 +93,29 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
       innerRuns.hideName = true
+      const wParent = new WeakRef<Element>(this)
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
-      innerRunsProxy.parent = elem
-      innerRunsProxy.scene = elemProxy.scene
-      innerRunsProxy.rootScene = elemProxy.rootScene
+      Object.defineProperties(innerRunsProxy, {
+        parent: {
+          get() {
+            return wParent.deref()
+          }
+        },
+        scene: {
+          get() {
+            return wScene.deref()
+          }
+        },
+        rootScene: {
+          get() {
+            return wRootScene.deref()
+          }
+        }
+      })
+      // innerRunsProxy.parent = elem
+      // innerRunsProxy.scene = elemProxy.scene
+      // innerRunsProxy.rootScene = elemProxy.rootScene
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {
         await disposeInnerRunsProxy()
@@ -319,17 +359,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       } else {
         const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
         if (async) {
-          // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-          asyncJobs.push(new Promise<any>(async (resolve, reject) => {
+          asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
             try {
               const rs = await elemProxy.exec(parentState)
-              resolve(rs)
-            } catch (err) {
-              reject(err)
+              return rs
             } finally {
               await elemProxy.dispose()
             }
-          }))
+          })(elemProxy))
         } else {
           if (asyncJobs.length) {
             await Promise.all(asyncJobs)

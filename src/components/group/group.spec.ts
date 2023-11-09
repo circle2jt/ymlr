@@ -234,7 +234,7 @@ test('only', async () => {
   expect(group.result[1].result).toBe(3)
 })
 
-test.only('execute template', async () => {
+test('execute template', async () => {
   group = await Testing.createElementProxy(Group, {
     name: 'Test group',
     '~runs': [

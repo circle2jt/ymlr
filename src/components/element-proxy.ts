@@ -460,40 +460,19 @@ export class ElementProxy<T extends Element> {
   loopKey?: any
   loopValue?: any
 
-  #parent!: WeakRef<Element>
-  set parent(parent: Element) {
-    this.#parent = new WeakRef(parent)
-  }
-
-  get parent() {
-    return this.#parent?.deref() as Element
-  }
+  readonly parent?: Element
 
   get parentProxy() {
     return this.parent?.proxy
   }
 
-  #scene!: WeakRef<Scene>
-  set scene(scene: Scene) {
-    this.#scene = new WeakRef(scene)
-  }
-
-  get scene() {
-    return this.#scene?.deref() as Scene
-  }
+  readonly scene!: Scene
 
   get sceneProxy() {
     return this.scene?.proxy
   }
 
-  #rootScene!: WeakRef<RootScene>
-  set rootScene(rootScene: RootScene) {
-    this.#rootScene = new WeakRef(rootScene)
-  }
-
-  get rootScene() {
-    return this.#rootScene?.deref() as RootScene
-  }
+  readonly rootScene!: RootScene
 
   get rootSceneProxy() {
     return this.rootScene?.proxy
@@ -534,8 +513,9 @@ export class ElementProxy<T extends Element> {
     const wf = new WeakRef(this)
     Object.defineProperties(element, {
       proxy: {
-        value: wf.deref(),
-        writable: false
+        get() {
+          return wf.deref()
+        }
       }
     })
   }

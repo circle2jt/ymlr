@@ -24,7 +24,8 @@ export class Testing {
     const rootScene = new RootScene({ content })
     const proxy = new ElementProxy(rootScene)
     proxy.logger = LoggerFactory.NewLogger(LoggerLevel.silent)
-    Testing.rootScene = proxy.scene = proxy.rootScene = rootScene
+    Testing.rootScene = rootScene
+    // Testing.rootScene = proxy.scene = proxy.rootScene = rootScene
     return await proxy.exec()
   }
 
