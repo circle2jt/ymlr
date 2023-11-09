@@ -72,13 +72,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   async asyncConstructor() {
-    this.setupVars()
-    await this.handleFile()
     this.#updateGlobalVarsListener = (name: string) => {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
     }
     this.rootScene.event.on('update/global-vars', this.#updateGlobalVarsListener)
+    this.copyVarsToGlobal(this.scene.localVars)
+    await this.handleFile()
   }
 
   async handleFile() {
@@ -155,34 +155,25 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     })
   }
 
-  mergeVars(obj: any) {
+  private mergeVars(obj: any) {
     Object.assign(this.localVars, obj)
   }
 
-  copyGlobalVarsToLocal() {
-    Object.assign(this.localVars, this.rootScene.localVars)
-  }
-
-  private setupVars() {
-    this.copyVarsToGlobal(this.scene.localVars)
-    this.copyGlobalVarsToLocal()
-    const newVars = this.localVars
-    this.localVars = {}
-    this.mergeVars(newVars)
-    if (Object.keys(newVars).length) {
-      this.copyVarsToGlobal()
-    }
+  private copyGlobalVarsToLocal() {
+    Object.keys(this.rootScene.localVars)
+      .filter(key => REGEX_FIRST_UPPER.test(key[0]))
+      .forEach(key => {
+        this.localVars[key] = this.rootScene.localVars[key]
+      })
   }
 
   private copyVarsToGlobal(localVars = this.localVars) {
-    const keys = Object.keys(localVars)
+    Object.keys(localVars)
       .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-    if (keys.length > 0) {
-      keys.forEach(key => {
+      .forEach(key => {
         this.rootScene.localVars[key] = localVars[key]
       })
-      this.rootScene.event.emit('update/global-vars', this.name || this.path)
-    }
+    this.rootScene.event.emit('update/global-vars', this.name || this.path)
   }
 
   private async getRemoteFileProps() {
