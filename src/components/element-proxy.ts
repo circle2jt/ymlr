@@ -4,6 +4,7 @@ import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
+import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
 import { Group } from './group/group'
 import { type GroupItemProps } from './group/group.props'
@@ -587,6 +588,7 @@ export class ElementProxy<T extends Element> {
     const rs = await callFunctionScript(script, this, {
       $vars: this.scene.localVars,
       $utils: this.rootScene?.globalUtils,
+      $const: Constants,
       ...others
     })
     return rs

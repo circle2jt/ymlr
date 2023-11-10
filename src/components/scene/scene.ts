@@ -8,6 +8,7 @@ import { FileRemote } from 'src/libs/file-remote'
 import { GlobalEvent } from 'src/libs/global-event'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { getVars, setVars } from 'src/libs/variable'
+import { Constants } from 'src/managers/constants'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { Group } from '../group/group'
@@ -142,6 +143,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return await getVars(str, ctx, {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
+      $const: Constants,
       ...others
     })
   }
@@ -152,6 +154,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return await setVars(varObj, vl, ctx, {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
+      $const: Constants,
       ...others
     })
   }

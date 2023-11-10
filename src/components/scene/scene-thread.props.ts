@@ -1,5 +1,5 @@
 import { type SceneProps } from './scene.props'
 
-export type SceneProcessProps = {
+export type SceneThreadProps = {
   id?: string
 } & SceneProps

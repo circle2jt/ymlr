@@ -2,16 +2,16 @@ import { existsSync, readFileSync } from 'fs'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { type ElementProxy } from '../element-proxy'
-import { SceneProcess } from './scene-process'
+import { SceneThread } from './scene-thread'
 
-let sceneProcess: ElementProxy<SceneProcess>
+let sceneThread: ElementProxy<SceneThread>
 
 beforeEach(async () => {
   await Testing.reset()
 })
 
 afterEach(async () => {
-  await sceneProcess.dispose()
+  await sceneThread.dispose()
 })
 
 afterAll(() => {
@@ -25,10 +25,10 @@ test.skip('should execute successfully', async () => {
     path: ${tmp.file}
 `)
   try {
-    sceneProcess = await Testing.createElementProxy(SceneProcess, {
+    sceneThread = await Testing.createElementProxy(SceneThread, {
       path: tmp.file
     })
-    await sceneProcess.exec()
+    await sceneThread.exec()
     expect(existsSync(tmp.file))
     expect(readFileSync(tmp.file).toString()).toBe('hello')
   } finally {

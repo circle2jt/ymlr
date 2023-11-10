@@ -11,7 +11,7 @@ import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
-  static ProcessID = 0
+  static ProcessID = '#0'
   readonly #rootSceneProxy: ElementProxy<RootScene>
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {

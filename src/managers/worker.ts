@@ -4,6 +4,7 @@ import { type RootSceneProps } from 'src/components/root-scene.props'
 import { type Logger } from 'src/libs/logger'
 import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { Worker as WorkerThread } from 'worker_threads'
+import { type WorkerManager } from './worker-manager'
 
 export class Worker {
   private readonly worker: WorkerThread
@@ -13,11 +14,12 @@ export class Worker {
   private error?: any
 
   constructor(
+    private readonly workerManager: WorkerManager,
+    public id: string,
     private readonly props: RootSceneProps,
     baseProps: ElementBaseProps,
     private readonly logger: Logger,
     others: {
-      id: string
       tagDirs?: string[]
       templates?: Record<string, any>
       loggerDebugContexts?: Record<string, LoggerLevel>
@@ -26,6 +28,7 @@ export class Worker {
     }) {
     this.worker = new WorkerThread(join(__dirname, '../worker-service.js'), {
       workerData: {
+        id: this.id,
         baseProps,
         props,
         ...others
@@ -35,6 +38,16 @@ export class Worker {
     this.worker.on('message', this.onMessage.bind(this))
     this.worker.on('error', this.onError.bind(this))
     this.worker.on('exit', this.onExit.bind(this))
+  }
+
+  emit(type: 'event', name: string | symbol, value: any, opts: { fromID: string, toID: string }) {
+    this.logger.trace('<main.event -> worker> Emited data to "%d.%s": %j - %s', this.id, name, value, type)
+    this.worker.postMessage({
+      type,
+      name,
+      value,
+      ...opts
+    })
   }
 
   async exec() {
@@ -55,12 +68,16 @@ export class Worker {
     }
   }
 
-  onMessage(msg: any) {
-    const { state, data } = JSON.parse(msg)
-    if (state === 'done') {
-      this.resolve(data)
-    } else if (state === 'error') {
-      this.reject(new Error(data))
+  onMessage(data: any) {
+    const { name, type, value, error, toIDs, fromID } = data
+    if (type === 'signal') {
+      if (!error) {
+        this.resolve(undefined)
+      } else {
+        this.reject(new Error(error))
+      }
+    } else if (type === 'event') {
+      this.workerManager.broadcastEvent(name, value, fromID, toIDs)
     }
   }
 
