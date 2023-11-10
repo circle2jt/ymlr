@@ -1,10 +1,9 @@
 import { Console } from 'console'
+import { type Logger } from '.'
 import { type Indent } from './indent'
 import { GetLoggerLevel, LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
-  static PROCESS_ID = '#0'
-
   static DEBUG?: LoggerLevel
   static DEBUG_CONTEXTS?: Record<string, LoggerLevel>
 
@@ -55,11 +54,11 @@ export class LoggerFactory {
     }
     if (name === 'file') {
       const { FileLogger } = require('./file')
-      FileLogger.SetOutput(opts.stdout, opts.stderr)
+      FileLogger.SetOutput(opts)
       LoggerFactory.DEFAULT_LOGGER = FileLogger
     } else if (name === 'event') {
       const { EventLogger } = require('./event')
-      EventLogger.SetOutput(opts.console)
+      EventLogger.SetOutput(opts)
       LoggerFactory.DEFAULT_LOGGER = EventLogger
     } else {
       const { ConsoleLogger } = require('./console')
@@ -77,7 +76,7 @@ export class LoggerFactory {
       this.Configure()
     }
     const logger = new LoggerFactory.DEFAULT_LOGGER(level, context, indent)
-    return logger
+    return logger as Logger
   }
 
   // static Event?: EventEmitter

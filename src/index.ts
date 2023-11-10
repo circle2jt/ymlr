@@ -30,8 +30,8 @@ Example:
 `)
     .option('-t, --tty', 'allocate a pseudo-TTY')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
-    .option('-dc, --debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
-    .option('-td, --tag-dirs <path...>', 'path to folder which includes external tags')
+    .option('-c, --debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
+    .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
     .action(async (path: string, password?: string, opts: any = {}) => {
@@ -66,7 +66,8 @@ Example:
           let outOpts: any
           if (outType === 'event') {
             outOpts = {
-              console: config === 'console'
+              console: config === 'console',
+              colorMode: !!tty
             }
           } else if (outType === 'file') {
             const [outFile, errorFile] = config.split(',').map((e: string) => e.trim())

@@ -1,30 +1,48 @@
 import { Console } from 'console'
 import { GlobalEvent } from 'src/libs/global-event'
-import { Writable } from 'stream'
 import { ConsoleLogger } from '../console'
-
-class EventStream extends Writable {
-  constructor(private readonly isPrintToConsole = false) {
-    super()
-  }
-
-  _write(chunk: any, _: BufferEncoding, callback: (error?: Error | null | undefined) => void): void {
-    const mes = chunk.toString().replace(/\n$/, '')
-    if (this.isPrintToConsole) {
-      console.log(mes)
-    }
-    GlobalEvent.emit('@app/logs', mes)
-    callback(null)
-  }
-}
+import { LoggerLevel } from '../logger-level'
 
 export class EventLogger extends ConsoleLogger {
-  static SetOutput(isPrintToConsole: boolean) {
-    const wr = new EventStream(isPrintToConsole)
-    ConsoleLogger.SetConsole(new Console({
-      colorMode: false,
-      stdout: wr,
-      stderr: wr
-    }))
+  static #Console?: Console
+
+  static SetOutput(opts: { console?: boolean, colorMode?: boolean }) {
+    if (opts.console) {
+      this.#Console = new Console({
+        colorMode: opts.colorMode,
+        stdout: process.stdout,
+        stderr: process.stderr
+      })
+    }
+  }
+
+  protected override print(mes: string, level: LoggerLevel) {
+    GlobalEvent.emit('@app/logs', mes, level)
+    if (EventLogger.#Console) {
+      switch (level) {
+        case LoggerLevel.log:
+          EventLogger.#Console.log(mes)
+          break
+        case LoggerLevel.trace:
+          EventLogger.#Console.debug(mes)
+          break
+        case LoggerLevel.debug:
+          EventLogger.#Console.debug(mes)
+          break
+        case LoggerLevel.info:
+          EventLogger.#Console.info(mes)
+          break
+        case LoggerLevel.warn:
+          EventLogger.#Console.warn(mes)
+          break
+        case LoggerLevel.error:
+          EventLogger.#Console.error(mes)
+          break
+        case LoggerLevel.fatal:
+          EventLogger.#Console.error(mes)
+          break
+      }
+    }
+    return this
   }
 }

@@ -1,11 +1,11 @@
 import chalk from 'chalk'
+import { App } from 'src/app'
 import { ENABLE_LOGGER_PREFIX } from 'src/env'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { format } from 'util'
 import { Logger } from '..'
 import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
-import { LoggerFactory } from '../logger-factory'
 import { LoggerLevel } from '../logger-level'
 
 const SPACE = chalk.gray('╎')
@@ -21,6 +21,33 @@ export class ConsoleLogger extends Logger {
     ConsoleLogger.#Console = console
   }
 
+  protected print(mes: string, level: LoggerLevel) {
+    switch (level) {
+      case LoggerLevel.log:
+        ConsoleLogger.#Console.log(mes)
+        break
+      case LoggerLevel.trace:
+        ConsoleLogger.#Console.debug(mes)
+        break
+      case LoggerLevel.debug:
+        ConsoleLogger.#Console.debug(mes)
+        break
+      case LoggerLevel.info:
+        ConsoleLogger.#Console.info(mes)
+        break
+      case LoggerLevel.warn:
+        ConsoleLogger.#Console.warn(mes)
+        break
+      case LoggerLevel.error:
+        ConsoleLogger.#Console.error(mes)
+        break
+      case LoggerLevel.fatal:
+        ConsoleLogger.#Console.error(mes)
+        break
+    }
+    return this
+  }
+
   override log(msg: any, ...prms: any) {
     if (this.level?.level !== LoggerLevel.silent) {
       let mes: string
@@ -29,7 +56,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.log, msg, ...prms)
       }
-      ConsoleLogger.#Console.log(mes)
+      return this.print(mes, LoggerLevel.log)
     }
     return this
   }
@@ -42,7 +69,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.info, msg, ...prms)
       }
-      ConsoleLogger.#Console.info(mes)
+      return this.print(mes, LoggerLevel.info)
     }
     return this
   }
@@ -55,7 +82,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.debug, msg, ...prms)
       }
-      ConsoleLogger.#Console.debug(mes)
+      return this.print(mes, LoggerLevel.debug)
     }
     return this
   }
@@ -68,7 +95,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.warn, msg, ...prms)
       }
-      ConsoleLogger.#Console.warn(mes)
+      return this.print(mes, LoggerLevel.warn)
     }
     return this
   }
@@ -81,7 +108,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.trace, msg, ...prms)
       }
-      ConsoleLogger.#Console.debug(mes)
+      return this.print(mes, LoggerLevel.trace)
     }
     return this
   }
@@ -94,7 +121,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.error, msg, ...prms)
       }
-      ConsoleLogger.#Console.error(mes)
+      return this.print(mes, LoggerLevel.error)
     }
     return this
   }
@@ -107,7 +134,7 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%j', LoggerLevel.fatal, msg, ...prms)
       }
-      ConsoleLogger.#Console.error(mes)
+      return this.print(mes, LoggerLevel.fatal)
     }
     return this
   }
@@ -144,7 +171,7 @@ export class ConsoleLogger extends Logger {
     if (!isDisabledPrefix && (
       (this.level && !ENABLE_LOGGER_PREFIX) || (ENABLE_LOGGER_PREFIX === '1')
     )) {
-      prefix = `${chalk.dim(LoggerFactory.PROCESS_ID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
+      prefix = `${chalk.dim(App.ProcessID)} ${SPACE} ${chalk.dim(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))} ${SPACE} ${icon} ${SPACE} ${chalk.blue(this.context)}${chalk.dim(this.#tab)} ${SPACE} `
     }
     return format(prefix + this.indent.format(txt), ...prms)
   }

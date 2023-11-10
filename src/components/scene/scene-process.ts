@@ -25,9 +25,7 @@ import { type SceneProcessProps } from './scene-process.props'
   ```
 */
 export class SceneProcess extends Scene {
-  private static ID = 0
   private processor!: Worker
-  private readonly id!: string
 
   constructor(eProps: SceneProcessProps | string) {
     if (typeof eProps === 'string') {
@@ -36,7 +34,6 @@ export class SceneProcess extends Scene {
     const { id, ...props } = eProps
     super(props)
     Object.assign(this, { id })
-    if (!this.id) this.id = (++SceneProcess.ID).toString()
     this.ignoreEvalProps.push('processor', 'id')
   }
 
@@ -51,7 +48,6 @@ export class SceneProcess extends Scene {
     }, {
       debug: this.proxy.logger.level?.level
     }, {
-      id: this.id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
       templates: this.rootScene.templatesManager,
       loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
