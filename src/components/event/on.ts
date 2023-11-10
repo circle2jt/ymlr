@@ -14,7 +14,18 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
     - event'on:
         name: test-event
       runs:
-        - echo: ${ $parentState.eventData }
+        - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+        - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+  ```
+  ```yaml
+    - event'emit:
+        name: test-event
+        data:
+          name: Test event
+          data: Hello
+        opts:
+          - params 1
+          - params 2
   ```
 */
 export class EventOn implements Element {
@@ -37,11 +48,13 @@ export class EventOn implements Element {
 
     this.proxy.logger.trace('On %s', this.name)
     this.handler = async (...args: any[]) => {
+      const [data, ...opts] = args
       try {
         await this.innerRunsProxy.exec({
           ...parentState,
-          eventData: args[0],
-          eventAllData: args
+          eventData: data,
+          eventOpt: opts[0],
+          eventOpts: opts
         })
       } catch (err: any) {
         this.reject?.(err as Error)

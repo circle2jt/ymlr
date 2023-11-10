@@ -16,6 +16,9 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         data:
           name: Test event
           data: Hello
+        opts:
+          - params 1
+          - params 2
   ```
 */
 export class EventEmiter implements Element {
@@ -25,6 +28,7 @@ export class EventEmiter implements Element {
 
   name!: string
   data?: any
+  opts?: any
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -33,7 +37,8 @@ export class EventEmiter implements Element {
   async exec() {
     assert(this.name)
 
-    GlobalEvent.emit(this.name, this.data)
+    const opts = Array.isArray(this.opts) ? this.opts : (this.opts ? [this.opts] : [])
+    GlobalEvent.emit(this.name, this.data, ...opts)
   }
 
   dispose() { }
