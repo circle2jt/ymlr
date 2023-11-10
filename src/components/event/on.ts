@@ -46,8 +46,9 @@ export class EventOn implements Element {
   async exec(parentState?: any) {
     assert(this.name)
 
-    this.proxy.logger.trace('On %s', this.name)
+    this.proxy.logger.trace('Listening event %s', this.name)
     this.handler = async (...args: any[]) => {
+      this.proxy.logger.trace('<-[%s]: %j', this.name, ...args)
       const [data, ...opts] = args
       try {
         await this.innerRunsProxy.exec({
@@ -60,7 +61,6 @@ export class EventOn implements Element {
         this.reject?.(err as Error)
       }
     }
-
     GlobalEvent.on(this.name, this.handler)
 
     await new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ export class EventOn implements Element {
     if (this.resolve) {
       this.proxy.logger.trace('Off %s', this.name)
       GlobalEvent.off(this.name, this.handler)
-      this.resolve?.(undefined)
+      this.resolve(undefined)
       this.resolve = undefined
       this.reject = undefined
     }

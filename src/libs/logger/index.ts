@@ -44,7 +44,7 @@ export abstract class Logger {
   abstract warn(...args: any[]): this
   abstract error(...args: any[]): this
   abstract fatal(...args: any[]): this
-  abstract clone(context?: string | undefined, level?: Level | LoggerLevel | undefined): Logger
+  abstract clone(context?: string | undefined, level?: LoggerLevel | undefined): Logger
 
   is(level: LoggerLevel) {
     return this.level?.is(level)

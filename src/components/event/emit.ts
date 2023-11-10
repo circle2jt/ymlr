@@ -38,6 +38,7 @@ export class EventEmiter implements Element {
     assert(this.name)
 
     const opts = Array.isArray(this.opts) ? this.opts : (this.opts ? [this.opts] : [])
+    this.proxy.logger.trace('Emited to event "%s": %j', this.name, this.data)
     GlobalEvent.emit(this.name, this.data, ...opts)
   }
 

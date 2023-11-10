@@ -4,7 +4,6 @@ import { ENABLE_LOGGER_PREFIX } from 'src/env'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { format } from 'util'
 import { Logger } from '..'
-import { type Level } from '../level'
 import { LevelFactory } from '../level-factory'
 import { LoggerLevel } from '../logger-level'
 
@@ -13,7 +12,7 @@ const SPACE = chalk.gray('╎')
 export class ConsoleLogger extends Logger {
   static readonly DISABLE_PREFIX = Symbol('DISABLE_PREFIX')
   static #MaxContextLength = 0
-  static #Console: Console
+  static #Console?: Console
 
   #tab = ''
 
@@ -22,28 +21,30 @@ export class ConsoleLogger extends Logger {
   }
 
   protected print(mes: string, level: LoggerLevel) {
-    switch (level) {
-      case LoggerLevel.log:
-        ConsoleLogger.#Console.log(mes)
-        break
-      case LoggerLevel.trace:
-        ConsoleLogger.#Console.debug(mes)
-        break
-      case LoggerLevel.debug:
-        ConsoleLogger.#Console.debug(mes)
-        break
-      case LoggerLevel.info:
-        ConsoleLogger.#Console.info(mes)
-        break
-      case LoggerLevel.warn:
-        ConsoleLogger.#Console.warn(mes)
-        break
-      case LoggerLevel.error:
-        ConsoleLogger.#Console.error(mes)
-        break
-      case LoggerLevel.fatal:
-        ConsoleLogger.#Console.error(mes)
-        break
+    if (ConsoleLogger.#Console) {
+      switch (level) {
+        case LoggerLevel.log:
+          ConsoleLogger.#Console.log(mes)
+          break
+        case LoggerLevel.trace:
+          ConsoleLogger.#Console.debug(mes)
+          break
+        case LoggerLevel.debug:
+          ConsoleLogger.#Console.debug(mes)
+          break
+        case LoggerLevel.info:
+          ConsoleLogger.#Console.info(mes)
+          break
+        case LoggerLevel.warn:
+          ConsoleLogger.#Console.warn(mes)
+          break
+        case LoggerLevel.error:
+          ConsoleLogger.#Console.error(mes)
+          break
+        case LoggerLevel.fatal:
+          ConsoleLogger.#Console.error(mes)
+          break
+      }
     }
     return this
   }
@@ -139,7 +140,7 @@ export class ConsoleLogger extends Logger {
     return this
   }
 
-  override clone(context?: string, level?: LoggerLevel | Level) {
+  override clone(context?: string, level?: LoggerLevel) {
     return new ConsoleLogger(level || this.level?.level, context || this.context, this.indent.clone())
   }
 
