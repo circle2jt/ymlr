@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.8.md](#1699612013202)  -  _11/10/2023, 5:26:53 PM_
 - [1.2.6-alpha.7.md](#1699545622667)  -  _11/9/2023, 11:00:22 PM_
 - [1.2.6-alpha.6.md](#1699542888522)  -  _11/9/2023, 10:14:48 PM_
 - [1.2.6-alpha.5.md](#1699426184200)  -  _11/8/2023, 1:49:44 PM_
@@ -56,6 +57,14 @@
 
 ## Details
 
+<a id="1699612013202"></a>
+### 1.2.6-alpha.8
+
+* fix: EventLogger and FileLogger, add more logs to debug (926ea43)
+* feat(scene'process): Support global event in app (be074eb)
+* feat(event): support "opts", "eventOpts" and "eventOpt" (e5eeb61)
+* perf: optimize event logger (efc30ab)
+  
 <a id="1699545622667"></a>
 ### 1.2.6-alpha.7
 
