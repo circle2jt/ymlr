@@ -319,6 +319,27 @@ Now, we have 2 choices to debug all of user APIs and product APIs
 ```  
 
 
+## <a id="debounce"></a>debounce  
+`It's a property in a tag`  
+Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed. (Ref #lodash.debounce)  
+
+Example:  
+
+```yaml
+  - http'server:
+      address: 0.0.0.0:1234
+    debounce:
+      time: 5s                # The number of milliseconds to delay.
+      trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
+      leading: false          # Specify invoking on the leading edge of the timeout. Default is false
+      maxWait: 1000           # The maximum time func is allowed to be delayed before it's invoked.
+    runs:
+      - name: Last call is ${ new Date() }
+      ...
+
+```  
+
+
 ## <a id="debug"></a>debug  
 `It's a property in a tag`  
 How to print log details for each of item.
@@ -617,6 +638,26 @@ Example:
   - <-: localhost           # => Auto inherits "baseURL" from localhost
     http'get:
       url: /items
+```  
+
+
+## <a id="throttle"></a>throttle  
+`It's a property in a tag`  
+Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)  
+
+Example:  
+
+```yaml
+  - http'server:
+      address: 0.0.0.0:1234
+    throttle:
+      time: 5s                  # The number of milliseconds to throttle invocations to.
+      trailing: true            # Specify invoking on the trailing edge of the timeout. Default is true
+      leading: true             # Specify invoking on the leading edge of the timeout. Default is true
+    runs:
+      - name: Prevent call many times, only execute 1 time for each 5s
+      ...
+
 ```  
 
 
