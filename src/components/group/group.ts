@@ -1,6 +1,7 @@
 import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
+import { mutexLock } from 'src/libs/mutex-function'
 import { cloneDeep } from 'src/libs/variable'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { ElementProxy } from '../element-proxy'
@@ -120,11 +121,22 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (elemProxy.debounce) {
         const debounce = require('lodash.debounce')
         const { time, trailing, leading, maxWait } = elemProxy.debounce
-        innerRunsProxy.exec = debounce(innerRunsProxy.exec.bind(innerRunsProxy), UtilityFunctionManager.Instance.format.textToMs(time), { leading, maxWait, trailing })
+        let innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
+        if (elemProxy.mutex) {
+          innerRunsProxyExec = mutexLock(innerRunsProxyExec)
+        }
+        innerRunsProxy.exec = debounce(innerRunsProxyExec, UtilityFunctionManager.Instance.format.textToMs(time), { leading, maxWait, trailing })
       } else if (elemProxy.throttle) {
         const throttle = require('lodash.throttle')
         const { time, trailing, leading } = elemProxy.throttle
-        innerRunsProxy.exec = throttle(innerRunsProxy.exec.bind(innerRunsProxy), UtilityFunctionManager.Instance.format.textToMs(time), { leading, trailing })
+        let innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
+        if (elemProxy.mutex) {
+          innerRunsProxyExec = mutexLock(innerRunsProxyExec)
+        }
+        innerRunsProxy.exec = throttle(innerRunsProxyExec, UtilityFunctionManager.Instance.format.textToMs(time), { leading, trailing })
+      } else if (elemProxy.mutex) {
+        const innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
+        innerRunsProxy.exec = mutexLock(innerRunsProxyExec)
       }
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {

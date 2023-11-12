@@ -446,8 +446,27 @@ export class ElementProxy<T extends Element> {
     ```
   */
   runs?: GroupItemProps[]
+  /** |**  mutex
+    Lock and execute steps in the "runs" before is unlocked after done. After locked, requests to execute steps in the "runs" will be rejected.
+    This can combine with "throttle", "debounce"
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - http'server:
+          address: 0.0.0.0:1234
+        mutex: true
+        runs:
+          - name: Last call is ${ new Date() }
+          - sleep: 10s            # block atleast 10s for a next request
+          ...
+
+    ```
+  */
+  mutex?: boolean
   /** |**  debounce
-    Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed. (Ref #lodash.debounce)
+    Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed.
+    This can combine with "mutex" but can not combine with "throttle"
     @position top
     @tag It's a property in a tag
     @example
@@ -474,6 +493,7 @@ export class ElementProxy<T extends Element> {
 
   /** |**  throttle
     Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)
+    This can combine with "mutex" but can not combine with "debounce"
     @position top
     @tag It's a property in a tag
     @example
