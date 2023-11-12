@@ -2,6 +2,7 @@ import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
+import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import Include from '../include'
@@ -116,6 +117,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // innerRunsProxy.parent = elem
       // innerRunsProxy.scene = elemProxy.scene
       // innerRunsProxy.rootScene = elemProxy.rootScene
+      if (elemProxy.debounce) {
+        const debounce = require('lodash.debounce')
+        const { time, trailing, leading, maxWait } = elemProxy.debounce
+        innerRunsProxy.exec = debounce(innerRunsProxy.exec.bind(innerRunsProxy), UtilityFunctionManager.Instance.format.textToMs(time), { leading, maxWait, trailing })
+      } else if (elemProxy.throttle) {
+        const throttle = require('lodash.throttle')
+        const { time, trailing, leading } = elemProxy.throttle
+        innerRunsProxy.exec = throttle(innerRunsProxy.exec.bind(innerRunsProxy), UtilityFunctionManager.Instance.format.textToMs(time), { leading, trailing })
+      }
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {
         await disposeInnerRunsProxy()

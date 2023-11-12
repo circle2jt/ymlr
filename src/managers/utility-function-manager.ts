@@ -119,7 +119,7 @@ export class UtilityFunctionManager {
       const { formatDuration } = require('../libs/format')
       return formatDuration(ms)
     },
-    textToMs(time: string) {
+    textToMs(time: string | number) {
       const { formatTextToMs } = require('../libs/format')
       return formatTextToMs(time)
     }

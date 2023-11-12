@@ -446,6 +446,55 @@ export class ElementProxy<T extends Element> {
     ```
   */
   runs?: GroupItemProps[]
+  /** |**  debounce
+    Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed. (Ref #lodash.debounce)
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - http'server:
+          address: 0.0.0.0:1234
+        debounce:
+          time: 5s                # The number of milliseconds to delay.
+          trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
+          leading: false          # Specify invoking on the leading edge of the timeout. Default is false
+          maxWait: 1000           # The maximum time func is allowed to be delayed before it's invoked.
+        runs:
+          - name: Last call is ${ new Date() }
+          ...
+
+    ```
+  */
+  debounce?: {
+    time: string | number
+    trailing?: boolean
+    leading?: boolean
+    maxWait?: number
+  }
+
+  /** |**  throttle
+    Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - http'server:
+          address: 0.0.0.0:1234
+        throttle:
+          time: 5s                  # The number of milliseconds to throttle invocations to.
+          trailing: true            # Specify invoking on the trailing edge of the timeout. Default is true
+          leading: true             # Specify invoking on the leading edge of the timeout. Default is true
+        runs:
+          - name: Prevent call many times, only execute 1 time for each 5s
+          ...
+
+    ```
+  */
+  throttle?: {
+    time: string | number
+    trailing?: boolean
+    leading?: boolean
+  }
 
   #parentState?: Record<string, any>
   get parentState() {
