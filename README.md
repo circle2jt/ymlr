@@ -321,7 +321,8 @@ Now, we have 2 choices to debug all of user APIs and product APIs
 
 ## <a id="debounce"></a>debounce  
 `It's a property in a tag`  
-Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed. (Ref #lodash.debounce)  
+Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed.
+This can combine with "mutex" but can not combine with "throttle"  
 
 Example:  
 
@@ -542,6 +543,25 @@ Loop in nested items
 ```  
 
 
+## <a id="mutex"></a>mutex  
+`It's a property in a tag`  
+Lock and execute steps in the "runs" before is unlocked after done. After locked, requests to execute steps in the "runs" will be rejected.
+This can combine with "throttle", "debounce"  
+
+Example:  
+
+```yaml
+  - http'server:
+      address: 0.0.0.0:1234
+    mutex: true
+    runs:
+      - name: Last call is ${ new Date() }
+      - sleep: 10s            # block atleast 10s for a next request
+      ...
+
+```  
+
+
 ## <a id="name"></a>name  
 `It's a property in a tag`  
 Step name  
@@ -643,7 +663,8 @@ Example:
 
 ## <a id="throttle"></a>throttle  
 `It's a property in a tag`  
-Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)  
+Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)
+This can combine with "mutex" but can not combine with "debounce"  
 
 Example:  
 
