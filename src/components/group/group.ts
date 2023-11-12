@@ -228,7 +228,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context, mutex, debounce, throttle } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -270,7 +270,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         async,
         loop,
         context,
-        skipNext
+        skipNext,
+        mutex,
+        debounce,
+        throttle
       }
       // Execute
       if (loop === undefined) {
@@ -372,11 +375,31 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         await elemProxy.dispose()
       }
     } else {
+      const proms: Array<Promise<any>> = []
+
       if (baseProps.id) {
-        await elemProxy.scene.setVars(baseProps.id, elemProxy)
+        proms.push(elemProxy.scene.setVars(baseProps.id, elemProxy))
       }
-      const detach = baseProps.detach && await this.innerScene.getVars(baseProps.detach, elemProxy)
-      if (detach) {
+      if (baseProps.debounce) {
+        proms.push((async () => {
+          baseProps.debounce = await this.innerScene.getVars(baseProps.debounce, elemProxy)
+        })())
+      }
+      if (baseProps.throttle) {
+        proms.push((async () => {
+          baseProps.throttle = await this.innerScene.getVars(baseProps.throttle, elemProxy)
+        })())
+      }
+      if (baseProps.detach) {
+        proms.push((async () => {
+          baseProps.detach = await this.innerScene.getVars(baseProps.detach, elemProxy)
+        })())
+      }
+      if (proms) {
+        await Promise.all(proms)
+      }
+
+      if (baseProps.detach) {
         this.rootScene.pushToBackgroundJob(elemProxy, parentState)
       } else {
         const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
