@@ -25,7 +25,7 @@ export class Include implements Element {
   file!: string
   cached?: boolean
 
-  get #logger() { return this.proxy.logger }
+  private get logger() { return this.proxy.logger }
 
   constructor(public opts: IncludeProps) {
     if (typeof opts === 'string') {
@@ -40,7 +40,7 @@ export class Include implements Element {
     const f = new FileRemote(this.file, this.proxy.scene)
     const cached = this.proxy.scene.localCaches.get(f.uri)
     if (cached) {
-      this.#logger.trace('Get include data from cached')
+      this.logger.trace('Get include data from cached')
       return cached
     }
     const files = []

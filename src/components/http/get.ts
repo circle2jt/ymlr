@@ -47,9 +47,8 @@ export class Get extends Head {
   method = 'get'
   responseType?: ResponseType
   saveTo?: string
-  isDownload?: true
 
-  protected get scene() { return this.proxy.scene }
+  #isDownload?: boolean
 
   constructor({ responseType, saveTo, ...props }: GetProps) {
     super(props)
@@ -58,8 +57,8 @@ export class Get extends Head {
 
   override async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
-    if (this.responseType === 'stream') this.isDownload = true
-    if (this.isDownload) {
+    if (this.responseType === 'stream') this.#isDownload = true
+    if (this.#isDownload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
@@ -135,6 +134,6 @@ export class Get extends Head {
     const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
     const body: IncomingMessage = rs.data
     await finished(body.pipe(stream))
-    return new File(this.saveTo, this.scene)
+    return new File(this.saveTo, this.proxy.scene)
   }
 }

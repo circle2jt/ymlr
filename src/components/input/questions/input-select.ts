@@ -2,7 +2,7 @@ import { type InputSelectInterface } from './input-select.interface'
 import { InputAbstract } from './input.abstract'
 
 export class InputSelect extends InputAbstract<InputSelectInterface> {
-  readonly type = 'select'
+  override readonly type = 'select'
   choices: Array<{ title: string, value: any }> = []
 
   constructor({ choices, ...props }: Partial<InputSelectInterface>) {

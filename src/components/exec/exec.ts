@@ -23,13 +23,11 @@ import { type Element } from '../element.interface'
   ```
 */
 export class Exec implements Element {
-  readonly ignoreEvalProps = ['abortController']
   readonly proxy!: ElementProxy<this>
 
-  private get scene() { return this.proxy.scene }
-  private get logger() { return this.proxy.logger }
+  #abortController?: AbortController
 
-  private abortController?: AbortController
+  private get logger() { return this.proxy.logger }
 
   constructor(public commands: string[]) { }
 
@@ -40,7 +38,7 @@ export class Exec implements Element {
       rs = await new Promise<{ code: number, signal: NodeJS.Signals, logs?: string }>((resolve, reject) => {
         this.logger.debug('› %s', this.commands.join(' '))
         let logs: string[] | undefined
-        this.abortController = new AbortController()
+        this.#abortController = new AbortController()
         let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
         if (this.proxy.vars) {
           stdio = 'pipe'
@@ -54,8 +52,8 @@ export class Exec implements Element {
         const c = spawn(bin, args, {
           stdio,
           env: process.env,
-          cwd: this.scene?.curDir,
-          signal: this.abortController.signal
+          cwd: this.proxy.scene?.curDir,
+          signal: this.#abortController.signal
         })
         if (logs || this.logger.is(LoggerLevel.trace)) {
           c.stdout?.on('data', msg => {
@@ -82,12 +80,12 @@ export class Exec implements Element {
         c.on('error', reject)
       })
     } finally {
-      this.abortController = undefined
+      this.#abortController = undefined
     }
     return rs
   }
 
   dispose() {
-    this.abortController?.abort()
+    this.#abortController?.abort()
   }
 }

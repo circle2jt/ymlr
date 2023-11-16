@@ -6,14 +6,16 @@ import { type InputProps } from './input.props'
 import { type InputAbstract } from './questions/input.abstract'
 
 export class Input<T extends InputProps> implements Element {
-  readonly ignoreEvalProps = ['input', 'InputClass']
+  readonly ignoreEvalProps = ['InputClass']
   readonly proxy!: ElementProxy<this>
+
   private get logger() { return this.proxy.logger }
 
   props: any
 
-  private input?: InputAbstract<InputInterface>
   protected InputClass?: new (props: any) => InputAbstract<InputInterface>
+
+  #input?: InputAbstract<InputInterface>
 
   constructor(inputProps: T) {
     const { vars, title: label, ...props } = inputProps
@@ -24,14 +26,14 @@ export class Input<T extends InputProps> implements Element {
   }
 
   answer(value?: string | number | boolean | Array<{ key: string, name: string }>) {
-    return this.input?.answer(value)
+    return this.#input?.answer(value)
   }
 
   async exec() {
     assert(!!this.InputClass)
     globalThis.inputIndent = this.logger.indent.indentString
-    this.input = new this.InputClass(this.props)
-    const value = await this.input.exec()
+    this.#input = new this.InputClass(this.props)
+    const value = await this.#input.exec()
     if (value === undefined) {
       process.exit(0)
     }

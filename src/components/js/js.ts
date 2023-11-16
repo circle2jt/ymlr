@@ -31,8 +31,6 @@ export class Js implements Element {
   readonly ignoreEvalProps = ['script']
   readonly proxy!: ElementProxy<this>
 
-  private get scene() { return this.proxy.scene }
-
   script?: string
   path?: string
 
@@ -47,7 +45,7 @@ export class Js implements Element {
 
   async exec() {
     if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.scene)
+      const fileRemote = new FileRemote(this.path, this.proxy.scene)
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script)

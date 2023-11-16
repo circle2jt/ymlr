@@ -7,7 +7,6 @@ import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import Include from '../include'
-import { type RootScene } from '../root-scene'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
 /** |**  runs
@@ -24,22 +23,29 @@ import { type GroupItemProps, type GroupProps } from './group.props'
   ```
 */
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
-  hideName?: boolean
-  readonly ignoreEvalProps = ['runs']
+  readonly isRootScene?: boolean
+  readonly ignoreEvalProps: string[] = ['isRootScene']
   readonly proxy!: ElementProxy<this>
 
-  protected get scene() { return this.proxy?.scene }
-  protected get rootScene() { return this.proxy?.rootScene }
-  protected get logger() { return this.proxy?.logger }
+  hideName?: boolean
+
+  protected get scene() {
+    return this.proxy.scene
+  }
+
+  protected get rootScene() {
+    return this.proxy.rootScene
+  }
+
+  protected get logger() {
+    return this.proxy.logger
+  }
+
   protected get innerScene() {
     return this.scene
   }
 
-  protected get isRoot() {
-    return !this.proxy.parent
-  }
-
-  private runs?: GroupItemProps[]
+  #runs?: GroupItemProps[]
 
   constructor(props?: GP | GIP[]) {
     this.lazyInitRuns(props)
@@ -47,10 +53,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   lazyInitRuns(props?: GP | GIP[]) {
     if (Array.isArray(props)) {
-      this.runs = props
+      this.#runs = props
     } else if (props) {
       this.resolveShortcutAsync(props)
-      this.runs = props.runs
+      this.#runs = props.runs
       this.hideName = props.hideName
     }
   }
@@ -59,35 +65,42 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
-    let wParent: WeakRef<Element>
-    if (this.proxy.tag === 'inner-runs-proxy') {
-      wParent = new WeakRef<Element>(this.proxy.parent as any)
-      // elemProxy.parent = this.proxy.parent
-    } else {
-      wParent = new WeakRef<Element>(this)
-      // elemProxy.parent = this
-    }
-    const wScene = new WeakRef(this.innerScene)
-    const wRootScene = new WeakRef((this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene)
-    Object.defineProperties(elemProxy, {
-      parent: {
-        get() {
-          return wParent.deref()
-        }
-      },
-      scene: {
-        get() {
-          return wScene.deref()
-        }
-      },
-      rootScene: {
-        get() {
-          return wRootScene.deref()
-        }
-      }
+    Object.defineProperty(elemProxy, 'scene', {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: this.innerScene
     })
-    // elemProxy.scene = this.innerScene
-    // elemProxy.rootScene = (this.innerScene.isRoot ? this.innerScene : this.rootScene) as RootScene
+    if (this.proxy.tag === 'inner-runs-proxy') {
+      Object.defineProperty(elemProxy, 'parent', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this.proxy.parent
+      })
+    } else {
+      Object.defineProperty(elemProxy, 'parent', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this
+      })
+    }
+    if (this.innerScene.isRootScene) {
+      Object.defineProperty(elemProxy, 'rootScene', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this.innerScene
+      })
+    } else {
+      Object.defineProperty(elemProxy, 'rootScene', {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this.rootScene
+      })
+    }
     Object.assign(elemProxy, loopObj)
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
@@ -95,29 +108,28 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
       innerRuns.hideName = true
-      const wParent = new WeakRef<Element>(elem)
       const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
       Object.defineProperties(innerRunsProxy, {
         parent: {
-          get() {
-            return wParent.deref()
-          }
+          enumerable: false,
+          configurable: false,
+          writable: false,
+          value: elem
         },
         scene: {
-          get() {
-            return wScene.deref()
-          }
+          enumerable: false,
+          configurable: false,
+          writable: false,
+          value: elemProxy.scene
         },
         rootScene: {
-          get() {
-            return wRootScene.deref()
-          }
+          enumerable: false,
+          configurable: false,
+          writable: false,
+          value: elemProxy.rootScene
         }
       })
-      // innerRunsProxy.parent = elem
-      // innerRunsProxy.scene = elemProxy.scene
-      // innerRunsProxy.rootScene = elemProxy.rootScene
       if (elemProxy.debounce) {
         const debounce = require('lodash.debounce')
         const { time, trailing, leading, maxWait } = elemProxy.debounce
@@ -155,12 +167,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async preExec(parentState?: Record<string, any>) {
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
-      this.proxy.runs = this.runs || []
-      if (this.proxy.runs.length && !this.isRoot) {
+      this.proxy.runs = this.#runs || []
+      if (this.proxy.runs.length && !this.isRootScene) {
         this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
       }
     }
-    this.runs = undefined
+    this.#runs = undefined
     if (!this.proxy.runs.length) {
       return true
     }

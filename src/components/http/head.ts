@@ -36,7 +36,7 @@ axios.defaults.httpsAgent = new Agents()
   ```
 */
 export class Head implements Element {
-  readonly ignoreEvalProps = ['response', 'executionTime', 'abortController']
+  readonly ignoreEvalProps = ['response', 'executionTime']
   readonly proxy!: ElementProxy<this>
 
   protected get logger() { return this.proxy.logger }
@@ -51,7 +51,7 @@ export class Head implements Element {
   executionTime?: number
   opts?: any
 
-  private readonly abortController: AbortController
+  readonly #abortController: AbortController
 
   protected get fullURL() {
     return `${this.baseURL || ''}${this.url}`
@@ -69,18 +69,18 @@ export class Head implements Element {
       params: this.query,
       headers: this.headers,
       timeout: this.timeout,
-      signal: this.abortController.signal,
+      signal: this.#abortController.signal,
       ...this.opts
     }
   }
 
   constructor(props: HeadProps) {
     Object.assign(this, props)
-    this.abortController = new AbortController()
+    this.#abortController = new AbortController()
   }
 
   abort() {
-    this.abortController.abort()
+    this.#abortController.abort()
   }
 
   async exec() {

@@ -47,8 +47,8 @@ import { type IVerify } from './auth/IVerify'
   ```
 */
 export class HttpServer implements Element {
-  ignoreEvalProps = ['server']
-  proxy!: ElementProxy<this>
+  readonly proxy!: ElementProxy<this>
+
   address: string = '0.0.0.0:8811'
   auth?: {
     basic?: {
@@ -61,11 +61,10 @@ export class HttpServer implements Element {
     }
   }
 
-  private authVerifier?: IVerify
-  private server?: Server
-  private get logger() {
-    return this.proxy.logger
-  }
+  #authVerifier?: IVerify
+  #server?: Server
+
+  private get logger() { return this.proxy.logger }
 
   // Support runs
   innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
@@ -77,26 +76,25 @@ export class HttpServer implements Element {
   async exec() {
     assert(this.address)
     if (this.auth?.basic) {
-      this.authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
+      this.#authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
     } else if (this.auth?.custom) {
       const { 'verify()': verify, ...props } = this.auth.custom
-      this.authVerifier = new CustomAuth(props)
-      this.authVerifier.verify = bindFunctionScript(verify, this.authVerifier, '$parentState')
+      this.#authVerifier = new CustomAuth(props)
+      this.#authVerifier.verify = bindFunctionScript(verify, this.#authVerifier, '$parentState')
     }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.server = createServer(async (req, res) => {
+      this.#server = createServer(async (req, res) => {
         await this.handleRequest(req, res)
-      })
-        .on('error', reject)
+      }).on('error', reject)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         .on('close', async () => {
           await this.stop()
           resolve(undefined)
         })
         .listen(+port, host, () => {
-          this.logger.debug('http\'server is listened at %s', this.address)
+          this.logger.debug('http\'#server is listened at %s', this.address)
         })
     })
     return []
@@ -125,8 +123,8 @@ export class HttpServer implements Element {
       .debug('%s %s \t%s', '⥃', req.method, req.url)
       .trace('%j', parentState)
     try {
-      if (this.authVerifier) {
-        const code = await this.authVerifier.verify(parentState)
+      if (this.#authVerifier) {
+        const code = await this.#authVerifier.verify(parentState)
         if (code === false) {
           res.statusCode = 401
           return
@@ -150,7 +148,7 @@ export class HttpServer implements Element {
       }
       res.statusCode = 204
       await this.innerRunsProxy.exec(parentState)
-      if (!this.server) {
+      if (!this.#server) {
         res.statusCode = 503
         res.end()
         return
@@ -203,9 +201,9 @@ export class HttpServer implements Element {
   }
 
   async stop() {
-    if (!this.server?.listening) return
-    this.server?.close()
-    this.server = undefined
+    if (!this.#server?.listening) return
+    this.#server?.close()
+    this.#server = undefined
   }
 
   async dispose() {

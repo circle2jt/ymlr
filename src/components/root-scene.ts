@@ -35,6 +35,7 @@ Root scene file includes all of steps to run
 ```
 */
 export class RootScene extends Scene {
+  override readonly isRootScene = true
   #workerManager?: WorkerManager
   get workerManager() {
     return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
@@ -48,27 +49,33 @@ export class RootScene extends Scene {
   readonly runDir = process.cwd()
   rootDir = ''
 
+  #localVars!: Record<string, any>
+  override set localVars(vars: Record<string, any>) {
+    this.#localVars = vars
+  }
+
+  override get localVars() {
+    if (!this.#localVars) {
+      this.localVars = {}
+    }
+    return this.#localVars
+  }
+
+  protected override get rootScene() {
+    return this
+  }
+
+  protected override get scene() {
+    return this
+  }
+
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', '#workerManager', 'onAppExit', '#backgroundJobs', 'event')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', 'onAppExit')
   }
 
   override async asyncConstructor() {
-    const wf = new WeakRef(this)
-    Object.defineProperties(this.proxy, {
-      scene: {
-        get() {
-          return wf.deref()
-        }
-      },
-      rootScene: {
-        get() {
-          return wf.deref()
-        }
-      }
-    })
-    // this.proxy.scene = this.proxy.rootScene = this
     await this.handleFile()
   }
 

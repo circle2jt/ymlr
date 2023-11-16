@@ -84,8 +84,8 @@ import { type SceneThreadProps } from './scene-thread.props'
   ```
 */
 export class SceneThread extends Scene {
-  private thread!: Worker
-  private id?: string
+  #thread!: Worker
+  #id?: string
 
   constructor(eProps: SceneThreadProps | string) {
     if (typeof eProps === 'string') {
@@ -94,13 +94,12 @@ export class SceneThread extends Scene {
     const { id, ...props } = eProps
     super(props)
     Object.assign(this, { id })
-    this.ignoreEvalProps.push('thread', 'id')
   }
 
   override async handleFile() {
     assert(this.path)
     this.path = this.scene.getPath(this.path)
-    this.thread = this.rootScene.workerManager.createWorker({
+    this.#thread = this.rootScene.workerManager.createWorker({
       path: this.path,
       password: this.password,
       globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
@@ -108,20 +107,20 @@ export class SceneThread extends Scene {
     }, {
       debug: this.proxy.logger.level?.level
     }, {
-      id: this.id,
+      id: this.#id,
       tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
       templates: this.rootScene.templatesManager,
       loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
       loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
       loggerDebug: LoggerFactory.DEBUG
     })
-    if (!this.id) {
-      this.id = this.thread.id
+    if (!this.#id) {
+      this.#id = this.#thread.id
     }
   }
 
   override async exec() {
-    await this.thread.exec()
+    await this.#thread.exec()
     return []
   }
 }

@@ -1,6 +1,8 @@
 import { callFunctionScript } from 'src/libs/async-function'
 import { inspect } from 'util'
 
+const REGEX_FIRST_ALPHA = /^[A-Za-z]/
+
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
   const $vars = others.$vars
@@ -9,6 +11,7 @@ export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
     return [varObj]
   }
   const keys = Object.keys(varObj)
+    .filter(key => REGEX_FIRST_ALPHA.test(key))
   for (const k of keys) {
     $vars[k] = await getVars(varObj[k], ctx, others)
   }
@@ -61,7 +64,9 @@ async function evalObject(obj: any, ctx: any, others: any) {
     const vl: any[] = await Promise.all(obj.map(async o => await getVars(o, ctx, others)))
     return vl
   }
-  for (const k of Object.keys(obj)) {
+  const keys = Object.keys(obj)
+    .filter(key => REGEX_FIRST_ALPHA.test(key))
+  for (const k of keys) {
     obj[k] = await getVars(obj[k], ctx, others)
   }
   return obj

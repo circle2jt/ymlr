@@ -30,14 +30,15 @@ export type TestProps = string | {
 */
 export class Test implements Element {
   readonly hideName = true
-  readonly ignoreEvalProps = ['script', 'defaultTestTitle']
+  readonly ignoreEvalProps = ['script']
   readonly proxy!: ElementProxy<this>
+
   private get logger() { return this.proxy.logger }
 
   check?: string
   script?: string
 
-  private readonly defaultTestTitle?: string
+  readonly #defaultTestTitle?: string
 
   constructor(props: TestProps) {
     if (typeof props === 'string') {
@@ -46,12 +47,12 @@ export class Test implements Element {
       }
     }
     Object.assign(this, props)
-    this.defaultTestTitle = this.check || this.script || ''
+    this.#defaultTestTitle = this.check || this.script || ''
   }
 
   failed(description = ''): never {
     const err = new TestError(this.proxy.name)
-    err.cause = description || this.defaultTestTitle
+    err.cause = description || this.#defaultTestTitle
     throw err
   }
 

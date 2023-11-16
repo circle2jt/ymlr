@@ -37,7 +37,7 @@ const SuggestFunction: SuggestType = {
 }
 
 export class InputSuggest extends InputAbstract<InputSuggestInterface> {
-  readonly type = 'autocomplete'
+  override readonly type = 'autocomplete'
   choices: Array<{ title: string, value: any }> = []
   limit?: number
   style?: string

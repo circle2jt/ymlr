@@ -5,7 +5,6 @@ import { basename, dirname, isAbsolute, join, resolve } from 'path'
 import { SAND_SCENE_PASSWORD } from 'src/env'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
-import { GlobalEvent } from 'src/libs/global-event'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { getVars, setVars } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
@@ -13,7 +12,6 @@ import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { Group } from '../group/group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
-import { RootScene } from '../root-scene'
 import { type SceneProps } from './scene.props'
 import { YamlType } from './yaml-type'
 
@@ -44,21 +42,69 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   cached?: boolean
   curDir = ''
 
-  localVars: Record<string, any> = {}
-
-  readonly localCaches = new Map<string, any[]>()
   protected readonly password?: string
+  protected override get innerScene() {
+    return this
+  }
 
-  #updateGlobalVarsListener?: any
   #content?: string
+  #localVars!: { proxy: Record<string, any>, revoke: () => void }
+  set localVars(vars: Record<string, any>) {
+    this.#localVars = Proxy.revocable(vars, {
+      set: (target: any, name: any, vl: any) => {
+        if (REGEX_FIRST_UPPER.test(name[0])) {
+          Object.defineProperty(target, name, {
+            enumerable: true,
+            get: () => {
+              return this.proxy.rootScene.localVars[name]
+            },
+            set: (vl: any) => {
+              this.proxy.rootScene.localVars[name] = vl
+            }
+          })
+        }
+        target[name] = vl
+        return true
+      },
+      deleteProperty: (target: any, name: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete target[name]
+        if (REGEX_FIRST_UPPER.test(name[0])) {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete this.proxy.rootScene.localVars[name]
+        }
+        return true
+      }
+    })
+  }
+
+  get localVars() {
+    if (!this.#localVars) {
+      this.localVars = {}
+    }
+    return this.#localVars.proxy
+  }
+
+  get globalVars() {
+    return Object.keys(this.localVars)
+      .filter(key => REGEX_FIRST_UPPER.test(key[0]))
+      .reduce<Record<string, any>>((sum, key) => {
+      sum[key] = this.localVars[key]
+      return sum
+    }, {})
+  }
+
+  #localCaches!: Map<string, any[]>
+  get localCaches() {
+    if (!this.#localCaches) {
+      this.#localCaches = new Map<string, any[]>()
+    }
+    return this.#localCaches
+  }
 
   get encryptedPath() {
     const name = basename(this.path as string)
     return join(this.curDir, name.substring(0, name.lastIndexOf('.')))
-  }
-
-  protected get innerScene() {
-    return this
   }
 
   constructor(eProps: SceneProps | string) {
@@ -70,16 +116,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     this.password = password
     this.#content = content
     Object.assign(this, { path, vars })
-    this.ignoreEvalProps.push('curDir', 'localVars', 'localCaches')
+    this.ignoreEvalProps.push('curDir', 'password')
   }
 
   async asyncConstructor() {
-    this.#updateGlobalVarsListener = (name: string) => {
-      this.logger.trace('Updated global vars to scene vars - ' + name)
-      this.copyGlobalVarsToLocal()
-    }
-    GlobalEvent.on(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.#updateGlobalVarsListener)
-    this.copyVarsToGlobal(this.scene.localVars)
+    this.localVars = this.rootScene.globalVars
     await this.handleFile()
   }
 
@@ -89,7 +130,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.lazyInitRuns(remoteFileRawProps)
     } else {
       const { password, env, ...remoteFileProps } = remoteFileRawProps
-      if (env && this instanceof RootScene) {
+      if (env && this.isRootScene) {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
           (env as string[]).forEach(e => {
@@ -117,19 +158,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   override async exec(parentState?: Record<string, any>) {
     if (this.name) this.logger.info(this.name)
-    try {
-      const results = await super.exec(parentState)
-      return results || []
-    } finally {
-      this.copyVarsToGlobal()
-    }
+    const results = await super.exec(parentState)
+    return results || []
   }
 
   override async dispose() {
-    if (this.#updateGlobalVarsListener) {
-      GlobalEvent.off(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.#updateGlobalVarsListener)
-      this.#updateGlobalVarsListener = undefined
-    }
+    this.#localVars?.revoke()
     await super.dispose()
   }
 
@@ -166,23 +200,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     Object.assign(this.localVars, obj)
   }
 
-  private copyGlobalVarsToLocal() {
-    Object.keys(this.rootScene.localVars)
-      .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-      .forEach(key => {
-        this.localVars[key] = this.rootScene.localVars[key]
-      })
-  }
-
-  private copyVarsToGlobal(localVars = this.localVars) {
-    Object.keys(localVars)
-      .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-      .forEach(key => {
-        this.rootScene.localVars[key] = localVars[key]
-      })
-    GlobalEvent.emit(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.name || this.path)
-  }
-
   private async getRemoteFileProps() {
     let props: any
     this.path = await this.scene.getVars(this.path)
@@ -193,7 +210,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (!fileRemote.isRemote) {
         this.path = resolve(fileRemote.uri)
         const dirPath = dirname(this.path)
-        if (this.isRoot) this.rootScene.rootDir = dirPath
+        if (this.isRootScene) this.rootScene.rootDir = dirPath
         this.curDir = dirPath
       }
       if (this.cached) {
@@ -292,7 +309,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       }
     }
     this.mergeVars(vars)
-    if (this.isRoot) await this.loadEnv()
+    if (this.isRootScene) await this.loadEnv()
     if (this.vars) {
       const overridedVars = await (this.scene || this).getVars(this.vars, this.proxy)
       this.mergeVars(overridedVars)

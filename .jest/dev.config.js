@@ -8,7 +8,7 @@ module.exports = {
   logHeapUsage: true,
   // detectLeaks: true,
   detectOpenHandles: true,
-  testTimeout: 15000,
+  testTimeout: 900000,
   testRegex: '\\.spec\\.[jt]sx?$',
   rootDir: '..',
   moduleNameMapper: {

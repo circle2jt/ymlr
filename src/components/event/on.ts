@@ -29,15 +29,14 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class EventOn implements Element {
-  readonly ignoreEvalProps = ['resolve', 'handler', 'reject']
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   name!: string
 
-  private handler!: any
-  private resolve?: (_: any) => void
-  private reject?: (err: Error) => void
+  #handler!: any
+  #resolve?: (_: any) => void
+  #reject?: (err: Error) => void
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -47,7 +46,7 @@ export class EventOn implements Element {
     assert(this.name)
 
     this.proxy.logger.trace('Listening event %s', this.name)
-    this.handler = async (...args: any[]) => {
+    this.#handler = async (...args: any[]) => {
       this.proxy.logger.trace('<-[%s]: %j', this.name, ...args)
       const [data, ...opts] = args
       try {
@@ -58,24 +57,24 @@ export class EventOn implements Element {
           eventOpts: opts
         })
       } catch (err: any) {
-        this.reject?.(err as Error)
+        this.#reject?.(err as Error)
       }
     }
-    GlobalEvent.on(this.name, this.handler)
+    GlobalEvent.on(this.name, this.#handler)
 
     await new Promise((resolve, reject) => {
-      this.resolve = resolve
-      this.reject = reject
+      this.#resolve = resolve
+      this.#reject = reject
     })
   }
 
   dispose() {
-    if (this.resolve) {
+    if (this.#resolve) {
       this.proxy.logger.trace('Off %s', this.name)
-      GlobalEvent.off(this.name, this.handler)
-      this.resolve(undefined)
-      this.resolve = undefined
-      this.reject = undefined
+      GlobalEvent.off(this.name, this.#handler)
+      this.#resolve(undefined)
+      this.#resolve = undefined
+      this.#reject = undefined
     }
   }
 }

@@ -44,10 +44,9 @@ export class Get extends Head {
   method = 'get'
   responseType?: ResponseType
   saveTo?: string
-  isDownload?: true
-  private onDownloadProgress?: (data: any) => any
 
-  protected get scene() { return this.proxy.scene }
+  #isDownload?: boolean
+  #onDownloadProgress?: (data: any) => any
 
   constructor({ responseType, saveTo, ...props }: GetProps) {
     super(props)
@@ -56,12 +55,12 @@ export class Get extends Head {
 
   override async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
-    if (this.responseType === 'stream') this.isDownload = true
-    if (this.isDownload) {
+    if (this.responseType === 'stream') this.#isDownload = true
+    if (this.#isDownload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
-        this.onDownloadProgress = moreOptions.onDownloadProgress = (data: any) => {
+        this.#onDownloadProgress = moreOptions.#onDownloadProgress = (data: any) => {
           const { bytes, loaded } = data
           this.logger.trace(chalk.gray(`Downloading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
         }
@@ -98,14 +97,13 @@ export class Get extends Head {
     }
     if (!rs.body) return undefined
     const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false })
-    const onDownloadProgress = this.onDownloadProgress || undefined
     let loaded = 0
     const wstream = new WritableStream({
-      async write(chunk: any) {
+      write: async (chunk: any) => {
         await new Promise((resolve, reject) => {
           const bytes = chunk.length
           loaded += bytes
-          onDownloadProgress?.({
+          this.#onDownloadProgress?.({
             bytes,
             loaded
           })
@@ -117,10 +115,10 @@ export class Get extends Head {
       }
     })
     await rs.body.pipeTo(wstream)
-    onDownloadProgress?.({
+    this.#onDownloadProgress?.({
       bytes: 0,
       loaded
     })
-    return new File(this.saveTo, this.scene)
+    return new File(this.saveTo, this.proxy.scene)
   }
 }

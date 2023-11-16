@@ -22,7 +22,6 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class EventEmiter implements Element {
-  readonly ignoreEvalProps = []
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 

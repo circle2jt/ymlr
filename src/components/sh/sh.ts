@@ -37,10 +37,8 @@ import { type ShProps } from './sh.props'
   ```
 */
 export class Sh implements Element {
-  readonly ignoreEvalProps = ['abortController']
   readonly proxy!: ElementProxy<this>
 
-  private get scene() { return this.proxy.scene }
   private get logger() { return this.proxy.logger }
 
   script?: string
@@ -50,7 +48,7 @@ export class Sh implements Element {
   bin = '/bin/sh'
   opts?: SpawnOptionsWithoutStdio | ExecFileOptions
 
-  private abortController?: AbortController
+  #abortController?: AbortController
 
   constructor(props: ShProps) {
     if (typeof props === 'string') {
@@ -63,7 +61,7 @@ export class Sh implements Element {
 
   async exec() {
     if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.scene)
+      const fileRemote = new FileRemote(this.path, this.proxy.scene)
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script)
@@ -74,7 +72,7 @@ export class Sh implements Element {
       const rs = await (this.process === true ? this.execLongScript(tmpFile, timeout) : this.ShortScript(tmpFile, timeout))
       return rs
     } finally {
-      this.abortController = undefined
+      this.#abortController = undefined
       tmpFile.remove()
     }
   }
@@ -82,7 +80,7 @@ export class Sh implements Element {
   private async execLongScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
       let logs: string[] | undefined
-      this.abortController = new AbortController()
+      this.#abortController = new AbortController()
       let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
       if (this.proxy.vars) {
         stdio = 'pipe'
@@ -95,9 +93,9 @@ export class Sh implements Element {
       const c = spawn(this.bin, [tmpFile.file], {
         stdio,
         env: process.env,
-        cwd: this.scene?.curDir,
+        cwd: this.proxy.scene.curDir,
         timeout,
-        signal: this.abortController.signal,
+        signal: this.#abortController.signal,
         ...this.opts
       })
       if (logs || this.logger.is(LoggerLevel.trace)) {
@@ -129,12 +127,12 @@ export class Sh implements Element {
 
   private async ShortScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
-      this.abortController = new AbortController()
+      this.#abortController = new AbortController()
       execFile(this.bin, [tmpFile.file], {
         env: process.env,
-        cwd: this.scene.curDir,
+        cwd: this.proxy.scene.curDir,
         timeout,
-        signal: this.abortController.signal,
+        signal: this.#abortController.signal,
         ...this.opts
       }, (err, stdout, stderr) => {
         if (err) {
@@ -153,6 +151,6 @@ export class Sh implements Element {
   }
 
   dispose() {
-    this.abortController?.abort()
+    this.#abortController?.abort()
   }
 }

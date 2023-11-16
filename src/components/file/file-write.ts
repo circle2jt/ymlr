@@ -36,7 +36,6 @@ import { YAMLFormater } from './write/yaml.formater'
 export class FileWrite implements Element {
   readonly proxy!: ElementProxy<this>
 
-  private get scene() { return this.proxy.scene }
   private get logger() { return this.proxy.logger }
 
   path?: string
@@ -49,9 +48,8 @@ export class FileWrite implements Element {
   }
 
   async exec() {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return await new Promise((resolve, reject) => {
-      this.path = this.scene.getPath(this.path || '')
+      this.path = this.proxy.scene.getPath(this.path || '')
       try {
         assert(this.path)
         this.logger.debug(`Write ${this.format || ''}/${this.pretty ? '(pretty)' : ''} file to "${this.path}"`).trace('%s', this.content)

@@ -16,6 +16,8 @@ const EVAL_ELEMENT_SHADOW_BASE_PROPS = [
   'name'
 ]
 
+const DEFAULT_IGNORE_EVAL_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs']
+
 export class ElementProxy<T extends Element> {
   /** |**  id
     ID Reference to element object in the $vars
@@ -580,13 +582,11 @@ export class ElementProxy<T extends Element> {
   constructor(public element: T, props = {}) {
     Object.assign(this, props)
     if (element.asyncConstructor) this.#elementAsyncProps = props
-    const wf = new WeakRef(this)
-    Object.defineProperties(element, {
-      proxy: {
-        get() {
-          return wf.deref()
-        }
-      }
+    Object.defineProperty(element, 'proxy', {
+      enumerable: false,
+      configurable: false,
+      writable: false,
+      value: this
     })
   }
 
@@ -622,7 +622,7 @@ export class ElementProxy<T extends Element> {
     const elem = this.element
     const proms = Object.keys(elem)
       .filter(key => {
-        return !elem.ignoreEvalProps?.includes(key) &&
+        return !DEFAULT_IGNORE_EVAL_PROPS.includes(key) && !elem.ignoreEvalProps?.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {

@@ -2,7 +2,7 @@ import { type InputMultiSelectInterface } from './input-multiselect.interface'
 import { InputAbstract } from './input.abstract'
 
 export class InputMultiSelect extends InputAbstract<InputMultiSelectInterface> {
-  readonly type = 'multiselect'
+  override readonly type = 'multiselect'
   choices: Array<{ title: string, value: any, selected?: boolean }> = []
 
   constructor({ choices, ...props }: Partial<InputMultiSelectInterface>) {

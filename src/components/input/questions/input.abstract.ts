@@ -27,7 +27,7 @@ styles.symbol = (done: any, aborted: any, exited: any) => {
 }
 
 export abstract class InputAbstract<T extends InputInterface> implements InputInterface {
-  type?: PromptType
+  readonly type?: PromptType
   label?: string
   default?: any
   required?: boolean

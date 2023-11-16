@@ -54,7 +54,8 @@ export class Post extends Get {
   method = 'post'
   type?: RequestType
   body?: any
-  protected isUpload?: true
+
+  #isUpload?: boolean
 
   constructor({ type, body, ...props }: PostProps) {
     super(props)
@@ -63,7 +64,7 @@ export class Post extends Get {
 
   override async send(moreOptions: any = {}) {
     const body = await this.getRequestBody()
-    if (this.isUpload) {
+    if (this.#isUpload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
@@ -101,9 +102,9 @@ export class Post extends Get {
           const vl = this.body[key]
           // file: {path: '', name: '', }
           if (typeof vl === 'object') {
-            if (!this.isUpload) this.isUpload = true
+            if (!this.#isUpload) this.#isUpload = true
             const { path, name } = vl as UploadFile
-            const buf = await readFile(this.scene.getPath(path))
+            const buf = await readFile(this.proxy.scene.getPath(path))
             form1.append(key, new Blob([buf]), name)
           } else {
             form1.append(key, vl)

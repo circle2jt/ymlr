@@ -4,11 +4,11 @@ import { nodeModulesDir } from '../modules-manager'
 
 export class Npm extends PM {
   override get cmdInstall() {
-    return ['npm', 'add', '--prefix', `${join(nodeModulesDir, '..')}`]
+    return ['npm', 'install', '--save', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
   override get cmdUpgrade() {
-    return ['npm', 'upgrade', '--save', '--prefix', `${join(nodeModulesDir, '..')}`]
+    return ['npm', 'update', '--save', '--prefix', `${join(nodeModulesDir, '..')}`]
   }
 
   override get cmdUninstall() {

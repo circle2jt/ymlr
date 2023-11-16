@@ -29,11 +29,9 @@ import { type Element } from '../element.interface'
   ```
 */
 export class Returns implements Element {
-  ignoreEvalProps = ['result', 'props']
-  proxy!: ElementProxy<this>
-  get logger() {
-    return this.proxy.logger
-  }
+  readonly ignoreEvalProps = ['result', 'props']
+  readonly proxy!: ElementProxy<this>
+  get logger() { return this.proxy.logger }
 
   result?: any
 

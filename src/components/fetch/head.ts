@@ -28,7 +28,7 @@ import { HttpError } from './http-error'
   ```
 */
 export class Head implements Element {
-  readonly ignoreEvalProps = ['response', 'executionTime', 'abortController']
+  readonly ignoreEvalProps = ['response', 'executionTime']
   readonly proxy!: ElementProxy<this>
 
   protected get logger() { return this.proxy.logger }
@@ -43,7 +43,7 @@ export class Head implements Element {
   executionTime?: number
   opts?: RequestInit
 
-  private readonly abortController: AbortController
+  readonly #abortController = new AbortController()
 
   protected get fullURL() {
     return `${this.baseURL || ''}${this.url}`
@@ -57,7 +57,7 @@ export class Head implements Element {
     const opts: RequestInit = {
       method: this.method,
       headers: this.headers,
-      signal: this.abortController.signal,
+      signal: this.#abortController.signal,
       ...this.opts
     }
     return opts
@@ -65,11 +65,10 @@ export class Head implements Element {
 
   constructor(props: HeadProps) {
     Object.assign(this, props)
-    this.abortController = new AbortController()
   }
 
   abort() {
-    this.abortController.abort()
+    this.#abortController.abort()
   }
 
   async exec() {
