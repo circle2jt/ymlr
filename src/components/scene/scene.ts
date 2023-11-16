@@ -78,7 +78,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.logger.trace('Updated global vars to scene vars - ' + name)
       this.copyGlobalVarsToLocal()
     }
-    GlobalEvent.on('@app/scene/update-global-vars', this.#updateGlobalVarsListener)
+    GlobalEvent.on(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.#updateGlobalVarsListener)
     this.copyVarsToGlobal(this.scene.localVars)
     await this.handleFile()
   }
@@ -126,7 +126,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async dispose() {
-    if (this.#updateGlobalVarsListener) GlobalEvent.off('@app/scene/update-global-vars', this.#updateGlobalVarsListener)
+    if (this.#updateGlobalVarsListener) {
+      GlobalEvent.off(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.#updateGlobalVarsListener)
+      this.#updateGlobalVarsListener = undefined
+    }
     await super.dispose()
   }
 
@@ -177,7 +180,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       .forEach(key => {
         this.rootScene.localVars[key] = localVars[key]
       })
-    GlobalEvent.emit('@app/scene/update-global-vars', this.name || this.path)
+    GlobalEvent.emit(Constants.SCENE_UPDATE_GLOBAL_VARS_EVENT, this.name || this.path)
   }
 
   private async getRemoteFileProps() {

@@ -63,8 +63,10 @@ export class WorkerManager {
 
   broadcastEvent(name: string | symbol, value: any, fromID: string, toIDs?: string[]) {
     if (!toIDs) {
-      toIDs = [App.ProcessID]
-      toIDs.push(...this.#workers.map(wk => wk.id))
+      toIDs = [
+        App.ProcessID,
+        ...this.#workers.map(wk => wk.id)
+      ]
     }
     toIDs
       .filter(workerID => workerID !== fromID)
