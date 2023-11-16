@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.12.md](#1700147570893)  -  _11/16/2023, 10:12:50 PM_
 - [1.2.6-alpha.11.md](#1699788690044)  -  _11/12/2023, 6:31:30 PM_
 - [1.2.6-alpha.10.md](#1699787059968)  -  _11/12/2023, 6:04:19 PM_
 - [1.2.6-alpha.9.md](#1699780613434)  -  _11/12/2023, 4:16:53 PM_
@@ -60,6 +61,12 @@
 
 ## Details
 
+<a id="1700147570893"></a>
+### 1.2.6-alpha.12
+
+* refactor: optimize & standard code (4230f4c)
+* refactor: Replace update var event name to symbol (47eff80)
+  
 <a id="1699788690044"></a>
 ### 1.2.6-alpha.11
 
