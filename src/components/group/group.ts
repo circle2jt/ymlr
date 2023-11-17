@@ -1,4 +1,3 @@
-import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
 import { mutexLock } from 'src/libs/mutex-function'
@@ -91,9 +90,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       })
     }
     Object.assign(elemProxy, loopObj)
-    const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
-    if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
-
     if (Object.getOwnPropertyDescriptor(elemProxy.element, 'innerRunsProxy')) {
       const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
       innerRuns.hideName = true

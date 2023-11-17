@@ -1,5 +1,4 @@
 import merge from 'lodash.merge'
-import { type AppEvent } from 'src/app-event'
 import { GlobalEvent } from 'src/libs/global-event'
 import { cloneDeep } from 'src/libs/variable'
 import { TagsManager } from 'src/managers/tags-manager'
@@ -45,7 +44,6 @@ export class RootScene extends Scene {
   readonly tagsManager = new TagsManager(this)
   readonly templatesManager = new Map<string, any>()
   readonly globalUtils = UtilityFunctionManager.Instance
-  readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
   rootDir = ''
 
@@ -73,7 +71,7 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', 'onAppExit')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir')
   }
 
   override async asyncConstructor() {
@@ -108,7 +106,6 @@ export class RootScene extends Scene {
     ]
     try {
       if (this.#workerManager) proms.push(this.#workerManager.dispose())
-      if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
       await Promise.all(proms)
     } finally {
       GlobalEvent.removeAllListeners()
