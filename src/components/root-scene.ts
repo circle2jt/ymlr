@@ -61,12 +61,13 @@ export class RootScene extends Scene {
     return this.#localVars
   }
 
+  #rootSceneWR = new WeakRef(this)
   protected override get rootScene() {
-    return this
+    return this.#rootSceneWR.deref() as this
   }
 
   protected override get scene() {
-    return this
+    return this.rootScene
   }
 
   constructor({ globalVars, ...props }: RootSceneProps) {

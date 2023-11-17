@@ -48,6 +48,7 @@ import { type IVerify } from './auth/IVerify'
 */
 export class HttpServer implements Element {
   readonly proxy!: ElementProxy<this>
+  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   address: string = '0.0.0.0:8811'
   auth?: {
@@ -65,9 +66,6 @@ export class HttpServer implements Element {
   #server?: Server
 
   private get logger() { return this.proxy.logger }
-
-  // Support runs
-  innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   constructor({ address, auth, type, ...props }: any) {
     Object.assign(this, { address, auth, type, ...props })

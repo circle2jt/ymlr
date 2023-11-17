@@ -546,6 +546,8 @@ export class ElementProxy<T extends Element> {
 
   readonly rootScene!: RootScene
 
+  innerRunsProxy?: ElementProxy<Element>
+
   get rootSceneProxy() {
     return this.rootScene?.proxy
   }
@@ -577,16 +579,28 @@ export class ElementProxy<T extends Element> {
   result?: any
   error?: Error
 
-  #elementAsyncProps?: any
+  #element?: T
+  #elementWR!: WeakRef<T>
+  get element() {
+    return this.#elementWR.deref() as T
+  }
 
-  constructor(public element: T, props = {}) {
+  #elementAsyncPropsWR?: any
+
+  constructor(element: T, props = {}) {
     Object.assign(this, props)
-    if (element.asyncConstructor) this.#elementAsyncProps = props
+    if (element.asyncConstructor) {
+      this.#elementAsyncPropsWR = props
+    }
+    this.#element = element
+    this.#elementWR = new WeakRef(this.#element)
+    const proxy = new WeakRef(this)
     Object.defineProperty(element, 'proxy', {
       enumerable: false,
       configurable: false,
-      writable: false,
-      value: this
+      get: () => {
+        return proxy.deref()
+      }
     })
   }
 
@@ -666,8 +680,8 @@ export class ElementProxy<T extends Element> {
   async exec(parentState?: Record<string, any>) {
     if (parentState !== undefined) this.parentState = parentState
     if (this.element.asyncConstructor) {
-      await this.element.asyncConstructor(this.#elementAsyncProps)
-      this.#elementAsyncProps = undefined
+      await this.element.asyncConstructor(this.#elementAsyncPropsWR)
+      this.#elementAsyncPropsWR = undefined
       this.element.asyncConstructor = undefined
     }
 
@@ -714,6 +728,8 @@ export class ElementProxy<T extends Element> {
     GlobalEvent.emit('@app/proxy/before:exec:dispose', this)
     try {
       await this.element.dispose?.()
+      this.innerRunsProxy = undefined
+      this.#element = undefined
       this.parentState = undefined
       this.logger = undefined as any
     } finally {

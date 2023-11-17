@@ -43,8 +43,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   curDir = ''
 
   protected readonly password?: string
+
+  #innerSceneWR = new WeakRef(this)
   protected override get innerScene() {
-    return this
+    return this.#innerSceneWR.deref() as this
   }
 
   #content?: string
@@ -55,6 +57,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         if (REGEX_FIRST_UPPER.test(name[0])) {
           Object.defineProperty(target, name, {
             enumerable: true,
+            configurable: true,
             get: () => {
               return this.proxy.rootScene.localVars[name]
             },
