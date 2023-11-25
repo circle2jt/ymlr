@@ -93,7 +93,7 @@ export class SceneThread extends Scene {
     }
     const { id, ...props } = eProps
     super(props)
-    Object.assign(this, { id })
+    this.#id = id
   }
 
   override async handleFile() {

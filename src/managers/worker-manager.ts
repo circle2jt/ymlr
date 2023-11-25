@@ -55,8 +55,10 @@ export class WorkerManager {
     loggerDebug?: LoggerLevel
     loggerConfig?: any
   }) {
-    const id = others.id || `#${this.#workers.length + 1}`
-    const wk = new Worker(this, id, props, baseProps, this.logger.clone(`worker:${id}`), others)
+    if (!others.id) {
+      others.id = `#${this.#workers.length + 1}`
+    }
+    const wk = new Worker(this, others.id, props, baseProps, this.logger.clone(`worker:${others.id}`), others)
     this.#workers.push(wk)
     return wk
   }
