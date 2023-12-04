@@ -1,9 +1,7 @@
 import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
-import { mutexLock } from 'src/libs/mutex-function'
 import { cloneDeep } from 'src/libs/variable'
-import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { ElementProxy } from '../element-proxy'
 import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import Include from '../include'
@@ -130,26 +128,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           value: elemProxy.rootScene
         }
       })
-      if (elemProxy.debounce) {
-        const debounce = require('lodash.debounce')
-        const { time, trailing, leading, maxWait } = elemProxy.debounce
-        let innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
-        if (elemProxy.mutex) {
-          innerRunsProxyExec = mutexLock(innerRunsProxyExec)
-        }
-        innerRunsProxy.exec = debounce(innerRunsProxyExec, UtilityFunctionManager.Instance.format.textToMs(time), { leading, maxWait, trailing })
-      } else if (elemProxy.throttle) {
-        const throttle = require('lodash.throttle')
-        const { time, trailing, leading } = elemProxy.throttle
-        let innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
-        if (elemProxy.mutex) {
-          innerRunsProxyExec = mutexLock(innerRunsProxyExec)
-        }
-        innerRunsProxy.exec = throttle(innerRunsProxyExec, UtilityFunctionManager.Instance.format.textToMs(time), { leading, trailing })
-      } else if (elemProxy.mutex) {
-        const innerRunsProxyExec = innerRunsProxy.exec.bind(innerRunsProxy)
-        innerRunsProxy.exec = mutexLock(innerRunsProxyExec)
-      }
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {
         await disposeInnerRunsProxy()
@@ -240,7 +218,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context, mutex, debounce, throttle } = eProps
+      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -282,10 +260,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         async,
         loop,
         context,
-        skipNext,
-        mutex,
-        debounce,
-        throttle
+        skipNext
       }
       // Execute
       if (loop === undefined) {
@@ -391,16 +366,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
       if (baseProps.id) {
         proms.push(elemProxy.scene.setVars(baseProps.id, elemProxy))
-      }
-      if (baseProps.debounce) {
-        proms.push((async () => {
-          baseProps.debounce = await this.innerScene.getVars(baseProps.debounce, elemProxy)
-        })())
-      }
-      if (baseProps.throttle) {
-        proms.push((async () => {
-          baseProps.throttle = await this.innerScene.getVars(baseProps.throttle, elemProxy)
-        })())
       }
       if (baseProps.detach) {
         proms.push((async () => {
