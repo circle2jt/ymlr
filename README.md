@@ -124,6 +124,9 @@ runs:
 | [clear](#clear) | Clear console screen |
 | [event'emit](#event'emit) | Send data via global event |
 | [event'on](#event'on) | Handle global events in app |
+| [fn-debounce](#fn-debounce) | Debounce function (#Ref: lodash.debounce) |
+| [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
+| [fn-throttle](#fn-throttle) | Throttle function (#Ref: lodash.throttle) |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -316,28 +319,6 @@ Now, we have 2 choices to debug all of user APIs and product APIs
 2. Only run cli as below
 ```sh
   ymlr --debug-context userapi=debug --debug-context productapi=trace -- $SCENE_FILE.yaml
-```  
-
-
-## <a id="debounce"></a>debounce  
-`It's a property in a tag`  
-Delays steps in the "runs" until after the stated wait "time" has passed since the last time this "runs" was executed.
-This can combine with "mutex" but can not combine with "throttle"  
-
-Example:  
-
-```yaml
-  - http'server:
-      address: 0.0.0.0:1234
-    debounce:
-      time: 5s                # The number of milliseconds to delay.
-      trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
-      leading: false          # Specify invoking on the leading edge of the timeout. Default is false
-      maxWait: 1000           # The maximum time func is allowed to be delayed before it's invoked.
-    runs:
-      - name: Last call is ${ new Date() }
-      ...
-
 ```  
 
 
@@ -543,25 +524,6 @@ Loop in nested items
 ```  
 
 
-## <a id="mutex"></a>mutex  
-`It's a property in a tag`  
-Lock and execute steps in the "runs" before is unlocked after done. After locked, requests to execute steps in the "runs" will be rejected.
-This can combine with "throttle", "debounce"  
-
-Example:  
-
-```yaml
-  - http'server:
-      address: 0.0.0.0:1234
-    mutex: true
-    runs:
-      - name: Last call is ${ new Date() }
-      - sleep: 10s            # block atleast 10s for a next request
-      ...
-
-```  
-
-
 ## <a id="name"></a>name  
 `It's a property in a tag`  
 Step name  
@@ -658,27 +620,6 @@ Example:
   - <-: localhost           # => Auto inherits "baseURL" from localhost
     http'get:
       url: /items
-```  
-
-
-## <a id="throttle"></a>throttle  
-`It's a property in a tag`  
-Only executes steps in the "runs" once per every wait time. (Ref #lodash.throttle)
-This can combine with "mutex" but can not combine with "debounce"  
-
-Example:  
-
-```yaml
-  - http'server:
-      address: 0.0.0.0:1234
-    throttle:
-      time: 5s                  # The number of milliseconds to throttle invocations to.
-      trailing: true            # Specify invoking on the trailing edge of the timeout. Default is true
-      leading: true             # Specify invoking on the leading edge of the timeout. Default is true
-    runs:
-      - name: Prevent call many times, only execute 1 time for each 5s
-      ...
-
 ```  
 
 
@@ -851,6 +792,56 @@ Example:
       opts:
         - params 1
         - params 2
+```  
+
+
+## <a id="fn-debounce"></a>fn-debounce  
+  
+Debounce function (#Ref: lodash.debounce)  
+
+Example:  
+
+```yaml
+  - fn-debounce:
+      name: Delay to do something
+      wait: 1s                # The number of milliseconds to delay.
+      trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
+      leading: false          # Specify invoking on the leading edge of the timeout. Default is false
+      maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
+    runs:
+      - echo: Do this when it's free for 1s
+```  
+
+
+## <a id="fn-singleton"></a>fn-singleton  
+  
+This is locked before run and unlock after done. When it's called many time, this is only run after unlock  
+
+Example:  
+
+```yaml
+  - fn-singleton:
+      name: Only run 1 time
+      trailing: true              # When someone call in the running but it's not finished yet, then it will run 1 time again after is unlocked
+    runs:
+      - echo: Do this when it's free for 1s
+```  
+
+
+## <a id="fn-throttle"></a>fn-throttle  
+  
+Throttle function (#Ref: lodash.throttle)  
+
+Example:  
+
+```yaml
+  - fn-throttle:
+      name: Delay to do something
+      wait: 1s            # The number of milliseconds to throttle invocations to.
+      trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
+      leading: false      # Specify invoking on the leading edge of the timeout. Default is true
+    runs:
+      - echo: Do this when it's free for 1s
 ```  
 
 

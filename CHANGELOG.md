@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.13.md](#1701681587963)  -  _12/4/2023, 4:19:47 PM_
 - [1.2.6-alpha.12.md](#1700147570893)  -  _11/16/2023, 10:12:50 PM_
 - [1.2.6-alpha.11.md](#1699788690044)  -  _11/12/2023, 6:31:30 PM_
 - [1.2.6-alpha.10.md](#1699787059968)  -  _11/12/2023, 6:04:19 PM_
@@ -61,6 +62,12 @@
 
 ## Details
 
+<a id="1701681587963"></a>
+### 1.2.6-alpha.13
+
+* fix!: replace mutexLock, debounce, throtle in group to new elements (f400a28)
+* fix(scene'thread): id not auto generate when not set (f342738)
+  
 <a id="1700147570893"></a>
 ### 1.2.6-alpha.12
 
