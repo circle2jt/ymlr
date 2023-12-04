@@ -125,8 +125,15 @@ runs:
 | [event'emit](#event'emit) | Send data via global event |
 | [event'on](#event'on) | Handle global events in app |
 | [fn-debounce](#fn-debounce) | Debounce function (#Ref: lodash.debounce) |
+| [fn-debounce'cancel](#fn-debounce'cancel) | Cancel debounce function (#Ref: lodash.debounce) |
+| [fn-debounce'del](#fn-debounce'del) | Cancel & remove debounce function (#Ref: lodash.debounce) |
+| [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
+| [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
 | [fn-throttle](#fn-throttle) | Throttle function (#Ref: lodash.throttle) |
+| [fn-throttle'cancel](#fn-throttle'cancel) | Cancel throttle function (#Ref: lodash.throttle) |
+| [fn-throttle'del](#fn-throttle'del) | Cancel & remove throttle function (#Ref: lodash.throttle) |
+| [fn-throttle'flush](#fn-throttle'flush) | Force to call throttle function ASAP if it's called before that (#Ref: lodash.throttle) |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -813,6 +820,48 @@ Example:
 ```  
 
 
+## <a id="fn-debounce'cancel"></a>fn-debounce'cancel  
+  
+Cancel debounce function (#Ref: lodash.debounce)  
+
+Example:  
+
+```yaml
+  - fn-debounce'cancel:
+      name: Delay to do something               # Debounce name to cancel
+  # OR
+  - fn-debounce'cancel: Delay to do something   # Debounce name to cancel
+```  
+
+
+## <a id="fn-debounce'del"></a>fn-debounce'del  
+  
+Cancel & remove debounce function (#Ref: lodash.debounce)  
+
+Example:  
+
+```yaml
+  - fn-debounce'del:
+      name: Delay to do something               # Debounce name to delete
+  # OR
+  - fn-debounce'del: Delay to do something      # Debounce name to delete
+```  
+
+
+## <a id="fn-debounce'flush"></a>fn-debounce'flush  
+  
+Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce)  
+
+Example:  
+
+```yaml
+  - fn-debounce'flush:
+      name: Delay to do something                 # Debounce name to delete
+  # OR
+  - fn-debounce'flush: Delay to do something      # Debounce name to delete
+```  
+
+
 ## <a id="fn-singleton"></a>fn-singleton  
   
 This is locked before run and unlock after done. When it's called many time, this is only run after unlock  
@@ -825,6 +874,20 @@ Example:
       trailing: true              # When someone call in the running but it's not finished yet, then it will run 1 time again after is unlocked
     runs:
       - echo: Do this when it's free for 1s
+```  
+
+
+## <a id="fn-singleton'del"></a>fn-singleton'del  
+  
+Remove singleton function  
+
+Example:  
+
+```yaml
+  - fn-singleton'del:
+      name: Delay to do something                 # Singleton name to delete
+  # OR
+  - fn-singleton'del: Delay to do something       # Singleton name to delete
 ```  
 
 
@@ -842,6 +905,48 @@ Example:
       leading: false      # Specify invoking on the leading edge of the timeout. Default is true
     runs:
       - echo: Do this when it's free for 1s
+```  
+
+
+## <a id="fn-throttle'cancel"></a>fn-throttle'cancel  
+  
+Cancel throttle function (#Ref: lodash.throttle)  
+
+Example:  
+
+```yaml
+  - fn-throttle'cancel:
+      name: Delay to do something               # Throttle name to cancel
+  # OR
+  - fn-throttle'cancel: Delay to do something   # Throttle name to cancel
+```  
+
+
+## <a id="fn-throttle'del"></a>fn-throttle'del  
+  
+Cancel & remove throttle function (#Ref: lodash.throttle)  
+
+Example:  
+
+```yaml
+  - fn-throttle'del:
+      name: Delay to do something               # Throttle name to delete
+  # OR
+  - fn-throttle'del: Delay to do something      # Throttle name to delete
+```  
+
+
+## <a id="fn-throttle'flush"></a>fn-throttle'flush  
+  
+Force to call throttle function ASAP if it's called before that (#Ref: lodash.throttle)  
+
+Example:  
+
+```yaml
+  - fn-throttle'flush:
+      name: Delay to do something                 # Throttle name to delete
+  # OR
+  - fn-throttle'flush: Delay to do something      # Throttle name to delete
 ```  
 
 
