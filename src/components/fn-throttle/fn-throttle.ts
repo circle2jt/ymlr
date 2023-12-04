@@ -22,7 +22,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNThrottle implements Element {
-  private static readonly caches = new Map<string, DebouncedFunc<any>>()
+  static readonly Caches = new Map<string, DebouncedFunc<any>>()
 
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
@@ -42,19 +42,19 @@ export class FNThrottle implements Element {
 
     this.wait = formatTextToMs(this.wait)
 
-    let fn = FNThrottle.caches.get(this.name)
+    let fn = FNThrottle.Caches.get(this.name)
     if (!fn) {
       fn = throttle(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), this.wait, {
         trailing: this.trailing,
         leading: this.leading
       })
-      FNThrottle.caches.set(this.name, fn)
+      FNThrottle.Caches.set(this.name, fn)
     }
     fn(parentState)
   }
 
   cancel() {
-    const fn = FNThrottle.caches.get(this.name)
+    const fn = FNThrottle.Caches.get(this.name)
     if (fn) {
       fn.cancel()
       return true
@@ -63,7 +63,7 @@ export class FNThrottle implements Element {
   }
 
   flush() {
-    const fn = FNThrottle.caches.get(this.name)
+    const fn = FNThrottle.Caches.get(this.name)
     if (fn) {
       fn.flush()
       return true
@@ -73,7 +73,7 @@ export class FNThrottle implements Element {
 
   remove() {
     if (this.cancel()) {
-      FNThrottle.caches.delete(this.name)
+      FNThrottle.Caches.delete(this.name)
       return true
     }
     return false

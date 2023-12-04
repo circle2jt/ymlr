@@ -18,7 +18,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNSingleton implements Element {
-  private static readonly caches = new Map<string, (parentState?: Record<string, any>) => any>()
+  static readonly Caches = new Map<string, (parentState?: Record<string, any>) => any>()
 
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
@@ -33,12 +33,12 @@ export class FNSingleton implements Element {
   async exec(parentState?: Record<string, any>) {
     assert(this.name)
 
-    let fn = FNSingleton.caches.get(this.name)
+    let fn = FNSingleton.Caches.get(this.name)
     if (!fn) {
       fn = singleton(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), {
         trailing: this.trailing
       })
-      FNSingleton.caches.set(this.name, fn)
+      FNSingleton.Caches.set(this.name, fn)
     }
     fn(parentState)
   }

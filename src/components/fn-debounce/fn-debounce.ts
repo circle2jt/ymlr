@@ -23,7 +23,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNDebounce implements Element {
-  private static readonly caches = new Map<string, DebouncedFunc<any>>()
+  static readonly Caches = new Map<string, DebouncedFunc<any>>()
 
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
@@ -47,20 +47,20 @@ export class FNDebounce implements Element {
       this.maxWait = formatTextToMs(this.maxWait)
     }
 
-    let fn = FNDebounce.caches.get(this.name)
+    let fn = FNDebounce.Caches.get(this.name)
     if (!fn) {
       fn = debounce(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), this.wait, {
         trailing: this.trailing,
         leading: this.leading,
         maxWait: this.maxWait
       })
-      FNDebounce.caches.set(this.name, fn)
+      FNDebounce.Caches.set(this.name, fn)
     }
     fn(parentState)
   }
 
   cancel() {
-    const fn = FNDebounce.caches.get(this.name)
+    const fn = FNDebounce.Caches.get(this.name)
     if (fn) {
       fn.cancel()
       return true
@@ -69,7 +69,7 @@ export class FNDebounce implements Element {
   }
 
   flush() {
-    const fn = FNDebounce.caches.get(this.name)
+    const fn = FNDebounce.Caches.get(this.name)
     if (fn) {
       fn.flush()
       return true
@@ -79,7 +79,7 @@ export class FNDebounce implements Element {
 
   remove() {
     if (this.cancel()) {
-      FNDebounce.caches.delete(this.name)
+      FNDebounce.Caches.delete(this.name)
       return true
     }
     return false
