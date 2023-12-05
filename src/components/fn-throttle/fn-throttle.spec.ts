@@ -13,11 +13,11 @@ afterEach(async () => {
 test('fn-throttle should be run correctly', async () => {
   Testing.vars.i = 0
   for (let i = 0; i < 4; i++) {
-    const fnDebounce = await Testing.createElementProxy(FNThrottle, {
-      name: 'task1',
+    const fnThrottle = await Testing.createElementProxy(FNThrottle, {
+      name: 'ttask1',
       leading: true,
       trailing: true,
-      wait: '500'
+      wait: 500
     }, {
       runs: [
         {
@@ -26,9 +26,9 @@ test('fn-throttle should be run correctly', async () => {
       ]
     })
     try {
-      await fnDebounce.exec()
+      await fnThrottle.exec()
     } finally {
-      await fnDebounce.dispose()
+      await fnThrottle.dispose()
     }
     if (i > 1) {
       await sleep(550)
@@ -36,5 +36,6 @@ test('fn-throttle should be run correctly', async () => {
       await sleep(10)
     }
   }
+  await sleep(1000)
   expect(Testing.vars.i).toBe(3)
 })

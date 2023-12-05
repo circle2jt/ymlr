@@ -16,7 +16,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         name: Delay to do something
         wait: 1s            # The number of milliseconds to throttle invocations to.
         trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
-        leading: false      # Specify invoking on the leading edge of the timeout. Default is true
+        leading: true      # Specify invoking on the leading edge of the timeout. Default is true
       runs:
         - echo: Do this when it's free for 1s
   ```
@@ -29,8 +29,8 @@ export class FNThrottle implements Element {
 
   name!: string
   wait!: number
-  leading?: boolean
-  trailing?: boolean
+  leading = true
+  trailing = true
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -40,11 +40,15 @@ export class FNThrottle implements Element {
     assert(this.name)
     assert(this.wait)
 
-    this.wait = formatTextToMs(this.wait)
+    if (typeof this.wait === 'string') {
+      this.wait = formatTextToMs(this.wait)
+    }
 
     let fn = FNThrottle.Caches.get(this.name)
     if (!fn) {
-      fn = throttle(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), this.wait, {
+      fn = throttle(async (parentState?: Record<string, any>) => {
+        await this.innerRunsProxy.exec(parentState)
+      }, this.wait, {
         trailing: this.trailing,
         leading: this.leading
       })

@@ -14,7 +14,7 @@ test('fn-debounce should be run correctly', async () => {
   Testing.vars.i = 0
   for (let i = 0; i < 4; i++) {
     const fnDebounce = await Testing.createElementProxy(FNDebounce, {
-      name: 'task1',
+      name: 'dtask1',
       leading: false,
       trailing: true,
       wait: '500'

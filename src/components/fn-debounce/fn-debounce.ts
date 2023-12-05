@@ -31,8 +31,8 @@ export class FNDebounce implements Element {
   name!: string
   wait!: number
   maxWait?: number
-  leading?: boolean
-  trailing?: boolean
+  trailing = true
+  leading = false
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -42,14 +42,18 @@ export class FNDebounce implements Element {
     assert(this.name)
     assert(this.wait)
 
-    this.wait = formatTextToMs(this.wait)
-    if (this.maxWait) {
+    if (typeof this.wait === 'string') {
+      this.wait = formatTextToMs(this.wait)
+    }
+    if (this.maxWait && typeof this.maxWait === 'string') {
       this.maxWait = formatTextToMs(this.maxWait)
     }
 
     let fn = FNDebounce.Caches.get(this.name)
     if (!fn) {
-      fn = debounce(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), this.wait, {
+      fn = debounce(async (parentState?: Record<string, any>) => {
+        await this.innerRunsProxy.exec(parentState)
+      }, this.wait, {
         trailing: this.trailing,
         leading: this.leading,
         maxWait: this.maxWait

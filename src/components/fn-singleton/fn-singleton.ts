@@ -35,7 +35,9 @@ export class FNSingleton implements Element {
 
     let fn = FNSingleton.Caches.get(this.name)
     if (!fn) {
-      fn = singleton(async (parentState?: Record<string, any>) => await this.innerRunsProxy.exec(parentState), {
+      fn = singleton(async (parentState?: Record<string, any>) => {
+        await this.innerRunsProxy.exec(parentState)
+      }, {
         trailing: this.trailing
       })
       FNSingleton.Caches.set(this.name, fn)
