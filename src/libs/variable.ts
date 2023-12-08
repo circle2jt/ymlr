@@ -2,6 +2,7 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { inspect } from 'util'
 
 const REGEX_FIRST_ALPHA = /^[A-Za-z]/
+const PATTERN_JS_CODE_BLOCK = /^[\n\s\t]*\$\{([^}]+)\}[\n\s\t]*$/
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
@@ -22,11 +23,13 @@ export async function getVars(exp: any, ctx: any, others: any) {
   if (exp) {
     const evalExp = isGetEvalExp(exp)
     if (evalExp === String) {
-      let str = `\`${exp}\``
-      if (str[1] === '$' && str[str.length - 2] === '}') {
-        str = str.replace(/^`\$\{([^}]+)\}`$/, '$1')
+      let str = ''
+      if (PATTERN_JS_CODE_BLOCK.test(exp)) {
+        str = exp.replace(PATTERN_JS_CODE_BLOCK, '$1')
+      } else {
+        str = `\`${exp}\``
       }
-      let vl: any = await callFunctionScript(`return ${str}`, ctx, others)
+      let vl: any = await callFunctionScript(`return (${str})`, ctx, others)
       if (typeof vl === 'string' && vl.includes('${')) {
         vl = await getVars(vl, ctx, others)
       }

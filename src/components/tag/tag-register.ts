@@ -86,7 +86,7 @@ export class TagRegister implements Element {
           // handle code
           try {
             const tagScript = this.tags?.[key]
-            const obj = await this.proxy.callFunctionScript(`return ${tagScript}`)
+            const obj = await this.proxy.callFunctionScript(`return (${tagScript})`)
             this.logger.trace('Register tag \t[%s]', obj.tag)
             this.tagsManager.setTag(key, { default: obj })
           } catch (err) {

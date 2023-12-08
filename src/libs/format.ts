@@ -56,7 +56,7 @@ export function formatTextToMs(time: string | number) {
     .replace(/s/g, '* 1000 +')
     .replace(/\+\s*$/, '')
   /* eslint no-new-func: "off" */
-  return new Function(`return ${evalString}`)() as number
+  return new Function(`return (${evalString})`)() as number
 }
 
 export function undefinedToNull(vl: any) {
