@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.16.md](#1702033633518)  -  _12/8/2023, 6:07:13 PM_
 - [1.2.6-alpha.15.md](#1701689328554)  -  _12/4/2023, 6:28:48 PM_
 - [1.2.6-alpha.14.md](#1701686672210)  -  _12/4/2023, 5:44:32 PM_
 - [1.2.6-alpha.13.md](#1701681587963)  -  _12/4/2023, 4:19:47 PM_
@@ -64,6 +65,12 @@
 
 ## Details
 
+<a id="1702033633518"></a>
+### 1.2.6-alpha.16
+
+* fix: could not eval script when got \n (b7540ba)
+* test: add unit test fn-debounce, fn-throttle, fn-singleton (895a29d)
+  
 <a id="1701689328554"></a>
 ### 1.2.6-alpha.15
 
