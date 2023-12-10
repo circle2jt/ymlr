@@ -20,6 +20,12 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
       runs:
         - echo: Do this when it's free for 1s
+
+    # Call if debounce is existed
+    - fn-debounce:
+        name: Delay to do something
+    # OR
+    - fn-debounce: Delay to do something
   ```
 */
 export class FNDebounce implements Element {
@@ -29,18 +35,22 @@ export class FNDebounce implements Element {
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   name!: string
-  wait!: number
+  wait?: number
   maxWait?: number
   trailing = true
   leading = false
 
   constructor(props: any) {
+    if (typeof props === 'string') {
+      props = {
+        name: props
+      }
+    }
     Object.assign(this, props)
   }
 
   async exec(parentState?: Record<string, any>) {
     assert(this.name)
-    assert(this.wait)
 
     if (typeof this.wait === 'string') {
       this.wait = formatTextToMs(this.wait)
@@ -50,7 +60,7 @@ export class FNDebounce implements Element {
     }
 
     let fn = FNDebounce.Caches.get(this.name)
-    if (!fn) {
+    if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
       fn = debounce(async (parentState?: Record<string, any>) => {
         await this.innerRunsProxy.exec(parentState)
       }, this.wait, {
@@ -60,7 +70,9 @@ export class FNDebounce implements Element {
       })
       FNDebounce.Caches.set(this.name, fn)
     }
-    fn(parentState)
+    if (fn) {
+      fn(parentState)
+    }
   }
 
   cancel() {

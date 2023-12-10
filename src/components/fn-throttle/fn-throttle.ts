@@ -19,6 +19,12 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         leading: true      # Specify invoking on the leading edge of the timeout. Default is true
       runs:
         - echo: Do this when it's free for 1s
+
+    # Call if throttle is existed
+    - fn-throttle:
+        name: Delay to do something
+    # OR
+    - fn-throttle: Delay to do something
   ```
 */
 export class FNThrottle implements Element {
@@ -28,24 +34,28 @@ export class FNThrottle implements Element {
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   name!: string
-  wait!: number
+  wait?: number
   leading = true
   trailing = true
 
   constructor(props: any) {
+    if (typeof props === 'string') {
+      props = {
+        name: props
+      }
+    }
     Object.assign(this, props)
   }
 
   async exec(parentState?: Record<string, any>) {
     assert(this.name)
-    assert(this.wait)
 
     if (typeof this.wait === 'string') {
       this.wait = formatTextToMs(this.wait)
     }
 
     let fn = FNThrottle.Caches.get(this.name)
-    if (!fn) {
+    if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
       fn = throttle(async (parentState?: Record<string, any>) => {
         await this.innerRunsProxy.exec(parentState)
       }, this.wait, {
@@ -54,7 +64,9 @@ export class FNThrottle implements Element {
       })
       FNThrottle.Caches.set(this.name, fn)
     }
-    fn(parentState)
+    if (fn) {
+      fn(parentState)
+    }
   }
 
   cancel() {
