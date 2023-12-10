@@ -1,7 +1,5 @@
-import assert from 'assert'
-import { type ElementProxy } from '../element-proxy'
-import { type Element } from '../element.interface'
 import { FNDebounce } from './fn-debounce'
+import { FNDebounceFlush } from './fn-debounce-flush'
 
 /** |**  fn-debounce'cancel
   Cancel debounce function (#Ref: lodash.debounce)
@@ -12,29 +10,16 @@ import { FNDebounce } from './fn-debounce'
         name: Delay to do something               # Debounce name to cancel
     # OR
     - fn-debounce'cancel: Delay to do something   # Debounce name to cancel
+    # OR
+    - fn-debounce'cancel:
+        - delay1
+        - delay2
   ```
 */
-export class FNDebounceCancel implements Element {
-  readonly proxy!: ElementProxy<this>
-
-  name!: string
-
-  constructor(props: any) {
-    if (typeof props === 'string') {
-      props = {
-        name: props
-      }
-    }
-    Object.assign(this, props)
-  }
-
+export class FNDebounceCancel extends FNDebounceFlush {
   async exec() {
-    assert(this.name)
-
-    const fn = FNDebounce.Caches.get(this.name)
-    fn?.cancel()
-    return fn
+    this.name?.forEach(name => {
+      FNDebounce.Caches.get(name)?.cancel()
+    })
   }
-
-  dispose() { }
 }

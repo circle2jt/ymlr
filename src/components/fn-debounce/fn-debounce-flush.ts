@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { FNDebounce } from './fn-debounce'
@@ -12,28 +11,33 @@ import { FNDebounce } from './fn-debounce'
         name: Delay to do something                 # Debounce name to delete
     # OR
     - fn-debounce'flush: Delay to do something      # Debounce name to delete
+    # OR
+    - fn-debounce'flush:
+        - delay1
+        - delay2
   ```
 */
 export class FNDebounceFlush implements Element {
   readonly proxy!: ElementProxy<this>
 
-  name!: string
+  name?: string[]
 
   constructor(props: any) {
-    if (typeof props === 'string') {
+    if (typeof props === 'string' || Array.isArray(props)) {
       props = {
         name: props
       }
     }
     Object.assign(this, props)
+    if (this.name && !Array.isArray(this.name)) {
+      this.name = [this.name]
+    }
   }
 
   async exec() {
-    assert(this.name)
-
-    const fn = FNDebounce.Caches.get(this.name)
-    fn?.flush()
-    return fn
+    this.name?.forEach(name => {
+      FNDebounce.Caches.get(name)?.flush()
+    })
   }
 
   dispose() { }

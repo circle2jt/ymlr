@@ -1,7 +1,5 @@
-import assert from 'assert'
-import { type ElementProxy } from '../element-proxy'
-import { type Element } from '../element.interface'
 import { FNThrottle } from './fn-throttle'
+import { FNThrottleFlush } from './fn-throttle-flush'
 
 /** |**  fn-throttle'cancel
   Cancel throttle function (#Ref: lodash.throttle)
@@ -12,29 +10,16 @@ import { FNThrottle } from './fn-throttle'
         name: Delay to do something               # Throttle name to cancel
     # OR
     - fn-throttle'cancel: Delay to do something   # Throttle name to cancel
+    # OR
+    - fn-throttle'cancel:
+        - delay1
+        - delay2
   ```
 */
-export class FNThrottleCancel implements Element {
-  readonly proxy!: ElementProxy<this>
-
-  name!: string
-
-  constructor(props: any) {
-    if (typeof props === 'string') {
-      props = {
-        name: props
-      }
-    }
-    Object.assign(this, props)
-  }
-
+export class FNThrottleCancel extends FNThrottleFlush {
   async exec() {
-    assert(this.name)
-
-    const fn = FNThrottle.Caches.get(this.name)
-    fn?.cancel()
-    return fn
+    this.name?.forEach(name => {
+      FNThrottle.Caches.get(name)?.cancel()
+    })
   }
-
-  dispose() { }
 }

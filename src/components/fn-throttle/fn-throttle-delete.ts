@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { FNThrottle } from './fn-throttle'
 import { FNThrottleCancel } from './fn-throttle-cancel'
 
@@ -11,16 +10,16 @@ import { FNThrottleCancel } from './fn-throttle-cancel'
         name: Delay to do something               # Throttle name to delete
     # OR
     - fn-throttle'del: Delay to do something      # Throttle name to delete
+    # OR
+    - fn-throttle'del:
+        - delay1
+        - delay2
   ```
 */
 export class FNThrottleDelete extends FNThrottleCancel {
-  async exec() {
-    assert(this.name)
-
-    const fn = await super.exec()
-    FNThrottle.Caches.delete(this.name)
-    return fn
+  override dispose() {
+    this.name?.forEach(name => {
+      FNThrottle.Caches.delete(name)
+    })
   }
-
-  dispose() { }
 }

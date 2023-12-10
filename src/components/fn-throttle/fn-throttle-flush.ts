@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { FNThrottle } from './fn-throttle'
@@ -12,28 +11,33 @@ import { FNThrottle } from './fn-throttle'
         name: Delay to do something                 # Throttle name to delete
     # OR
     - fn-throttle'flush: Delay to do something      # Throttle name to delete
+    # OR
+    - fn-throttle'flush:
+        - delay1
+        - delay2
   ```
 */
 export class FNThrottleFlush implements Element {
   readonly proxy!: ElementProxy<this>
 
-  name!: string
+  name?: string[]
 
   constructor(props: any) {
-    if (typeof props === 'string') {
+    if (typeof props === 'string' || Array.isArray(props)) {
       props = {
         name: props
       }
     }
     Object.assign(this, props)
+    if (this.name && !Array.isArray(this.name)) {
+      this.name = [this.name]
+    }
   }
 
   async exec() {
-    assert(this.name)
-
-    const fn = FNThrottle.Caches.get(this.name)
-    fn?.flush()
-    return fn
+    this.name?.forEach(name => {
+      FNThrottle.Caches.get(name)?.flush()
+    })
   }
 
   dispose() { }
