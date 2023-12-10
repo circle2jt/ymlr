@@ -128,12 +128,14 @@ runs:
 | [fn-debounce'cancel](#fn-debounce'cancel) | Cancel debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'del](#fn-debounce'del) | Cancel & remove debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
+| [fn-debounce'touch](#fn-debounce'touch) | touch debounce function. Reused last agruments(#Ref: lodash.debounce) |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
 | [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
 | [fn-throttle](#fn-throttle) | Throttle function (#Ref: lodash.throttle) |
 | [fn-throttle'cancel](#fn-throttle'cancel) | Cancel throttle function (#Ref: lodash.throttle) |
 | [fn-throttle'del](#fn-throttle'del) | Cancel & remove throttle function (#Ref: lodash.throttle) |
 | [fn-throttle'flush](#fn-throttle'flush) | Force to call throttle function ASAP if it's called before that (#Ref: lodash.throttle) |
+| [fn-throttle'touch](#fn-throttle'touch) | touch throttle function. Reused last agruments (#Ref: lodash.throttle) |
 | [exec](#exec) | Execute a program |
 | [exec'js](#exec'js) | Execute a nodejs code |
 | [exec'sh](#exec'sh) | Execute a shell script |
@@ -804,7 +806,9 @@ Example:
 
 ## <a id="fn-debounce"></a>fn-debounce  
   
-Debounce function (#Ref: lodash.debounce)  
+Debounce function (#Ref: lodash.debounce)
+- Without "wait" and "runs" then it's only touch with last agruments
+- Specific "wait" and "runs" then it's run with new agruments  
 
 Example:  
 
@@ -819,10 +823,10 @@ Example:
       - echo: Do this when it's free for 1s
 
   # touch if debounce is existed
-  - fn-debounce:
+  - fn-debounce:                          # Touch the existed throttle with last agruments
       name: Delay to do something
   # OR
-  - fn-debounce: Delay to do something
+  - fn-debounce: Delay to do something    # Touch the existed throttle with last agruments
 ```  
 
 
@@ -880,6 +884,24 @@ Example:
 ```  
 
 
+## <a id="fn-debounce'touch"></a>fn-debounce'touch  
+  
+touch debounce function. Reused last agruments(#Ref: lodash.debounce)  
+
+Example:  
+
+```yaml
+  - fn-debounce'touch:
+      name: Delay to do something               # Debounce name to touch
+  # OR
+  - fn-debounce'touch: Delay to do something    # Debounce name to touch
+  # OR
+  - fn-debounce'touch:
+      - delay1
+      - delay2
+```  
+
+
 ## <a id="fn-singleton"></a>fn-singleton  
   
 This is locked before run and unlock after done. When it's called many time, this is only run after unlock  
@@ -911,7 +933,9 @@ Example:
 
 ## <a id="fn-throttle"></a>fn-throttle  
   
-Throttle function (#Ref: lodash.throttle)  
+Throttle function (#Ref: lodash.throttle)
+- Without "wait" and "runs" then it's only touch with last agruments
+- Specific "wait" and "runs" then it's run with new agruments  
 
 Example:  
 
@@ -925,10 +949,10 @@ Example:
       - echo: Do this when it's free for 1s
 
   # Call if throttle is existed
-  - fn-throttle:
+  - fn-throttle:                         # Touch the existed throttle with last agruments
       name: Delay to do something
   # OR
-  - fn-throttle: Delay to do something
+  - fn-throttle: Delay to do something   # Touch the existed throttle with last agruments
 ```  
 
 
@@ -981,6 +1005,24 @@ Example:
   - fn-throttle'flush: Delay to do something      # Throttle name to delete
   # OR
   - fn-throttle'flush:
+      - delay1
+      - delay2
+```  
+
+
+## <a id="fn-throttle'touch"></a>fn-throttle'touch  
+  
+touch throttle function. Reused last agruments (#Ref: lodash.throttle)  
+
+Example:  
+
+```yaml
+  - fn-throttle'touch:
+      name: Delay to do something               # Throttle name to touch
+  # OR
+  - fn-throttle'touch: Delay to do something   # Throttle name to touch
+  # OR
+  - fn-throttle'touch:
       - delay1
       - delay2
 ```  
