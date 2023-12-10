@@ -124,4 +124,14 @@ export class UtilityFunctionManager {
       return formatTextToMs(time)
     }
   }
+
+  get debounceManager() {
+    const { DebounceManager } = require('./debounce-manager')
+    return DebounceManager.Instance
+  }
+
+  get throttleManager() {
+    const { ThrottleManager } = require('./throttle-manager')
+    return ThrottleManager.Instance
+  }
 }

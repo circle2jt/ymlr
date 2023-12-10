@@ -1,4 +1,4 @@
-import { FNDebounce } from './fn-debounce'
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { FNDebounceFlush } from './fn-debounce-flush'
 
 /** |**  fn-debounce'cancel
@@ -19,7 +19,7 @@ import { FNDebounceFlush } from './fn-debounce-flush'
 export class FNDebounceCancel extends FNDebounceFlush {
   async exec() {
     this.name?.forEach(name => {
-      FNDebounce.Caches.get(name)?.cancel()
+      DebounceManager.Instance.get(name)?.cancel()
     })
   }
 }

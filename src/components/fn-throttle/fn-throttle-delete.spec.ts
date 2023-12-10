@@ -1,4 +1,5 @@
 import { sleep } from 'src/libs/time'
+import { ThrottleManager } from 'src/managers/throttle-manager'
 import { Testing } from 'src/testing'
 import { FNThrottle } from './fn-throttle'
 import { FNThrottleDelete } from './fn-throttle-delete'
@@ -36,7 +37,7 @@ test('delete a fn-throttle', async () => {
     await sleep(1000)
 
     expect(Testing.vars.id).toBe(1)
-    expect(FNThrottle.Caches.has('ttask1d')).toBeFalsy()
+    expect(ThrottleManager.Instance.has('ttask1d')).toBeFalsy()
   } finally {
     await fnThrottle.dispose()
   }

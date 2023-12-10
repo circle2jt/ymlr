@@ -1,6 +1,6 @@
+import { ThrottleManager } from 'src/managers/throttle-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import { FNThrottle } from './fn-throttle'
 
 /** |**  fn-throttle'flush
   Force to call throttle function ASAP if it's called before that (#Ref: lodash.throttle)
@@ -36,7 +36,7 @@ export class FNThrottleFlush implements Element {
 
   async exec() {
     this.name?.forEach(name => {
-      FNThrottle.Caches.get(name)?.flush()
+      ThrottleManager.Instance.get(name)?.flush()
     })
   }
 

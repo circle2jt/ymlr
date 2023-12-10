@@ -1,7 +1,7 @@
 import assert from 'assert'
-import { type DebouncedFunc } from 'lodash'
 import throttle from 'lodash.throttle'
 import { formatTextToMs } from 'src/libs/format'
+import { ThrottleManager } from 'src/managers/throttle-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import type Group from '../group'
@@ -28,8 +28,6 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNThrottle implements Element {
-  static readonly Caches = new Map<string, DebouncedFunc<any>>()
-
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
@@ -54,7 +52,7 @@ export class FNThrottle implements Element {
       this.wait = formatTextToMs(this.wait)
     }
 
-    let fn = FNThrottle.Caches.get(this.name)
+    let fn = ThrottleManager.Instance.get(this.name)
     if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
       fn = throttle(async (parentState?: Record<string, any>) => {
         await this.innerRunsProxy.exec(parentState)
@@ -62,7 +60,7 @@ export class FNThrottle implements Element {
         trailing: this.trailing,
         leading: this.leading
       })
-      FNThrottle.Caches.set(this.name, fn)
+      ThrottleManager.Instance.set(this.name, fn)
     }
     if (fn) {
       fn(parentState)
@@ -70,7 +68,7 @@ export class FNThrottle implements Element {
   }
 
   cancel() {
-    const fn = FNThrottle.Caches.get(this.name)
+    const fn = ThrottleManager.Instance.get(this.name)
     if (fn) {
       fn.cancel()
       return true
@@ -79,7 +77,7 @@ export class FNThrottle implements Element {
   }
 
   flush() {
-    const fn = FNThrottle.Caches.get(this.name)
+    const fn = ThrottleManager.Instance.get(this.name)
     if (fn) {
       fn.flush()
       return true
@@ -89,7 +87,7 @@ export class FNThrottle implements Element {
 
   remove() {
     if (this.cancel()) {
-      FNThrottle.Caches.delete(this.name)
+      ThrottleManager.Instance.delete(this.name)
       return true
     }
     return false

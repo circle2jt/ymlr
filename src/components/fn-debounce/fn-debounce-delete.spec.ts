@@ -1,4 +1,5 @@
 import { sleep } from 'src/libs/time'
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { Testing } from 'src/testing'
 import { FNDebounce } from './fn-debounce'
 import { FNDebounceDelete } from './fn-debounce-delete'
@@ -34,7 +35,7 @@ test('delete a fn-debounce', async () => {
     await sleep(210)
 
     expect(Testing.vars.i).toBe(0)
-    expect(FNDebounce.Caches.has('dtaskd1')).toBeFalsy()
+    expect(DebounceManager.Instance.has('dtaskd1')).toBeFalsy()
   } finally {
     await fnDebounce.dispose()
   }

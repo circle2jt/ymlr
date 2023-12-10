@@ -1,6 +1,6 @@
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import { FNDebounce } from './fn-debounce'
 
 /** |**  fn-debounce'flush
   Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce)
@@ -36,7 +36,7 @@ export class FNDebounceFlush implements Element {
 
   async exec() {
     this.name?.forEach(name => {
-      FNDebounce.Caches.get(name)?.flush()
+      DebounceManager.Instance.get(name)?.flush()
     })
   }
 

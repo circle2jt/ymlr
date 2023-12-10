@@ -1,4 +1,4 @@
-import { FNThrottle } from './fn-throttle'
+import { ThrottleManager } from 'src/managers/throttle-manager'
 import { FNThrottleFlush } from './fn-throttle-flush'
 
 /** |**  fn-throttle'cancel
@@ -19,7 +19,7 @@ import { FNThrottleFlush } from './fn-throttle-flush'
 export class FNThrottleCancel extends FNThrottleFlush {
   async exec() {
     this.name?.forEach(name => {
-      FNThrottle.Caches.get(name)?.cancel()
+      ThrottleManager.Instance.get(name)?.cancel()
     })
   }
 }

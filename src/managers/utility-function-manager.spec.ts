@@ -6,6 +6,14 @@ import { UtilityFunctionManager } from './utility-function-manager'
 
 const globalUtils = UtilityFunctionManager.Instance
 
+test('throttle manager is existed', () => {
+  expect(globalUtils.throttleManager).toBeDefined()
+})
+
+test('debounce manager is existed', () => {
+  expect(globalUtils.debounceManager).toBeDefined()
+})
+
 test('base64 encrypt/decrypt', async () => {
   const raw = 'thanh'
   const enc = new Base64().encrypt(raw)

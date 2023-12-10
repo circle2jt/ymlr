@@ -1,7 +1,7 @@
 import assert from 'assert'
-import { type DebouncedFunc } from 'lodash'
 import debounce from 'lodash.debounce'
 import { formatTextToMs } from 'src/libs/format'
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import type Group from '../group'
@@ -29,8 +29,6 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNDebounce implements Element {
-  static readonly Caches = new Map<string, DebouncedFunc<any>>()
-
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
@@ -59,7 +57,7 @@ export class FNDebounce implements Element {
       this.maxWait = formatTextToMs(this.maxWait)
     }
 
-    let fn = FNDebounce.Caches.get(this.name)
+    let fn = DebounceManager.Instance.get(this.name)
     if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
       fn = debounce(async (parentState?: Record<string, any>) => {
         await this.innerRunsProxy.exec(parentState)
@@ -68,7 +66,7 @@ export class FNDebounce implements Element {
         leading: this.leading,
         maxWait: this.maxWait
       })
-      FNDebounce.Caches.set(this.name, fn)
+      DebounceManager.Instance.set(this.name, fn)
     }
     if (fn) {
       fn(parentState)
@@ -76,7 +74,7 @@ export class FNDebounce implements Element {
   }
 
   cancel() {
-    const fn = FNDebounce.Caches.get(this.name)
+    const fn = DebounceManager.Instance.get(this.name)
     if (fn) {
       fn.cancel()
       return true
@@ -85,7 +83,7 @@ export class FNDebounce implements Element {
   }
 
   flush() {
-    const fn = FNDebounce.Caches.get(this.name)
+    const fn = DebounceManager.Instance.get(this.name)
     if (fn) {
       fn.flush()
       return true
@@ -95,7 +93,7 @@ export class FNDebounce implements Element {
 
   remove() {
     if (this.cancel()) {
-      FNDebounce.Caches.delete(this.name)
+      DebounceManager.Instance.delete(this.name)
       return true
     }
     return false

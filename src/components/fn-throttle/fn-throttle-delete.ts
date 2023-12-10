@@ -1,4 +1,4 @@
-import { FNThrottle } from './fn-throttle'
+import { ThrottleManager } from 'src/managers/throttle-manager'
 import { FNThrottleCancel } from './fn-throttle-cancel'
 
 /** |**  fn-throttle'del
@@ -19,7 +19,7 @@ import { FNThrottleCancel } from './fn-throttle-cancel'
 export class FNThrottleDelete extends FNThrottleCancel {
   override dispose() {
     this.name?.forEach(name => {
-      FNThrottle.Caches.delete(name)
+      ThrottleManager.Instance.delete(name)
     })
   }
 }

@@ -1,4 +1,4 @@
-import { FNDebounce } from './fn-debounce'
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { FNDebounceCancel } from './fn-debounce-cancel'
 
 /** |**  fn-debounce'del
@@ -19,7 +19,7 @@ import { FNDebounceCancel } from './fn-debounce-cancel'
 export class FNDebounceDelete extends FNDebounceCancel {
   override dispose() {
     this.name?.forEach(name => {
-      FNDebounce.Caches.delete(name)
+      DebounceManager.Instance.delete(name)
     })
   }
 }
