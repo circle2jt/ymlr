@@ -17,9 +17,7 @@ import { FNDebounceFlush } from './fn-debounce-flush'
   ```
 */
 export class FNDebounceCancel extends FNDebounceFlush {
-  async exec() {
-    this.name?.forEach(name => {
-      DebounceManager.Instance.get(name)?.cancel()
-    })
+  override exec() {
+    this.name?.forEach(name => { DebounceManager.Instance.cancel(name) })
   }
 }

@@ -17,9 +17,7 @@ import { FNThrottleCancel } from './fn-throttle-cancel'
   ```
 */
 export class FNThrottleDelete extends FNThrottleCancel {
-  override dispose() {
-    this.name?.forEach(name => {
-      ThrottleManager.Instance.delete(name)
-    })
+  override exec() {
+    this.name?.forEach(name => ThrottleManager.Instance.delete(name))
   }
 }

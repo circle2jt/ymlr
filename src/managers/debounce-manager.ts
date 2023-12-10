@@ -1,6 +1,6 @@
-import { type DebouncedFunc } from 'lodash'
+import type FNDebounce from 'src/components/fn-debounce'
 
-export class DebounceManager extends Map<string, DebouncedFunc<any>> {
+export class DebounceManager extends Map<string, FNDebounce> {
   static #Instance: DebounceManager
 
   static get Instance() {
@@ -8,5 +8,22 @@ export class DebounceManager extends Map<string, DebouncedFunc<any>> {
       this.#Instance = new DebounceManager()
     }
     return this.#Instance
+  }
+
+  touch(name: string) {
+    this.get(name)?.touch()
+  }
+
+  cancel(name: string) {
+    this.get(name)?.cancel()
+  }
+
+  flush(name: string) {
+    this.get(name)?.flush()
+  }
+
+  delete(name: string) {
+    this.cancel(name)
+    return super.delete(name)
   }
 }

@@ -34,10 +34,8 @@ export class FNThrottleFlush implements Element {
     }
   }
 
-  async exec() {
-    this.name?.forEach(name => {
-      ThrottleManager.Instance.get(name)?.flush()
-    })
+  exec() {
+    this.name?.forEach(name => { ThrottleManager.Instance.flush(name) })
   }
 
   dispose() { }

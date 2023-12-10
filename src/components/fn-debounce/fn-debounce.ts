@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { type DebouncedFunc, type DebounceSettings } from 'lodash'
 import debounce from 'lodash.debounce'
 import { formatTextToMs } from 'src/libs/format'
 import { DebounceManager } from 'src/managers/debounce-manager'
@@ -21,7 +22,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
       runs:
         - echo: Do this when it's free for 1s
 
-    # Call if debounce is existed
+    # touch if debounce is existed
     - fn-debounce:
         name: Delay to do something
     # OR
@@ -37,6 +38,8 @@ export class FNDebounce implements Element {
   maxWait?: number
   trailing = true
   leading = false
+  #fn?: DebouncedFunc<any>
+  #parentState?: Record<string, any>
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -50,53 +53,41 @@ export class FNDebounce implements Element {
   async exec(parentState?: Record<string, any>) {
     assert(this.name)
 
-    if (typeof this.wait === 'string') {
-      this.wait = formatTextToMs(this.wait)
+    if (DebounceManager.Instance.has(this.name)) {
+      DebounceManager.Instance.touch(this.name)
+    } else if (this.wait !== undefined && this.proxy.runs?.length) {
+      if (!this.#fn) {
+        const opts: DebounceSettings = {
+          trailing: this.trailing,
+          leading: this.leading
+        }
+        if (typeof this.wait === 'string') {
+          this.wait = formatTextToMs(this.wait)
+        }
+        if (this.maxWait && typeof this.maxWait === 'string') {
+          this.maxWait = formatTextToMs(this.maxWait)
+          opts.maxWait = this.maxWait
+        }
+        this.#fn = debounce(async (parentState?: Record<string, any>) => {
+          await this.innerRunsProxy.exec(parentState)
+        }, this.wait, opts)
+        DebounceManager.Instance.set(this.name, this)
+      }
+      this.#parentState = parentState
+      this.touch()
     }
-    if (this.maxWait && typeof this.maxWait === 'string') {
-      this.maxWait = formatTextToMs(this.maxWait)
-    }
+  }
 
-    let fn = DebounceManager.Instance.get(this.name)
-    if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
-      fn = debounce(async (parentState?: Record<string, any>) => {
-        await this.innerRunsProxy.exec(parentState)
-      }, this.wait, {
-        trailing: this.trailing,
-        leading: this.leading,
-        maxWait: this.maxWait
-      })
-      DebounceManager.Instance.set(this.name, fn)
-    }
-    if (fn) {
-      fn(parentState)
-    }
+  touch() {
+    this.#fn?.(this.#parentState)
   }
 
   cancel() {
-    const fn = DebounceManager.Instance.get(this.name)
-    if (fn) {
-      fn.cancel()
-      return true
-    }
-    return false
+    this.#fn?.cancel()
   }
 
   flush() {
-    const fn = DebounceManager.Instance.get(this.name)
-    if (fn) {
-      fn.flush()
-      return true
-    }
-    return false
-  }
-
-  remove() {
-    if (this.cancel()) {
-      DebounceManager.Instance.delete(this.name)
-      return true
-    }
-    return false
+    this.#fn?.flush()
   }
 
   dispose() { }

@@ -34,10 +34,8 @@ export class FNDebounceFlush implements Element {
     }
   }
 
-  async exec() {
-    this.name?.forEach(name => {
-      DebounceManager.Instance.get(name)?.flush()
-    })
+  exec() {
+    this.name?.forEach(name => { DebounceManager.Instance.flush(name) })
   }
 
   dispose() { }

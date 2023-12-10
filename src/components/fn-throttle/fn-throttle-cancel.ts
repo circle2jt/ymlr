@@ -17,9 +17,7 @@ import { FNThrottleFlush } from './fn-throttle-flush'
   ```
 */
 export class FNThrottleCancel extends FNThrottleFlush {
-  async exec() {
-    this.name?.forEach(name => {
-      ThrottleManager.Instance.get(name)?.cancel()
-    })
+  override exec() {
+    this.name?.forEach(name => { ThrottleManager.Instance.cancel(name) })
   }
 }

@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { type DebouncedFunc } from 'lodash'
 import throttle from 'lodash.throttle'
 import { formatTextToMs } from 'src/libs/format'
 import { ThrottleManager } from 'src/managers/throttle-manager'
@@ -35,6 +36,8 @@ export class FNThrottle implements Element {
   wait?: number
   leading = true
   trailing = true
+  #fn?: DebouncedFunc<any>
+  #parentState?: Record<string, any>
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -48,49 +51,36 @@ export class FNThrottle implements Element {
   async exec(parentState?: Record<string, any>) {
     assert(this.name)
 
-    if (typeof this.wait === 'string') {
-      this.wait = formatTextToMs(this.wait)
+    if (ThrottleManager.Instance.has(this.name)) {
+      ThrottleManager.Instance.touch(this.name)
+    } else if (this.wait !== undefined && this.proxy.runs?.length) {
+      if (!this.#fn) {
+        if (typeof this.wait === 'string') {
+          this.wait = formatTextToMs(this.wait)
+        }
+        this.#fn = throttle(async (parentState?: Record<string, any>) => {
+          await this.innerRunsProxy.exec(parentState)
+        }, this.wait, {
+          trailing: this.trailing,
+          leading: this.leading
+        })
+        ThrottleManager.Instance.set(this.name, this)
+      }
+      this.#parentState = parentState
+      this.touch()
     }
+  }
 
-    let fn = ThrottleManager.Instance.get(this.name)
-    if (!fn && this.wait !== undefined && this.proxy.runs?.length) {
-      fn = throttle(async (parentState?: Record<string, any>) => {
-        await this.innerRunsProxy.exec(parentState)
-      }, this.wait, {
-        trailing: this.trailing,
-        leading: this.leading
-      })
-      ThrottleManager.Instance.set(this.name, fn)
-    }
-    if (fn) {
-      fn(parentState)
-    }
+  touch() {
+    this.#fn?.(this.#parentState)
   }
 
   cancel() {
-    const fn = ThrottleManager.Instance.get(this.name)
-    if (fn) {
-      fn.cancel()
-      return true
-    }
-    return false
+    this.#fn?.cancel()
   }
 
   flush() {
-    const fn = ThrottleManager.Instance.get(this.name)
-    if (fn) {
-      fn.flush()
-      return true
-    }
-    return false
-  }
-
-  remove() {
-    if (this.cancel()) {
-      ThrottleManager.Instance.delete(this.name)
-      return true
-    }
-    return false
+    this.#fn?.flush()
   }
 
   dispose() { }

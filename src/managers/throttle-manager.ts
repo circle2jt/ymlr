@@ -1,6 +1,6 @@
-import { type DebouncedFunc } from 'lodash'
+import { DebounceManager } from './debounce-manager'
 
-export class ThrottleManager extends Map<string, DebouncedFunc<any>> {
+export class ThrottleManager extends DebounceManager {
   static #Instance: ThrottleManager
 
   static get Instance() {
