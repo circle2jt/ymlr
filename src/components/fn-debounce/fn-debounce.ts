@@ -10,6 +10,8 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 
 /** |**  fn-debounce
   Debounce function (#Ref: lodash.debounce)
+  - Without "wait" and "runs" then it's only touch with last agruments
+  - Specific "wait" and "runs" then it's run with new agruments
   @order 6
   @example
   ```yaml
@@ -23,10 +25,10 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         - echo: Do this when it's free for 1s
 
     # touch if debounce is existed
-    - fn-debounce:
+    - fn-debounce:                          # Touch the existed throttle with last agruments
         name: Delay to do something
     # OR
-    - fn-debounce: Delay to do something
+    - fn-debounce: Delay to do something    # Touch the existed throttle with last agruments
   ```
 */
 export class FNDebounce implements Element {
@@ -54,6 +56,7 @@ export class FNDebounce implements Element {
     assert(this.name)
 
     if (DebounceManager.Instance.has(this.name)) {
+      this.#parentState = parentState
       DebounceManager.Instance.touch(this.name)
     } else if (this.wait !== undefined && this.proxy.runs?.length) {
       if (!this.#fn) {

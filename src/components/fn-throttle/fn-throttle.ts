@@ -10,6 +10,8 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 
 /** |**  fn-throttle
   Throttle function (#Ref: lodash.throttle)
+  - Without "wait" and "runs" then it's only touch with last agruments
+  - Specific "wait" and "runs" then it's run with new agruments
   @order 6
   @example
   ```yaml
@@ -22,10 +24,10 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         - echo: Do this when it's free for 1s
 
     # Call if throttle is existed
-    - fn-throttle:
+    - fn-throttle:                         # Touch the existed throttle with last agruments
         name: Delay to do something
     # OR
-    - fn-throttle: Delay to do something
+    - fn-throttle: Delay to do something   # Touch the existed throttle with last agruments
   ```
 */
 export class FNThrottle implements Element {
@@ -52,6 +54,7 @@ export class FNThrottle implements Element {
     assert(this.name)
 
     if (ThrottleManager.Instance.has(this.name)) {
+      this.#parentState = parentState
       ThrottleManager.Instance.touch(this.name)
     } else if (this.wait !== undefined && this.proxy.runs?.length) {
       if (!this.#fn) {
