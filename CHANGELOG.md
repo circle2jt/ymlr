@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.17.md](#1702206679950)  -  _12/10/2023, 6:11:19 PM_
 - [1.2.6-alpha.16.md](#1702033633518)  -  _12/8/2023, 6:07:13 PM_
 - [1.2.6-alpha.15.md](#1701689328554)  -  _12/4/2023, 6:28:48 PM_
 - [1.2.6-alpha.14.md](#1701686672210)  -  _12/4/2023, 5:44:32 PM_
@@ -65,6 +66,14 @@
 
 ## Details
 
+<a id="1702206679950"></a>
+### 1.2.6-alpha.17
+
+* feat: allow recall fn-throttle, fn-debounce by name (ec2f4eb)
+* refactor(debounce): Seperate DebounceManager, ThrottleManager (bfe4bb6)
+* feat: allow re-call throttle, debounce when existed (34c953a)
+* feat(fn-*): support flush, cancel, delete multiple name (176137b)
+  
 <a id="1702033633518"></a>
 ### 1.2.6-alpha.16
 

@@ -817,6 +817,12 @@ Example:
       maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
     runs:
       - echo: Do this when it's free for 1s
+
+  # touch if debounce is existed
+  - fn-debounce:
+      name: Delay to do something
+  # OR
+  - fn-debounce: Delay to do something
 ```  
 
 
@@ -831,6 +837,10 @@ Example:
       name: Delay to do something               # Debounce name to cancel
   # OR
   - fn-debounce'cancel: Delay to do something   # Debounce name to cancel
+  # OR
+  - fn-debounce'cancel:
+      - delay1
+      - delay2
 ```  
 
 
@@ -845,6 +855,10 @@ Example:
       name: Delay to do something               # Debounce name to delete
   # OR
   - fn-debounce'del: Delay to do something      # Debounce name to delete
+  # OR
+  - fn-debounce'del:
+      - delay1
+      - delay2
 ```  
 
 
@@ -859,6 +873,10 @@ Example:
       name: Delay to do something                 # Debounce name to delete
   # OR
   - fn-debounce'flush: Delay to do something      # Debounce name to delete
+  # OR
+  - fn-debounce'flush:
+      - delay1
+      - delay2
 ```  
 
 
@@ -905,6 +923,12 @@ Example:
       leading: true      # Specify invoking on the leading edge of the timeout. Default is true
     runs:
       - echo: Do this when it's free for 1s
+
+  # Call if throttle is existed
+  - fn-throttle:
+      name: Delay to do something
+  # OR
+  - fn-throttle: Delay to do something
 ```  
 
 
@@ -919,6 +943,10 @@ Example:
       name: Delay to do something               # Throttle name to cancel
   # OR
   - fn-throttle'cancel: Delay to do something   # Throttle name to cancel
+  # OR
+  - fn-throttle'cancel:
+      - delay1
+      - delay2
 ```  
 
 
@@ -933,6 +961,10 @@ Example:
       name: Delay to do something               # Throttle name to delete
   # OR
   - fn-throttle'del: Delay to do something      # Throttle name to delete
+  # OR
+  - fn-throttle'del:
+      - delay1
+      - delay2
 ```  
 
 
@@ -947,6 +979,10 @@ Example:
       name: Delay to do something                 # Throttle name to delete
   # OR
   - fn-throttle'flush: Delay to do something      # Throttle name to delete
+  # OR
+  - fn-throttle'flush:
+      - delay1
+      - delay2
 ```  
 
 
