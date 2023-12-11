@@ -10,8 +10,8 @@ export class DebounceManager extends Map<string, FNDebounce> {
     return this.#Instance
   }
 
-  touch(name: string) {
-    this.get(name)?.touch()
+  touch(name: string, parentState?: Record<string, any>) {
+    this.get(name)?.touch(parentState)
   }
 
   cancel(name: string) {

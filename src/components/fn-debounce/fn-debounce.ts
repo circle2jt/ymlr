@@ -56,8 +56,7 @@ export class FNDebounce implements Element {
     assert(this.name)
 
     if (DebounceManager.Instance.has(this.name)) {
-      this.#parentState = parentState
-      DebounceManager.Instance.touch(this.name)
+      DebounceManager.Instance.touch(this.name, parentState)
     } else if (this.wait !== undefined && this.proxy.runs?.length) {
       if (!this.#fn) {
         const opts: DebounceSettings = {
@@ -76,12 +75,14 @@ export class FNDebounce implements Element {
         }, this.wait, opts)
         DebounceManager.Instance.set(this.name, this)
       }
-      this.#parentState = parentState
-      this.touch()
+      this.touch(parentState)
     }
   }
 
-  touch() {
+  touch(parentState?: Record<string, any>) {
+    if (parentState !== undefined) {
+      this.#parentState = parentState
+    }
     this.#fn?.(this.#parentState)
   }
 

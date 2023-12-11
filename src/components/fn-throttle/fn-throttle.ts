@@ -54,8 +54,7 @@ export class FNThrottle implements Element {
     assert(this.name)
 
     if (ThrottleManager.Instance.has(this.name)) {
-      this.#parentState = parentState
-      ThrottleManager.Instance.touch(this.name)
+      ThrottleManager.Instance.touch(this.name, parentState)
     } else if (this.wait !== undefined && this.proxy.runs?.length) {
       if (!this.#fn) {
         if (typeof this.wait === 'string') {
@@ -69,12 +68,14 @@ export class FNThrottle implements Element {
         })
         ThrottleManager.Instance.set(this.name, this)
       }
-      this.#parentState = parentState
-      this.touch()
+      this.touch(parentState)
     }
   }
 
-  touch() {
+  touch(parentState?: Record<string, any>) {
+    if (parentState !== undefined) {
+      this.#parentState = parentState
+    }
     this.#fn?.(this.#parentState)
   }
 
