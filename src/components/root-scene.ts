@@ -6,7 +6,7 @@ import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
 import { type ElementProxy } from './element-proxy'
-import { type Element } from './element.interface'
+import { ElementBaseKeys, type Element } from './element.interface'
 import { type RootSceneProps } from './root-scene.props'
 import { Scene } from './scene/scene'
 
@@ -133,6 +133,25 @@ export class RootScene extends Scene {
       baseProps = merge(cached, baseProps)
     })
     return baseProps
+  }
+
+  getTagName(props: any) {
+    const keys = Object.keys(props)
+    let tagName: string | undefined
+    for (let key of keys) {
+      if (key.startsWith('~')) {
+        const oldKey = key
+        key = key.substring(1)
+        props[key] = props[oldKey]
+        props[oldKey] = undefined
+        props.async = true
+      }
+      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
+        tagName = key
+        break
+      }
+    }
+    return tagName
   }
 
   export(tagName: string | undefined, props: any, id: string) {

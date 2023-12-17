@@ -3,7 +3,7 @@ import { DEBUG_GROUP_RESULT } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
-import { ElementBaseKeys, type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
+import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import Include from '../include'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
@@ -205,20 +205,22 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
       // Init props
       const props: any = allProps || {}
-      let { '<-': inheritKeys, '->': exposeKey, skip, only, ...eProps } = props
-      let tagName = this.getTagName(eProps)
+      let { '<-': inheritKeys, skip, only, ...eProps } = props
+      let tagName = this.rootScene.getTagName(eProps)
       const isTemplate = !!eProps.template
 
       // Only support template or tag name. Prefer tag name
       if (tagName && eProps.template) eProps.template = undefined
 
       if (inheritKeys) eProps = this.rootScene.extend(tagName, eProps, inheritKeys)
+      const { '->': exposeKey, ..._eProps } = eProps
+      eProps = _eProps
       if (exposeKey) this.rootScene.export(tagName, eProps, exposeKey)
 
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, force, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -226,7 +228,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
       // Retry to get tagName which is override by keys
       if (!tagName) {
-        tagName = this.getTagName(eProps)
+        tagName = this.rootScene.getTagName(eProps)
       }
 
       let elemProps: any
@@ -252,7 +254,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         name,
         if: condition,
         elseif: elseIfCondition,
-        force,
+        failure,
         debug,
         vars,
         runs,
@@ -326,25 +328,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       props.async = true
       props['~runs'] = undefined
     }
-  }
-
-  private getTagName(props: any) {
-    const keys = Object.keys(props)
-    let tagName: string | undefined
-    for (let key of keys) {
-      if (key.startsWith('~')) {
-        const oldKey = key
-        key = key.substring(1)
-        props[key] = props[oldKey]
-        props[oldKey] = undefined
-        props.async = true
-      }
-      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
-        tagName = key
-        break
-      }
-    }
-    return tagName
   }
 
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj: { loopKey?: any, loopValue?: any } = {}) {

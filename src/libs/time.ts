@@ -1,5 +1,7 @@
 import { formatTextToMs } from './format'
 
 export async function sleep(time: number | string) {
-  return await new Promise(resolve => setTimeout(resolve, formatTextToMs(time)))
+  const delayTime = formatTextToMs(time)
+  if (!delayTime) return
+  return await new Promise(resolve => setTimeout(resolve, delayTime))
 }

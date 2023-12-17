@@ -3,6 +3,7 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
+import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
@@ -139,19 +140,36 @@ export class ElementProxy<T extends Element> {
     ```
   */
   only?: boolean
-  /** |**  force
-    Try to execute and ignore error in the running
+  /** |**  failure
+    Handle error when do something wrong. Default it will exit app when something error.
+    - ignore: Ignore error then keep playing the next
+    - restart:
+        max: 3     When got something error, it will be restarted automatically ASAP (-1/0 is same)
+        sleep: 3000
     @position top
     @tag It's a property in a tag
     @example
     ```yaml
-      - force: true
-        name: Got error "abc is not defined" but it should not stop here ${abc}
-
-      - name: Keep playing
+      - failure:
+          restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
+            max: 3
+            sleep: 3s
+        js: |
+          const a = 1/0
+      - failure:
+          ignore: true                 # Ignore error then play the next
+        js: |
+          const a = 1/0
     ```
   */
-  force?: boolean | string
+  failure?: {
+    ignore?: boolean
+    restart?: {
+      max: number
+      sleep: number | string
+    }
+  }
+
   /** |**  context
   Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"
   @position top
@@ -510,7 +528,7 @@ export class ElementProxy<T extends Element> {
 
   #elementAsyncProps?: any
 
-  constructor(public element: T, props = {}) {
+  constructor(public element: T, props: any = {}) {
     Object.assign(this, props)
     if (element.asyncConstructor) this.#elementAsyncProps = props
     Object.defineProperty(element, 'proxy', {
@@ -614,18 +632,29 @@ export class ElementProxy<T extends Element> {
         if (this.name && !this.$.hideName) {
           this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
         }
-        if (this.element.preExec) {
-          const isRunOnce = await this.element.preExec(parentState)
-          if (isRunOnce) {
-            this.element.preExec = undefined
+        while (true) {
+          try {
+            if (this.element.preExec) {
+              const isRunOnce = await this.element.preExec(parentState)
+              if (isRunOnce) {
+                this.element.preExec = undefined
+              }
+            }
+            const result = await this.element.exec(parentState)
+            if (this.result instanceof Returns) this.result = this.result.result
+            else this.result = result
+            break
+          } catch (err: any) {
+            if (!this.failure?.restart || --this.failure.restart.max === 0) {
+              throw err
+            }
+            this.logger.error(err)
+            await sleep(this.failure.restart.sleep)
           }
         }
-        const result = await this.element.exec(parentState)
-        if (this.result instanceof Returns) this.result = this.result.result
-        else this.result = result
       } catch (err: any) {
         this.error = err
-        if (!this.force) {
+        if (!this.failure?.ignore) {
           throw err
         }
         this.logger.warn('%o', err)
