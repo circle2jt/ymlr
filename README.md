@@ -421,17 +421,27 @@ Example:
 ```  
 
 
-## <a id="force"></a>force  
+## <a id="failure"></a>failure  
 `It's a property in a tag`  
-Try to execute and ignore error in the running  
+Handle error when do something wrong. Default it will exit app when something error.
+- ignore: Ignore error then keep playing the next
+- restart:
+max: 3     When got something error, it will be restarted automatically ASAP (-1/0 is same)
+sleep: 3000  
 
 Example:  
 
 ```yaml
-  - force: true
-    name: Got error "abc is not defined" but it should not stop here ${abc}
-
-  - name: Keep playing
+  - failure:
+      restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
+        max: 3
+        sleep: 3s
+    js: |
+      const a = 1/0
+  - failure:
+      ignore: true                 # Ignore error then play the next
+    js: |
+      const a = 1/0
 ```  
 
 
