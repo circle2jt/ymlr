@@ -13,7 +13,8 @@ vars:
   makeLatest: "true"
 runs:
   - ->: git-http
-    force: true
+    failure:
+      ignore: true
     template:
       baseURL: https://api.github.com
       headers:
