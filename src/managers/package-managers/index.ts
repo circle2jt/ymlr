@@ -82,7 +82,7 @@ export abstract class PM {
       await exec.exec()
       this.logger.info(`${chalk.green('✔')} ${des}ed ${msg} successfully`, LoggerLevel.info)
     } catch (err) {
-      this.logger.error(`${chalk.red('✘')} ${des}ed ${msg} failed`, LoggerLevel.error)
+      this.logger.error(`${chalk.red('✘')} ${des}ed ${msg} failed`, LoggerLevel.error).trace(err)
       throw err
     } finally {
       await exec.dispose()

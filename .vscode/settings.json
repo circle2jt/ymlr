@@ -12,7 +12,7 @@
     },
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true,
+        "source.organizeImports": "explicit"
     },
     "typescript.tsc.autoDetect": "off",
     "npm.autoDetect": "off",

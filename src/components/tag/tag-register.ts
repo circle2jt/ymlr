@@ -90,7 +90,7 @@ export class TagRegister implements Element {
             this.logger.trace('Register tag \t[%s]', obj.tag)
             this.tagsManager.setTag(key, { default: obj })
           } catch (err) {
-            this.logger.error(`Register a custom tag "${key}" error`)
+            this.logger.error(`Register a custom tag "${key}" error`).trace(err)
             throw err
           }
         }

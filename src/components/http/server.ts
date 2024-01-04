@@ -182,8 +182,8 @@ export class HttpServer implements Element {
           res.write(resData.toString())
         }
       }
-    } catch (err) {
-      this.logger.error(err)
+    } catch (err: any) {
+      this.logger.error('%o', err?.message || err).trace(err)
     } finally {
       res.end()
     }

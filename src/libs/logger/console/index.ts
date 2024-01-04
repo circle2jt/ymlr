@@ -94,7 +94,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         mes = this.format(msg, LoggerLevel.warn, ...prms)
       } else {
-        mes = this.format('%j', LoggerLevel.warn, msg, ...prms)
+        mes = this.format('%o', LoggerLevel.warn, msg, ...prms)
       }
       return this.print(mes, LoggerLevel.warn)
     }
@@ -107,7 +107,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         mes = this.format(msg, LoggerLevel.trace, ...prms)
       } else {
-        mes = this.format('%j', LoggerLevel.trace, msg, ...prms)
+        mes = this.format('%o', LoggerLevel.trace, msg, ...prms)
       }
       return this.print(mes, LoggerLevel.trace)
     }
@@ -120,7 +120,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         mes = this.format(msg, LoggerLevel.error, ...prms)
       } else {
-        mes = this.format('%j', LoggerLevel.error, msg, ...prms)
+        mes = this.format('%o', LoggerLevel.error, msg, ...prms)
       }
       return this.print(mes, LoggerLevel.error)
     }
@@ -133,7 +133,7 @@ export class ConsoleLogger extends Logger {
       if (typeof msg === 'string') {
         mes = this.format(msg, LoggerLevel.fatal, ...prms)
       } else {
-        mes = this.format('%j', LoggerLevel.fatal, msg, ...prms)
+        mes = this.format('%o', LoggerLevel.fatal, msg, ...prms)
       }
       return this.print(mes, LoggerLevel.fatal)
     }

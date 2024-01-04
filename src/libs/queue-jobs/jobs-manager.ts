@@ -50,13 +50,13 @@ export class JobsManager {
             this.dbJobs.splice(this.dbJobs.indexOf(job), 1)
             await this.storage?.save(this.dbJobs)
           } catch (err1: any) {
-            this.logger.warn('Job failed         \t%s', err1?.message).trace('%j', job)
+            this.logger.warn('Job failed         \t%s', err1?.message).trace(job)
             try {
               if (!this.jobHandler?.onJobFailure) throw err1
               const isRetry = await this.jobHandler.onJobFailure(err1, job)
               if (isRetry) this.queueJobs.push(job)
             } catch (err2: any) {
-              this.logger.error('Jobs manager stoped\t%s', err2?.message).trace('%j', job)
+              this.logger.error('Jobs manager stoped\t%s', err2?.message).trace(job)
               this.concurrent = 0
               this.error = err2
             }

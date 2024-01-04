@@ -84,7 +84,7 @@ export class TagsManager {
           } catch (err3: any) {
             errors.push(err3)
             if (triedToInstall) {
-              errors.forEach(err => logger.error(err))
+              errors.forEach(err => logger.error('%o', err?.message || err).trace(err))
               throw new Error(`Could not found class "${className}" in "${path}"`)
             }
             triedToInstall = true

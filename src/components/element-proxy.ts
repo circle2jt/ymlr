@@ -648,7 +648,7 @@ export class ElementProxy<T extends Element> {
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
-            this.logger.error(err)
+            this.logger.error('%o', err?.message || err).trace(err)
             await sleep(this.failure.restart.sleep)
           }
         }
