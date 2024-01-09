@@ -7,7 +7,6 @@ import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
-import { Group } from './group/group'
 import { type GroupItemProps } from './group/group.props'
 import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
@@ -210,6 +209,7 @@ export class ElementProxy<T extends Element> {
     ```
   */
   name?: string
+  _name?: string
   /** |**  debug
     How to print log details for each of item.
     Default is `info`
@@ -515,6 +515,11 @@ export class ElementProxy<T extends Element> {
   get logger(): Logger {
     if (!this.#logger) {
       this.#logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug)
+      this.#logger.stack = {
+        path: this.scene.path,
+        name: this.name,
+        tag: this.tag
+      }
     }
     return this.#logger
   }
@@ -629,8 +634,8 @@ export class ElementProxy<T extends Element> {
     try {
       try {
         await this.evalPropsBeforeExec()
-        if (this.name && !this.$.hideName) {
-          this.logger.info(this.element instanceof Group ? '▼' : '▸', this.name)
+        if (this.name && (this.element.hideName === false || this.element.hideName === undefined)) {
+          this.logger.info((this.runs?.length) ? '▼' : '▸', this.name)
         }
         while (true) {
           try {

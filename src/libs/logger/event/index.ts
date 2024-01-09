@@ -22,6 +22,6 @@ export class EventLogger extends ConsoleLogger {
   }
 
   override clone(context?: string, level?: LoggerLevel) {
-    return new EventLogger(level || this.level?.level, context || this.context, this.indent.clone())
+    return new EventLogger(level || this.level?.level, context || this.context, this.id, this.indent.clone())
   }
 }
