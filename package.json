@@ -51,6 +51,7 @@
     "ci:merge": "yarn start ./scripts/merge-code.yaml",
     "ci:prebuild": "yarn clean",
     "ci:build": "yarn ci:prebuild && tsc --project tsconfig.build.json && node bin/tsconfig && yarn ci:postbuild",
+    "ci:build:dev": "tsc --project tsconfig.build.json && node bin/tsconfig && yarn ci:postbuild",
     "ci:postbuild": "cp src/package.json ./dist/src/ && cp README.md ./dist/",
     "ci:pretest": "yarn ci:lint && yarn ci:build && rm -rf src/node_modules",
     "ci:test": "yarn ci:pretest && yarn jest --config=.jest/config.js && yarn ci:posttest",

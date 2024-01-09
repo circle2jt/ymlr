@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "ci:build",
+			"script": "ci:build:dev",
 			"group": {
 				"kind": "build",
 				"isDefault": true
