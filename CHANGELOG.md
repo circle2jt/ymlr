@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.26.md](#1704816786742)  -  _1/9/2024, 11:13:06 PM_
 - [1.2.6-alpha.23.md](#1704366703838)  -  _1/4/2024, 6:11:43 PM_
 - [1.2.6-alpha.22.md](#1702811546078)  -  _12/17/2023, 6:12:26 PM_
 - [1.2.6-alpha.21.md](#1702810666054)  -  _12/17/2023, 5:57:46 PM_
@@ -71,6 +72,12 @@
 
 ## Details
 
+<a id="1704816786742"></a>
+### 1.2.6-alpha.26
+
+* feat: support preview flows via cli (b801c80)
+* dev: add ci:build:dev to build without clear dist (776a27b)
+  
 <a id="1704366703838"></a>
 ### 1.2.6-alpha.23
 
