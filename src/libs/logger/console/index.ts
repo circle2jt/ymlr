@@ -7,7 +7,7 @@ import { Logger } from '..'
 import { LevelFactory } from '../level-factory'
 import { LoggerLevel } from '../logger-level'
 
-const SPACE = chalk.gray('╎')
+export const SPACE = chalk.gray('┆')
 
 export class ConsoleLogger extends Logger {
   static readonly DISABLE_PREFIX = Symbol('DISABLE_PREFIX')
@@ -122,7 +122,10 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%o', LoggerLevel.error, msg, ...prms)
       }
-      return this.print(mes, LoggerLevel.error)
+      this.print(mes, LoggerLevel.error)
+      if (this.stack) {
+        this.print('%o', this.stack)
+      }
     }
     return this
   }
@@ -135,13 +138,16 @@ export class ConsoleLogger extends Logger {
       } else {
         mes = this.format('%o', LoggerLevel.fatal, msg, ...prms)
       }
-      return this.print(mes, LoggerLevel.fatal)
+      this.print(mes, LoggerLevel.fatal)
+      if (this.stack) {
+        this.print('%o', this.stack)
+      }
     }
     return this
   }
 
   override clone(context?: string, level?: LoggerLevel) {
-    return new ConsoleLogger(level || this.level?.level, context || this.context, this.indent.clone())
+    return new ConsoleLogger(level || this.level?.level, context || this.context, this.id, this.indent.clone())
   }
 
   private syncTab() {

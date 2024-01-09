@@ -29,6 +29,7 @@ Example:
 -o event                              > Only emit data via event
 `)
     .option('-t, --tty', 'allocate a pseudo-TTY')
+    .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
     .option('-c, --debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
     .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
@@ -38,8 +39,9 @@ Example:
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, tty, out = '', env = [], tagDirs, envFile = [], debugContext } = opts
+          const { debug, tty, flow, out = '', env = [], tagDirs, envFile = [], debugContext } = opts
           process.env.FORCE_COLOR = !tty ? '0' : '1'
+          process.env.MODE = !flow ? '' : 'flow'
 
           if (envFile.length) {
             const { readFileSync } = await import('fs')
