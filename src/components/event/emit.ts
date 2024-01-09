@@ -2,8 +2,6 @@ import assert from 'assert'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import type Group from '../group'
-import { type GroupItemProps, type GroupProps } from '../group/group.props'
 
 /** |**  event'emit
   Send data via global event
@@ -23,7 +21,6 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 */
 export class EventEmiter implements Element {
   readonly proxy!: ElementProxy<this>
-  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
   name!: string
   data?: any

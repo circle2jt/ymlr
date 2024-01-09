@@ -5,6 +5,11 @@ import { LoggerFactory } from './logger-factory'
 import { type LoggerLevel } from './logger-level'
 
 export abstract class Logger {
+  static #ID = 0
+  static GenID(parent = '') {
+    return `${parent}${parent && '-'}${this.#ID++}`
+  }
+
   public level?: Level | null
   public get levelName(): string | undefined {
     return this.level?.name
@@ -19,7 +24,9 @@ export abstract class Logger {
     return this.#context
   }
 
-  constructor(level: LoggerLevel | Level | undefined, context = '', public indent = new Indent()) {
+  stack?: any
+
+  constructor(level: LoggerLevel | Level | undefined, context = '', public id = Logger.GenID(), public indent = new Indent()) {
     if (context) {
       this.context = context
     }

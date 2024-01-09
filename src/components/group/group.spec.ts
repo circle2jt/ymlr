@@ -16,18 +16,20 @@ afterEach(async () => {
 })
 
 test('if - condition', async () => {
-  group = await Testing.createElementProxy(Group, [
-    {
-      loop: '${[1,2,3]}',
-      if: '${$loopValue %2 === 0}',
-      echo: '${$loopValue}'
-    },
-    {
-      vars: {
-        name: 'name 01'
+  group = await Testing.createElementProxy(Group, {}, {
+    runs: [
+      {
+        loop: '${[1,2,3]}',
+        if: '${$loopValue %2 === 0}',
+        echo: '${$loopValue}'
+      },
+      {
+        vars: {
+          name: 'name 01'
+        }
       }
-    }
-  ])
+    ]
+  })
   const [echo] = await group.exec() as Array<ElementProxy<Echo>>
   expect(echo.result).toBe(2)
   expect(Testing.vars.name).toBe('name 01')

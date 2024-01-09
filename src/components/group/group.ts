@@ -1,5 +1,5 @@
 import { type AppEvent } from 'src/app-event'
-import { DEBUG_GROUP_RESULT } from 'src/env'
+import { DEBUG_GROUP_RESULT, MODE } from 'src/env'
 import { GetLoggerLevel, LoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
@@ -72,14 +72,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (this.proxy.tag === 'inner-runs-proxy') {
       Object.defineProperty(elemProxy, 'parent', {
         enumerable: false,
-        configurable: false,
+        // configurable: false,
         writable: false,
         value: this.proxy.parent
       })
     } else {
       Object.defineProperty(elemProxy, 'parent', {
         enumerable: false,
-        configurable: false,
+        // configurable: false,
         writable: false,
         value: this
       })
@@ -104,28 +104,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
-      const innerRuns = await this.newElement(Group, props) as Group<GroupProps, GroupItemProps>
-      innerRuns.hideName = true
-      const innerRunsProxy = new ElementProxy(innerRuns, baseProps)
+      const innerRunsProxy = await this.newElementProxy(Group, { ...props, hideName: true }, baseProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
+      const innerRuns = innerRunsProxy.$
       Object.defineProperties(innerRunsProxy, {
         parent: {
           enumerable: false,
-          configurable: false,
+          // configurable: false,
           writable: false,
           value: elem
-        },
-        scene: {
-          enumerable: false,
-          configurable: false,
-          writable: false,
-          value: elemProxy.scene
-        },
-        rootScene: {
-          enumerable: false,
-          configurable: false,
-          writable: false,
-          value: elemProxy.rootScene
         }
       })
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
@@ -137,7 +124,38 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       elem.innerRunsProxy = innerRunsProxy
       // @ts-expect-error auto init by system
       if (!elem.ignoreEvalProps) elem.ignoreEvalProps = []
-      elem.ignoreEvalProps.push('innerRunsProxy', ...innerRuns.ignoreEvalProps)
+      if (innerRuns.ignoreEvalProps?.length) {
+        elem.ignoreEvalProps.push('innerRunsProxy', ...innerRuns.ignoreEvalProps)
+      }
+    }
+
+    if (MODE) {
+      if (!(elem instanceof Include)) {
+        elemProxy.loop = undefined
+        elemProxy.async = undefined
+        elemProxy.detach = undefined
+        elemProxy.skipNext = undefined
+        if (elemProxy.$.hideName === null) {
+          elemProxy.$.hideName = false
+        }
+        elemProxy.if = elemProxy.elseif = undefined
+        elemProxy.evalPropsBeforeExec = async () => { }
+        elemProxy.setVarsAfterExec = async () => { }
+        elemProxy.dispose = async () => { }
+        const elem = elemProxy.element as any
+        if (elem.runEachOfElements) {
+          // elemProxy.element.exec = async (parentState = {}) => {
+          //   await elem.runEachOfElements(parentState)
+          //   return true
+          // }
+        } else if (elem.innerRunsProxy) {
+          elemProxy.element.exec = async () => {
+            return elem.innerRunsProxy.exec()
+          }
+        } else {
+          elemProxy.element.exec = async () => { }
+        }
+      }
     }
     return elemProxy
   }
@@ -220,7 +238,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, _name, id, context } = eProps
+      let hideName
+      if (!name && _name) {
+        name = _name
+        hideName = null
+      }
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -238,11 +261,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       } else if (runs) {
         // This is a empty tag
         tagName = 'group'
-        elemProps = undefined
+        elemProps = {}
       } else {
         // This is a empty tag
         tagName = 'base'
-        elemProps = undefined
+        elemProps = {}
+      }
+      if (hideName !== undefined && elemProps && typeof elemProps === 'object' && !Array.isArray(elemProps)) {
+        elemProps.hideName = hideName
       }
       if (debug === true) {
         debug = LoggerLevel.debug
@@ -265,7 +291,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         skipNext
       }
       // Execute
-      if (loop === undefined) {
+      if (loop === undefined || MODE) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           isPassedCondition = !!baseProps.if || !!baseProps.elseif
@@ -334,7 +360,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     elemProxy.parentState = parentState
 
-    const condition = baseProps.elseif ?? baseProps.if
+    const condition = elemProxy.elseif ?? elemProxy.if
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
@@ -347,22 +373,22 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     } else {
       const proms: Array<Promise<any>> = []
 
-      if (baseProps.id) {
-        proms.push(elemProxy.scene.setVars(baseProps.id, elemProxy))
+      if (elemProxy.id) {
+        proms.push(elemProxy.scene.setVars(elemProxy.id, elemProxy))
       }
-      if (baseProps.detach) {
+      if (elemProxy.detach) {
         proms.push((async () => {
-          baseProps.detach = await this.innerScene.getVars(baseProps.detach, elemProxy)
+          elemProxy.detach = await this.innerScene.getVars(elemProxy.detach, elemProxy)
         })())
       }
-      if (proms) {
+      if (proms.length) {
         await Promise.all(proms)
       }
 
-      if (baseProps.detach) {
+      if (elemProxy.detach) {
         this.rootScene.pushToBackgroundJob(elemProxy, parentState)
       } else {
-        const async = baseProps.async && await this.innerScene.getVars(baseProps.async, elemProxy)
+        const async = elemProxy.async && await this.innerScene.getVars(elemProxy.async, elemProxy)
         if (async) {
           asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
             try {

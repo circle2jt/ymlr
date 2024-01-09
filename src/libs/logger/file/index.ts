@@ -13,6 +13,6 @@ export class FileLogger extends ConsoleLogger {
   }
 
   override clone(context?: string, level?: LoggerLevel) {
-    return new FileLogger(level || this.level?.level, context || this.context, this.indent.clone())
+    return new FileLogger(level || this.level?.level, context || this.context, this.id, this.indent.clone())
   }
 }
