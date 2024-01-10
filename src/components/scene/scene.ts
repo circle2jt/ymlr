@@ -154,6 +154,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.lazyInitRuns(groupProps)
       await this.loadVars(vars, Array.isArray(varsFiles) ? varsFiles : [varsFiles])
     }
+    if (!this.proxy.errorStack) {
+      this.proxy.errorStack = {}
+    }
+    this.proxy.errorStack.sceneFile = this.path
+    if (!this.proxy.errorStack.sourceFile) {
+      this.proxy.errorStack.sourceFile = this.path
+    }
   }
 
   override async exec(parentState?: Record<string, any>) {

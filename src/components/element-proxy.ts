@@ -6,6 +6,7 @@ import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
+import { type ErrorStack } from '../libs/error-stack'
 import { type Element } from './element.interface'
 import { type GroupItemProps } from './group/group.props'
 import { type RootScene } from './root-scene'
@@ -16,7 +17,7 @@ const EVAL_ELEMENT_SHADOW_BASE_PROPS = [
   'name'
 ]
 
-const DEFAULT_IGNORE_EVAL_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs']
+const DEFAULT_IGNORE_EVAL_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
 
 export class ElementProxy<T extends Element> {
   /** |**  id
@@ -482,6 +483,7 @@ export class ElementProxy<T extends Element> {
   loopValue?: any
 
   readonly parent?: Element
+  errorStack?: ErrorStack
 
   get parentProxy() {
     return this.parent?.proxy
@@ -514,12 +516,7 @@ export class ElementProxy<T extends Element> {
   #logger?: Logger
   get logger(): Logger {
     if (!this.#logger) {
-      this.#logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug)
-      this.#logger.stack = {
-        path: this.scene.path,
-        name: this.name,
-        tag: this.tag
-      }
+      this.#logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug, this.errorStack)
     }
     return this.#logger
   }

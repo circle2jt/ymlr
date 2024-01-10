@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import { App } from 'src/app'
 import { ENABLE_LOGGER_PREFIX } from 'src/env'
+import { type ErrorStack } from 'src/libs/error-stack'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { format } from 'util'
 import { Logger } from '..'
@@ -123,8 +124,8 @@ export class ConsoleLogger extends Logger {
         mes = this.format('%o', LoggerLevel.error, msg, ...prms)
       }
       this.print(mes, LoggerLevel.error)
-      if (this.stack) {
-        this.print('%o', this.stack)
+      if (this.errorStack) {
+        this.print(this.format('%o', LoggerLevel.error, this.errorStack), LoggerLevel.error)
       }
     }
     return this
@@ -139,15 +140,18 @@ export class ConsoleLogger extends Logger {
         mes = this.format('%o', LoggerLevel.fatal, msg, ...prms)
       }
       this.print(mes, LoggerLevel.fatal)
-      if (this.stack) {
-        this.print('%o', this.stack)
+      if (this.errorStack) {
+        this.print(this.format('%o', LoggerLevel.fatal, this.errorStack), LoggerLevel.fatal)
       }
     }
     return this
   }
 
-  override clone(context?: string, level?: LoggerLevel) {
-    return new ConsoleLogger(level || this.level?.level, context || this.context, this.id, this.indent.clone())
+  override clone(context?: string, level?: LoggerLevel, errorStack?: ErrorStack) {
+    if (errorStack) {
+      this.errorStack = { ...this.errorStack, ...errorStack }
+    }
+    return new ConsoleLogger(level || this.level?.level, context || this.context, this.errorStack, this.id, this.indent.clone())
   }
 
   private syncTab() {

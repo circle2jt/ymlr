@@ -238,7 +238,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, _name, id, context } = eProps
+      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, _name, id, context } = eProps
       let hideName
       if (!name && _name) {
         name = _name
@@ -278,6 +278,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const baseProps: ElementBaseProps = {
         id,
         name,
+        errorStack: {
+          ...this.proxy.errorStack,
+          ...errorStack,
+          name,
+          tag: tagName
+        },
         if: condition,
         elseif: elseIfCondition,
         failure,
@@ -364,53 +370,53 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
-    if (elemProxy.$ instanceof Include) {
-      try {
-        await elemProxy.exec(parentState)
-      } finally {
-        await elemProxy.dispose()
-      }
+    // if (elemProxy.$ instanceof Include) {
+    //   try {
+    //     await elemProxy.exec(parentState)
+    //   } finally {
+    //     await elemProxy.dispose()
+    //   }
+    // } else {
+    const proms: Array<Promise<any>> = []
+
+    if (elemProxy.id) {
+      proms.push(elemProxy.scene.setVars(elemProxy.id, elemProxy))
+    }
+    if (elemProxy.detach) {
+      proms.push((async () => {
+        elemProxy.detach = await this.innerScene.getVars(elemProxy.detach, elemProxy)
+      })())
+    }
+    if (proms.length) {
+      await Promise.all(proms)
+    }
+
+    if (elemProxy.detach) {
+      this.rootScene.pushToBackgroundJob(elemProxy, parentState)
     } else {
-      const proms: Array<Promise<any>> = []
-
-      if (elemProxy.id) {
-        proms.push(elemProxy.scene.setVars(elemProxy.id, elemProxy))
-      }
-      if (elemProxy.detach) {
-        proms.push((async () => {
-          elemProxy.detach = await this.innerScene.getVars(elemProxy.detach, elemProxy)
-        })())
-      }
-      if (proms.length) {
-        await Promise.all(proms)
-      }
-
-      if (elemProxy.detach) {
-        this.rootScene.pushToBackgroundJob(elemProxy, parentState)
-      } else {
-        const async = elemProxy.async && await this.innerScene.getVars(elemProxy.async, elemProxy)
-        if (async) {
-          asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
-            try {
-              const rs = await elemProxy.exec(parentState)
-              return rs
-            } finally {
-              await elemProxy.dispose()
-            }
-          })(elemProxy))
-        } else {
-          if (asyncJobs.length) {
-            await Promise.all(asyncJobs)
-            asyncJobs = []
-          }
+      const async = elemProxy.async && await this.innerScene.getVars(elemProxy.async, elemProxy)
+      if (async) {
+        asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
           try {
-            await elemProxy.exec(parentState)
+            const rs = await elemProxy.exec(parentState)
+            return rs
           } finally {
             await elemProxy.dispose()
           }
+        })(elemProxy))
+      } else {
+        if (asyncJobs.length) {
+          await Promise.all(asyncJobs)
+          asyncJobs = []
+        }
+        try {
+          await elemProxy.exec(parentState)
+        } finally {
+          await elemProxy.dispose()
         }
       }
     }
+    // }
     return elemProxy
   }
 

@@ -1,3 +1,4 @@
+import { type ErrorStack } from 'src/libs/error-stack'
 import { Indent } from './indent'
 import { Level } from './level'
 import { LevelFactory } from './level-factory'
@@ -24,12 +25,13 @@ export abstract class Logger {
     return this.#context
   }
 
-  stack?: any
+  errorStack?: ErrorStack
 
-  constructor(level: LoggerLevel | Level | undefined, context = '', public id = Logger.GenID(), public indent = new Indent()) {
+  constructor(level: LoggerLevel | Level | undefined, context = '', errorStack: ErrorStack = {}, public id = Logger.GenID(), public indent = new Indent()) {
     if (context) {
       this.context = context
     }
+    this.errorStack = { ...errorStack }
     if (LoggerFactory.DEBUG_CONTEXTS?.[this.context]) {
       this.level = LevelFactory.GetInstance(LoggerFactory.DEBUG_CONTEXTS[this.context])
     } else if (level) {
@@ -51,7 +53,7 @@ export abstract class Logger {
   abstract warn(...args: any[]): this
   abstract error(...args: any[]): this
   abstract fatal(...args: any[]): this
-  abstract clone(context?: string | undefined, level?: LoggerLevel | undefined): Logger
+  abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {
     return this.level?.is(level)

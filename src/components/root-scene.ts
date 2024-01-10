@@ -156,7 +156,7 @@ export class RootScene extends Scene {
 
   export(tagName: string | undefined, props: any, id: string) {
     if (!id) return
-    const cached = cloneDeep(props)
+    const { errorStack, ...cached } = cloneDeep(props)
     if (tagName && props.template) {
       props[tagName] = props.template
       props.template = undefined

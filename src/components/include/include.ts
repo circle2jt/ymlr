@@ -61,7 +61,19 @@ export class Include implements Element {
       const elementProxies = await Promise.all(files.map(async f => {
         const content = await f.getTextContent()
         const yamlType = new YamlType(this.proxy.scene)
-        return load(content, { schema: yamlType.spaceSchema })
+        const data = load(content, { schema: yamlType.spaceSchema })
+        if (Array.isArray(data)) {
+          data.forEach(d => {
+            d.errorStack = {
+              sourceFile: f.uri
+            }
+          })
+        } else if (typeof data === 'object') {
+          (data as any).errorStack = {
+            sourceFile: f.uri
+          }
+        }
+        return data
       }))
       const childs = elementProxies.flat(1)
       if (this.cached) {

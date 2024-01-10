@@ -10,6 +10,6 @@ export enum LoggerLevel {
   silent = 12
 }
 
-export function GetLoggerLevel(name: string): LoggerLevel {
+export function GetLoggerLevel(name: string | number): LoggerLevel {
   return LoggerLevel[name as any] as any
 }
