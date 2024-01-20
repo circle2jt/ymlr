@@ -125,7 +125,7 @@ export class ConsoleLogger extends Logger {
       }
       this.print(mes, LoggerLevel.error)
       if (this.errorStack) {
-        this.print(this.format('%o', LoggerLevel.error, this.errorStack), LoggerLevel.error)
+        this.trace(this.errorStack)
       }
     }
     return this
@@ -141,7 +141,7 @@ export class ConsoleLogger extends Logger {
       }
       this.print(mes, LoggerLevel.fatal)
       if (this.errorStack) {
-        this.print(this.format('%o', LoggerLevel.fatal, this.errorStack), LoggerLevel.fatal)
+        this.trace(this.errorStack)
       }
     }
     return this
