@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs'
 import { AES } from '../encrypt/aes'
 import { type Logger } from '../logger'
 import { type StorageInterface } from './storage.interface'
@@ -26,5 +26,11 @@ export class FileStorage implements StorageInterface {
     this.logger.debug('Saved\t%s', this.file)
     const content = JSON.stringify(data)
     writeFileSync(this.file, this.secure?.encrypt(content) || content)
+  }
+
+  clean() {
+    if (existsSync(this.file)) {
+      unlinkSync(this.file)
+    }
   }
 }
