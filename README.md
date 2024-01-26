@@ -129,6 +129,9 @@ runs:
 | [fn-debounce'del](#fn-debounce'del) | Cancel & remove debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
 | [fn-debounce'touch](#fn-debounce'touch) | touch debounce function. Reused last agruments(#Ref: lodash.debounce) |
+| [fn-queue](#fn-queue) | Register a queue job |
+| [fn-queue'add](#fn-queue'add) | Add a job to an exsited queue |
+| [fn-queue'del](#fn-queue'del) | Stop and remove a queue |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
 | [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
 | [fn-throttle](#fn-throttle) | Throttle function (#Ref: lodash.throttle) |
@@ -909,6 +912,72 @@ Example:
   - fn-debounce'touch:
       - delay1
       - delay2
+```  
+
+
+## <a id="fn-queue"></a>fn-queue  
+  
+Register a queue job  
+
+Example:  
+
+```yaml
+  - fn-queue:
+      name: My Queue 1        # Use stateless queue, not reload after startup
+      concurrent: 2
+    runs:
+      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+
+  - fn-queue'add:
+      name: My Queue 1
+      data:
+        key1: value1
+        key2: value 2
+```
+
+```yaml
+  - fn-queue:
+      name: My Queue 1
+      concurrent: 2
+      db:                    # Optional: Statefull queue, it's will reload after startup
+        path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
+        password: abc        #  - Optional: Default is no encrypted by password
+    runs:
+      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+
+  - fn-queue'add:
+      name: My Queue 1
+      data:
+        key1: value1
+        key2: value 2
+```  
+
+
+## <a id="fn-queue'add"></a>fn-queue'add  
+  
+Add a job to an exsited queue  
+
+Example:  
+
+```yaml
+  - fn-queue'add:
+      name: My Queue 1                 # Queue name to add
+      data:                            # Job data
+        key1: value1
+```  
+
+
+## <a id="fn-queue'del"></a>fn-queue'del  
+  
+Stop and remove a queue  
+
+Example:  
+
+```yaml
+  - fn-queue'del:
+      name: My Queue 1                 # Queue name to delete
+  # OR
+  - fn-queue'del: My Queue 1           # Queue name to delete
 ```  
 
 
