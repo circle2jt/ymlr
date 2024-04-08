@@ -19,8 +19,8 @@ import { type FileStoreProps } from './file-store.props'
     - file'store:
         path: /tmp/data.yaml
         initData: []
-        vars:
-          fileDB: ${this}         # Store this element to "fileDB" in vars
+      vars:
+        fileDB: ${this}         # Store this element to "fileDB" in vars
 
     - exec'js: |
         const { fileDB } = vars

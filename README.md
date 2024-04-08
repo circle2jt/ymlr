@@ -206,6 +206,18 @@ Example:
 ```  
 
 
+## <a id="_name"></a>_name  
+`It's a property in a tag`  
+No print step name when running but print step name in preview mode  
+
+Example:  
+
+```yaml
+  - _name: Sleep in 1s
+    sleep: 1000
+```  
+
+
 ## <a id="->"></a>->  
 `It's a property in a tag`  
 Expose item properties for others extends  
@@ -1397,21 +1409,21 @@ Read a json file
 ```yaml
   - file'read:
       path: /tmp/data.json
-      vars: fileData
       format: json  # !optional
+    vars: fileData
 ```
 Read a yaml file
 ```yaml
   - file'read:
       path: /tmp/data.yaml
-      vars: fileData
       format: yaml  # !optional
+    vars: fileData
 ```
 Read a text file
 ```yaml
   - file'read:
       path: /tmp/data.txt
-      vars: fileContent
+    vars: fileContent
 ```  
 
 
@@ -1433,8 +1445,8 @@ Use in global by reference
   - file'store:
       path: /tmp/data.yaml
       initData: []
-      vars:
-        fileDB: ${this}         # Store this element to "fileDB" in vars
+    vars:
+      fileDB: ${this}         # Store this element to "fileDB" in vars
 
   - exec'js: |
       const { fileDB } = vars

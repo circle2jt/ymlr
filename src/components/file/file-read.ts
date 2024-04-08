@@ -13,21 +13,21 @@ import { YAMLFormater } from './read/yaml.formater'
   ```yaml
     - file'read:
         path: /tmp/data.json
-        vars: fileData
         format: json  # !optional
+      vars: fileData
   ```
   Read a yaml file
   ```yaml
     - file'read:
         path: /tmp/data.yaml
-        vars: fileData
         format: yaml  # !optional
+      vars: fileData
   ```
   Read a text file
   ```yaml
     - file'read:
         path: /tmp/data.txt
-        vars: fileContent
+      vars: fileContent
   ```
 */
 export class FileRead implements Element {
