@@ -4,18 +4,18 @@ export function formatNumber(n: number, opts?: Intl.NumberFormatOptions) {
 
 export function formatDate(date: Date, format = 'YYYY/MM/DD hh:mm:ss.ms') {
   return format
-    .replace('YYYY', date.getFullYear().toString())
-    .replace('ms', formatFixLengthNumber(date.getMilliseconds(), 3).toString())
-    .replace('MM', formatFixLengthNumber(date.getMonth() + 1, 2).toString())
-    .replace('DD', formatFixLengthNumber(date.getDate(), 2).toString())
-    .replace('hh', formatFixLengthNumber(date.getHours(), 2).toString())
-    .replace('mm', formatFixLengthNumber(date.getMinutes(), 2).toString())
-    .replace('ss', formatFixLengthNumber(date.getSeconds(), 2).toString())
-    .replace('M', (date.getMonth() + 1).toString())
-    .replace('D', date.getDate().toString())
-    .replace('h', date.getHours().toString())
-    .replace('m', date.getMinutes().toString())
-    .replace('s', date.getSeconds().toString())
+    .replace(/YYYY/g, date.getFullYear().toString())
+    .replace(/MM/g, formatFixLengthNumber(date.getMonth() + 1, 2).toString())
+    .replace(/DD/g, formatFixLengthNumber(date.getDate(), 2).toString())
+    .replace(/hh/g, formatFixLengthNumber(date.getHours(), 2).toString())
+    .replace(/mm/g, formatFixLengthNumber(date.getMinutes(), 2).toString())
+    .replace(/ss/g, formatFixLengthNumber(date.getSeconds(), 2).toString())
+    .replace(/ms/g, formatFixLengthNumber(date.getMilliseconds(), 3).toString())
+    .replace(/M/g, (date.getMonth() + 1).toString())
+    .replace(/D/g, date.getDate().toString())
+    .replace(/h/g, date.getHours().toString())
+    .replace(/m/g, date.getMinutes().toString())
+    .replace(/s/g, date.getSeconds().toString())
 }
 
 export function formatFixLengthNumber(n: number, length = 2) {

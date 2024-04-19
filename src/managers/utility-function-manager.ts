@@ -1,4 +1,5 @@
 import type EventEmitter from 'events'
+import { DumpOptions } from 'js-yaml'
 import { type AES } from 'src/libs/encrypt/aes'
 import { type Base64 } from 'src/libs/encrypt/base64'
 import { type MD5 } from 'src/libs/encrypt/md5'
@@ -96,6 +97,8 @@ export class UtilityFunctionManager {
     - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
 
     - echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
+
+    - echo: ${ $utils.format.yaml({name: 'yaml title'})}                                # => name: yaml title
     ```
   */
   format = {
@@ -122,7 +125,30 @@ export class UtilityFunctionManager {
     textToMs(time: string | number) {
       const { formatTextToMs } = require('../libs/format')
       return formatTextToMs(time)
+    },
+    yaml(obj: any, opts: DumpOptions) {
+      if (obj === null || obj === undefined) {
+        return obj
+      }
+      const { dump } = require('js-yaml')
+      return dump(obj, opts)
     }
+  }
+
+  /** |**  $utils.parse
+    Parser
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+    - echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }
+  */
+  parse = {
+    yaml(content?: string) {
+      if (!content) return undefined
+      const { load } = require('js-yaml')
+      return load(content)
+    },
   }
 
   get debounceManager() {
