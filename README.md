@@ -206,18 +206,6 @@ Example:
 ```  
 
 
-## <a id="_name"></a>_name  
-`It's a property in a tag`  
-No print step name when running but print step name in preview mode  
-
-Example:  
-
-```yaml
-  - _name: Sleep in 1s
-    sleep: 1000
-```  
-
-
 ## <a id="->"></a>->  
 `It's a property in a tag`  
 Expose item properties for others extends  
@@ -2341,6 +2329,8 @@ Example:
 - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
 
 - echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
+
+- echo: ${ $utils.format.yaml({name: 'yaml title'})}                                # => name: yaml title
 ```  
 
 
@@ -2370,6 +2360,16 @@ Example:
 ```yaml
   - echo: ${ $utils.md5.encrypt('hello world') }
 ```  
+
+
+## <a id="$utils.parse"></a>$utils.parse  
+`Utility function`  
+Parser  
+
+Example:  
+
+```yaml
+- echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }  
 
 <br/>
 

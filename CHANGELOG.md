@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.33.md](#1713524306578)  -  _4/19/2024, 5:58:26 PM_
 - [1.2.6-alpha.32.md](#1706262390818)  -  _1/26/2024, 4:46:30 PM_
 - [1.2.6-alpha.29.md](#1705751709495)  -  _1/20/2024, 6:55:09 PM_
 - [1.2.6-alpha.28.md](#1704860828762)  -  _1/10/2024, 11:27:08 AM_
@@ -76,6 +77,15 @@
 
 ## Details
 
+<a id="1713524306578"></a>
+### 1.2.6-alpha.33
+
+* fix(fetch): add more information when error (42cf490)
+* fix: remove _name property (4fcc2a6)
+* fix(script): fix version script (ed27da9)
+* fix($utils): support yaml (367c9e8)
+* doc(file): Update document (2c4cc2e)
+  
 <a id="1706262390818"></a>
 ### 1.2.6-alpha.32
 
