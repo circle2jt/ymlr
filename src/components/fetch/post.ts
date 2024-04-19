@@ -74,11 +74,18 @@ export class Post extends Get {
         }
       }
     }
-    const rs = await super.send({
-      body,
-      ...moreOptions
-    })
-    return rs
+    try {
+      const rs = await super.send({
+        body,
+        ...moreOptions
+      })
+      return rs
+    } catch (err: any) {
+      err.more = {
+        body
+      }
+      throw err
+    }
   }
 
   protected async getRequestBody() {

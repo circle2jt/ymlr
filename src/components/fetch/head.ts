@@ -112,7 +112,15 @@ export class Head implements Element {
         this.response.data = err.response?.data
         this.response.ok = false
       }
-      const error = err instanceof HttpError ? err : new HttpError(this.response?.status || 0, err?.message, this.response)
+      const error = err instanceof HttpError
+        ? err
+        : new HttpError(this.response?.status || 0, err?.message, {
+          method: this.method,
+          url: this.fullURLQuery,
+          headers: this.headers,
+          ...err.more,
+          ...this.response
+        })
       throw error
     } finally {
       this.proxy.vars && this.applyVar()
