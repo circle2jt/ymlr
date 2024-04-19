@@ -37,7 +37,7 @@ runs:
               value: prepatch
             - title: prerelease
               value: prerelease
-        var: versionName
+        vars: versionName
       - if: ${!$vars.preid && !$vars.force}
         input'text:
           title: Preid
