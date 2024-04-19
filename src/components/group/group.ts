@@ -54,8 +54,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       this.#runs = props
     } else if (props) {
       this.resolveShortcutAsync(props)
-      this.#runs = props.runs
-      this.hideName = props.hideName
+      const { runs, ..._props } = props
+      this.#runs = runs
+      Object.assign(this, _props)
     }
   }
 
@@ -104,7 +105,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
-      const innerRunsProxy = await this.newElementProxy(Group, { ...props, hideName: true }, baseProps)
+      const { name, ...innerRunProxyProps } = baseProps
+      const innerRunsProxy = await this.newElementProxy(Group, props, innerRunProxyProps)
       innerRunsProxy.tag = 'inner-runs-proxy'
       const innerRuns = innerRunsProxy.$
       Object.defineProperties(innerRunsProxy, {
@@ -135,9 +137,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         elemProxy.async = undefined
         elemProxy.detach = undefined
         elemProxy.skipNext = undefined
-        if (elemProxy.$.hideName === null) {
-          elemProxy.$.hideName = false
-        }
         elemProxy.if = elemProxy.elseif = undefined
         elemProxy.evalPropsBeforeExec = async () => { }
         elemProxy.setVarsAfterExec = async () => { }
@@ -238,12 +237,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       // Skip this if it's a template
       if (isTemplate) continue
 
-      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, _name, id, context } = eProps
-      let hideName
-      if (!name && _name) {
-        name = _name
-        hideName = null
-      }
+      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -266,9 +260,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         // This is a empty tag
         tagName = 'base'
         elemProps = {}
-      }
-      if (hideName !== undefined && elemProps && typeof elemProps === 'object' && !Array.isArray(elemProps)) {
-        elemProps.hideName = hideName
       }
       if (debug === true) {
         debug = LoggerLevel.debug

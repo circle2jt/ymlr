@@ -1,5 +1,5 @@
 import type EventEmitter from 'events'
-import { DumpOptions } from 'js-yaml'
+import { type DumpOptions } from 'js-yaml'
 import { type AES } from 'src/libs/encrypt/aes'
 import { type Base64 } from 'src/libs/encrypt/base64'
 import { type MD5 } from 'src/libs/encrypt/md5'
@@ -148,7 +148,7 @@ export class UtilityFunctionManager {
       if (!content) return undefined
       const { load } = require('js-yaml')
       return load(content)
-    },
+    }
   }
 
   get debounceManager() {

@@ -210,7 +210,19 @@ export class ElementProxy<T extends Element> {
     ```
   */
   name?: string
-  _name?: string
+
+  /* _name
+    No print step name when running but print step name in preview mode
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - _name: Sleep in 1s
+        sleep: 1000
+    ```
+  */
+  // _name?: string
+
   /** |**  debug
     How to print log details for each of item.
     Default is `info`
@@ -631,7 +643,7 @@ export class ElementProxy<T extends Element> {
     try {
       try {
         await this.evalPropsBeforeExec()
-        if (this.name && (this.element.hideName === false || this.element.hideName === undefined)) {
+        if (this.name && !this.element.hideName) {
           this.logger.info((this.runs?.length) ? '▼' : '▸', this.name)
         }
         while (true) {
@@ -647,6 +659,9 @@ export class ElementProxy<T extends Element> {
             else this.result = result
             break
           } catch (err: any) {
+            if (this.name && !err.proxyName) {
+              err.proxyName = this.name
+            }
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
@@ -655,11 +670,14 @@ export class ElementProxy<T extends Element> {
           }
         }
       } catch (err: any) {
+        if (this.name && !err.proxyName) {
+          err.proxyName = this.name
+        }
         this.error = err
         if (!this.failure?.ignore) {
           throw err
         }
-        this.logger.warn('%o', err)
+        this.logger.warn('%o', err?.message || err).trace(err)
         return
       }
       await this.setVarsAfterExec()
