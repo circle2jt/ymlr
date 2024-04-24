@@ -200,6 +200,12 @@ Example:
     NODE_ENV: production
     env: dev                        # It overrides to $vars.env
     # - NODE_ENV=production
+  envFiles:                         # Load env variable from files (string | string[])
+    - .env
+    - .env.dev
+  varsFiles:                        # Load vars from json or yaml files (string | string[])
+    - ./var1.json
+    - ./var2.yaml
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props
@@ -2021,11 +2027,21 @@ Example:
       path: https://.../another.yaml    # path can be URL or local path
       cached: false                     # caches yaml content to ram to prevent reload content from a file
       password:                         # password to decode when the file is encrypted
+      env:                              # Set to env variable. Support an array or object (- key=value) (key: value)
+        NODE_ENV: production
+        # Or
+        - NODE_ENV=production
       vars:                             # They will only overrides vars in the parents to this scene
                                         # - Global variables is always passed into this scene
         foo: scene bar                  # First is lowercase is vars which is used in scenes
         Foo: Global bar                 # First is uppercase is global vars which is used in the program
         localVars: ${ $vars.parentVar } # This will get value of "$vars.parentVar" in the parent then pass it into "$vars.localVars" which is used in this scene
+      envFiles:                         # Load env variable from files (string | string[])
+        - .env
+        - .env.dev
+      varsFiles:                        # Load vars from json or yaml files (string | string[])
+        - ./var1.json
+        - ./var2.yaml
 ```  
 
 

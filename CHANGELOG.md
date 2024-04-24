@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.6-alpha.34.md](#1713945921443)  -  _4/24/2024, 3:05:21 PM_
 - [1.2.6-alpha.33.md](#1713524306578)  -  _4/19/2024, 5:58:26 PM_
 - [1.2.6-alpha.32.md](#1706262390818)  -  _1/26/2024, 4:46:30 PM_
 - [1.2.6-alpha.29.md](#1705751709495)  -  _1/20/2024, 6:55:09 PM_
@@ -77,6 +78,12 @@
 
 ## Details
 
+<a id="1713945921443"></a>
+### 1.2.6-alpha.34
+
+* fix(env,vars): support load var, env from files (e11f15f)
+* fix(fetch,http): allow upload data from url (4a42b39)
+  
 <a id="1713524306578"></a>
 ### 1.2.6-alpha.33
 
