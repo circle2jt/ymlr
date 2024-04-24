@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { readFile } from 'fs/promises'
+import { FileRemote } from 'src/libs/file-remote'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Get } from './get'
@@ -111,7 +111,7 @@ export class Post extends Get {
           if (typeof vl === 'object') {
             if (!this.#isUpload) this.#isUpload = true
             const { path, name } = vl as UploadFile
-            const buf = await readFile(this.proxy.scene.getPath(path))
+            const buf = await new FileRemote(path, this.proxy.scene).getContent()
             form1.append(key, new Blob([buf]), name)
           } else {
             form1.append(key, vl)

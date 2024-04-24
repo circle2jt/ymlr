@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import FormData from 'form-data'
-import { createReadStream } from 'fs'
+import { FileRemote } from 'src/libs/file-remote'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { Get } from './get'
@@ -64,7 +64,7 @@ export class Post extends Get {
   }
 
   override async send(moreOptions: any = {}) {
-    const body = this.getRequestBody()
+    const body = await this.getRequestBody()
     if (this.#isUpload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
@@ -82,7 +82,7 @@ export class Post extends Get {
     return rs
   }
 
-  protected getRequestBody() {
+  protected async getRequestBody() {
     if (!this.type) this.type = 'json'
     let body = this.body
     const hasBody = this.body !== null && this.body !== undefined
@@ -98,17 +98,19 @@ export class Post extends Get {
       this.setHeader('content-type', 'multipart/form-data')
       if (hasBody) {
         const form1 = new FormData()
-        Object.keys(body).forEach(key => {
+        const keys = Object.keys(body)
+        for (const key of keys) {
           const vl = this.body[key]
           // file: {path: '', name: '', }
           if (typeof vl === 'object') {
             if (!this.#isUpload) this.#isUpload = true
             const { path, name } = vl as UploadFile
-            form1.append(key, createReadStream(this.proxy.scene.getPath(path)), { filename: name })
+            const buf = await new FileRemote(path, this.proxy.scene).getContent()
+            form1.append(key, buf, { filename: name })
           } else {
             form1.append(key, vl)
           }
-        })
+        }
         Object.assign(this.headers, form1.getHeaders())
         body = form1
       }
