@@ -105,7 +105,7 @@ test('Should load vars from yaml file', async () => {
     }))
     scene = new ElementProxy(new RootScene({
       content: `
-vars_file: ${tmp.file}
+varsFiles: ${tmp.file}
 runs:
   - name: Test env
 `
@@ -140,7 +140,7 @@ test('Should load vars from json file', async () => {
     }))
     scene = new ElementProxy(new RootScene({
       content: `
-vars_file: ${tmp.file}
+varsFiles: ${tmp.file}
 runs:
   - name: Test env
 `

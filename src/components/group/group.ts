@@ -22,6 +22,7 @@ import { type GroupItemProps, type GroupProps } from './group.props'
 */
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
   readonly isRootScene?: boolean
+  readonly isScene?: boolean
   readonly ignoreEvalProps: string[] = ['isRootScene']
   readonly proxy!: ElementProxy<this>
 
@@ -163,7 +164,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.#runs || []
-      if (this.proxy.runs.length && !this.isRootScene) {
+      if (this.proxy.runs.length && !this.isScene && this.constructor?.name !== 'Group') {
         this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
       }
     }

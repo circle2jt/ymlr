@@ -29,6 +29,12 @@ Root scene file includes all of steps to run
     NODE_ENV: production
     env: dev                        # It overrides to $vars.env
     # - NODE_ENV=production
+  envFiles:                         # Load env variable from files (string | string[])
+    - .env
+    - .env.dev
+  varsFiles:                        # Load vars from json or yaml files (string | string[])
+    - ./var1.json
+    - ./var2.yaml
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props
@@ -36,6 +42,7 @@ Root scene file includes all of steps to run
 */
 export class RootScene extends Scene {
   override readonly isRootScene = true
+  override readonly isScene = true
   #workerManager?: WorkerManager
   get workerManager() {
     return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
@@ -164,6 +171,20 @@ export class RootScene extends Scene {
     this.templatesManager.set(id, cached)
     this.logger.trace('->    \t%s', id)
   }
+
+  // protected async getRemoteFileProps() {
+  //   const props = await super.getRemoteFileProps()
+  //   if (props?.path) {
+  //     const { env, ...sceneProps } = props
+  //     return {
+  //       env,
+  //       runs: [{
+  //         scene: sceneProps
+  //       }]
+  //     }
+  //   }
+  //   return props
+  // }
 
   // private handleShutdown() {
   //   new Array('SIGINT', 'SIGTERM', 'SIGQUIT')

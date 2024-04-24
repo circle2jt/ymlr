@@ -28,14 +28,25 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
         path: https://.../another.yaml    # path can be URL or local path
         cached: false                     # caches yaml content to ram to prevent reload content from a file
         password:                         # password to decode when the file is encrypted
+        env:                              # Set to env variable. Support an array or object (- key=value) (key: value)
+          NODE_ENV: production
+          # Or
+          - NODE_ENV=production
         vars:                             # They will only overrides vars in the parents to this scene
                                           # - Global variables is always passed into this scene
           foo: scene bar                  # First is lowercase is vars which is used in scenes
           Foo: Global bar                 # First is uppercase is global vars which is used in the program
           localVars: ${ $vars.parentVar } # This will get value of "$vars.parentVar" in the parent then pass it into "$vars.localVars" which is used in this scene
+        envFiles:                         # Load env variable from files (string | string[])
+          - .env
+          - .env.dev
+        varsFiles:                        # Load vars from json or yaml files (string | string[])
+          - ./var1.json
+          - ./var2.yaml
   ```
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
+  override readonly isScene = true
   name?: string
   path?: string
   vars?: Record<string, any>
@@ -129,8 +140,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (Array.isArray(remoteFileRawProps)) {
       this.lazyInitRuns(remoteFileRawProps)
     } else {
-      const { password, env, ...remoteFileProps } = remoteFileRawProps
-      if (env && this.isRootScene) {
+      const { password, env, envFiles, ...remoteFileProps } = remoteFileRawProps
+      if (env) {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
           (env as string[]).forEach(e => {
@@ -147,12 +158,31 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (password) {
         await this.generateEncryptedFile(remoteFileProps, password)
       }
-      const { name: _name, debug: _debug, vars: _vars, vars_file: _varsFiles, ...groupProps } = remoteFileProps
+      const { name: _name, debug: _debug, vars: _vars, varsFiles: _varsFiles, ...groupProps } = remoteFileProps
       const { name, debug, vars, varsFiles = [] } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFiles: _varsFiles }, this.proxy)
       if (debug) this.proxy.setDebug(debug)
       if (this.name === undefined && name) this.name = name
       this.lazyInitRuns(groupProps)
-      await this.loadVars(vars, Array.isArray(varsFiles) ? varsFiles : [varsFiles])
+
+      let envArrFiles = []
+      if (envFiles?.length) {
+        if (Array.isArray(envFiles)) {
+          envArrFiles = envFiles
+        } else if (typeof envFiles === 'string') {
+          envArrFiles.push(envFiles)
+        }
+      }
+
+      let varArrFiles = []
+      if (varsFiles?.length) {
+        if (Array.isArray(varsFiles)) {
+          varArrFiles = varsFiles
+        } else if (typeof varsFiles === 'string') {
+          varArrFiles.push(varsFiles)
+        }
+      }
+
+      await this.loadVars(vars, varArrFiles, envArrFiles)
     }
     if (!this.proxy.errorStack) {
       this.proxy.errorStack = {}
@@ -207,7 +237,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     Object.assign(this.localVars, obj)
   }
 
-  private async getRemoteFileProps() {
+  protected async getRemoteFileProps() {
     let props: any
     this.path = await this.scene.getVars(this.path)
     let fileRemote: FileRemote | undefined
@@ -301,22 +331,21 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     await writeFile(this.encryptedPath, econtent)
   }
 
-  private async loadVars(vars: Record<string, any> = {}, varsFiles?: string[]) {
-    if (varsFiles?.length) {
-      for (const varsFile of varsFiles) {
-        const file = new FileRemote(varsFile, this)
-        const content = await file.getTextContent()
-        let newVars: any = {}
-        try {
-          newVars = JSON.parse(content)
-        } catch {
-          newVars = load(content)
-        }
-        merge(vars, newVars)
+  private async loadVars(vars: Record<string, any> = {}, varsFiles: string[], envFiles: string[]) {
+    for (const varsFile of varsFiles) {
+      const file = new FileRemote(varsFile, this)
+      const content = await file.getTextContent()
+      let newVars: any = {}
+      try {
+        newVars = JSON.parse(content)
+      } catch {
+        newVars = load(content)
       }
+      merge(vars, newVars)
     }
     this.mergeVars(vars)
-    if (this.isRootScene) await this.loadEnv()
+    await this.loadEnv(...envFiles)
+
     if (this.vars) {
       const overridedVars = await (this.scene || this).getVars(this.vars, this.proxy)
       this.mergeVars(overridedVars)
@@ -326,6 +355,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   private async loadEnv(...envFiles: string[]) {
     const env = new Env(this.logger)
-    await env.loadEnvToBase(this.localVars, ...envFiles.filter(e => e), process.env)
+    await env.loadEnvToBase(this.scene, this.localVars,
+      ...envFiles.filter(f => f),
+      process.env)
   }
 }

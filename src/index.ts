@@ -1,6 +1,6 @@
 import assert from 'assert'
-import { resolve as resolvePath } from 'path'
 import { bin, description, homepage, name, version } from '../package.json'
+import { FileRemote } from './libs/file-remote'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -44,9 +44,9 @@ Example:
           process.env.MODE = !flow ? '' : 'flow'
 
           if (envFile.length) {
-            const { readFileSync } = await import('fs')
             for (const efile of envFile) {
-              const envFileContent = readFileSync(resolvePath(efile)).toString()
+              const fileRemote = new FileRemote(efile, null)
+              const envFileContent = await fileRemote.getTextContent()
               env.splice(0, 0, ...envFileContent
                 .split('\n')
                 .filter(e => e?.trim().length)

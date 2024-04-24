@@ -1,18 +1,20 @@
-import { readFileSync, statSync } from 'fs'
 import merge from 'lodash.merge'
+import type Scene from 'src/components/scene'
+import { FileRemote } from './file-remote'
 import { type Logger } from './logger'
 
 export class Env {
   constructor(private readonly logger: Logger) { }
 
-  async loadEnvToBase(baseConfig: any, ...envFiles: Array<string | Record<string, any>>) {
+  async loadEnvToBase(scene: Scene | null, baseConfig: any, ...envFiles: Array<string | Record<string, any>>) {
     const config = {}
     for (const file of envFiles.filter(e => e)) {
       if (typeof file === 'string') {
         const env: Record<string, string> = {}
         try {
-          if (file && statSync(file)) {
-            const content = readFileSync(file).toString('utf8')
+          const fileRemote = new FileRemote(file, scene)
+          if (fileRemote.existed !== false) {
+            const content = await fileRemote.getTextContent()
             content.split('\n')
               .map(e => e.trim())
               .filter(e => e && !e.startsWith('#'))

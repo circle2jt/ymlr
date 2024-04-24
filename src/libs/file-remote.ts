@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { existsSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
+import { resolve } from 'path'
 import { type Scene } from 'src/components/scene/scene'
 
 export class FileRemote {
@@ -13,9 +14,13 @@ export class FileRemote {
     return statSync(this.uri).isDirectory()
   }
 
-  constructor(public uri: string, scene: Scene) {
+  constructor(public uri: string, scene: Scene | null) {
     if (!this.isRemote) {
-      this.uri = scene.getPath(this.uri)
+      if (scene) {
+        this.uri = scene.getPath(this.uri)
+      } else {
+        this.uri = resolve(this.uri)
+      }
     }
     assert(this.uri, 'File is required')
   }

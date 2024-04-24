@@ -19,7 +19,7 @@ USER1_MALE=false
 `)
 
     const env = new Env(logger)
-    const vars = await env.loadEnvToBase({
+    const vars = await env.loadEnvToBase(null, {
       name: 'string',
       age: 123,
       male: false,
