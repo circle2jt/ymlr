@@ -1,7 +1,8 @@
 import type EventEmitter from 'events'
 import { type DumpOptions } from 'js-yaml'
+import { type Base64 } from 'src/libs/encode/base64'
+import { type Url } from 'src/libs/encode/url'
 import { type AES } from 'src/libs/encrypt/aes'
-import { type Base64 } from 'src/libs/encrypt/base64'
 import { type MD5 } from 'src/libs/encrypt/md5'
 import { GlobalEvent } from 'src/libs/global-event'
 
@@ -33,19 +34,35 @@ export class UtilityFunctionManager {
     return GlobalEvent
   }
 
+  /** |**  $utils.url
+    URL encode/decode a string
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+      - echo: ${ $utils.url.encode('hello world') }
+
+      - echo: ${ $utils.url.decode('$ENCODED_STRING') }
+    ```
+  */
+  get url(): Url {
+    const { Url } = require('../libs/encode/url')
+    return new Url()
+  }
+
   /** |**  $utils.base64
     Base64 encrypt/decrypt a string
     @position bottom
     @tag Utility function
     @example
     ```yaml
-      - echo: ${ $utils.base64.encrypt('hello world') }
+      - echo: ${ $utils.base64.encode('hello world') }
 
-      - echo: ${ $utils.base64.decrypt('$ENCRYPTED_STRING') }
+      - echo: ${ $utils.base64.decrypt('$ENCODED_STRING') }
     ```
   */
   get base64(): Base64 {
-    const { Base64 } = require('../libs/encrypt/base64')
+    const { Base64 } = require('../libs/encode/base64')
     return new Base64()
   }
 
