@@ -108,7 +108,7 @@ export class SceneThread extends Scene {
       debug: this.proxy.logger.level?.level
     }, {
       id: this.#id,
-      tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.rootScene.getPath(dir)),
+      tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.scene.getPath(dir)),
       templates: this.rootScene.templatesManager,
       loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
       loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
