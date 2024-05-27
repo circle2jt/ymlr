@@ -41,6 +41,10 @@ import { type SceneThreadProps } from './scene-thread.props'
         scene'thread:
           id: thread2
           path: ./new_thread.yaml
+          tagDirs:                  # Custom tagDirs in the scene'thread. If not specific then default is inherit
+            - ...                   # Inherits tags dirs in application. Ref to "-x" in cli
+            - ./project1/dist
+            - ./project2/dist
           vars:
             name: thread 2
 
@@ -86,19 +90,33 @@ import { type SceneThreadProps } from './scene-thread.props'
 export class SceneThread extends Scene {
   #thread!: Worker
   #id?: string
+  tagDirs?: string[]
 
   constructor(eProps: SceneThreadProps | string) {
     if (typeof eProps === 'string') {
       eProps = { path: eProps }
     }
-    const { id, ...props } = eProps
+    const { id, tagDirs, ...props } = eProps
     super(props)
     this.#id = id
+    this.tagDirs = tagDirs
   }
 
   override async handleFile() {
     assert(this.path)
     this.path = this.scene.getPath(this.path)
+    let tagDirs = this.tagDirs
+    if (!tagDirs) {
+      tagDirs = this.rootScene.tagsManager.tagDirs
+    } else {
+      const idxExtends = tagDirs.findIndex(tagDir => tagDir === '...')
+      if (idxExtends !== -1) {
+        tagDirs.splice(idxExtends, 1)
+        if (this.rootScene.tagsManager.tagDirs) {
+          tagDirs.push(...this.rootScene.tagsManager.tagDirs)
+        }
+      }
+    }
     this.#thread = this.rootScene.workerManager.createWorker({
       path: this.path,
       password: this.password,
@@ -108,7 +126,7 @@ export class SceneThread extends Scene {
       debug: this.proxy.logger.level?.level
     }, {
       id: this.#id,
-      tagDirs: this.rootScene.tagsManager.tagDirs?.map(dir => this.scene.getPath(dir)),
+      tagDirs: tagDirs.map(dir => this.scene.getPath(dir)),
       templates: this.rootScene.templatesManager,
       loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
       loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
