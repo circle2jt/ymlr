@@ -138,7 +138,7 @@ test('Check basic authentication via headers', async () => {
     }
     const resp = await axios.post('http://0.0.0.0:3003', jobData, {
       headers: {
-        authorization: `Basic ${Testing.rootScene.globalUtils.base64.encrypt('thanh:123')}`
+        authorization: `Basic ${Testing.rootScene.globalUtils.base64.encode('thanh:123')}`
       }
     })
     expect(resp.status).toBe(204)
