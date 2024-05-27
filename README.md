@@ -2114,6 +2114,10 @@ Send data via global event between threads and each others. (Includes main threa
       scene'thread:
         id: thread2
         path: ./new_thread.yaml
+        tagDirs:                  # Custom tagDirs in the scene'thread. If not specific then default is inherit
+          - ...                   # Inherits tags dirs in application. Ref to "-x" in cli
+          - ./project1/dist
+          - ./project2/dist
         vars:
           name: thread 2
 
@@ -2307,9 +2311,9 @@ Base64 encrypt/decrypt a string
 Example:  
 
 ```yaml
-  - echo: ${ $utils.base64.encrypt('hello world') }
+  - echo: ${ $utils.base64.encode('hello world') }
 
-  - echo: ${ $utils.base64.decrypt('$ENCRYPTED_STRING') }
+  - echo: ${ $utils.base64.decrypt('$ENCODED_STRING') }
 ```  
 
 
@@ -2386,6 +2390,19 @@ Example:
 
 ```yaml
 - echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }  
+
+
+## <a id="$utils.url"></a>$utils.url  
+`Utility function`  
+URL encode/decode a string  
+
+Example:  
+
+```yaml
+  - echo: ${ $utils.url.encode('hello world') }
+
+  - echo: ${ $utils.url.decode('$ENCODED_STRING') }
+```  
 
 <br/>
 
