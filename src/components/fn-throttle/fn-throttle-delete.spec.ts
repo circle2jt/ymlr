@@ -18,7 +18,8 @@ test('delete a fn-throttle', async () => {
     name: 'ttask1d',
     leading: true,
     trailing: true,
-    wait: 1000
+    wait: 1000,
+    autoRemove: false
   }, {
     runs: [
       {

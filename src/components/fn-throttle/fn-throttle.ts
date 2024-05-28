@@ -19,7 +19,8 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         name: Delay to do something
         wait: 1s            # The number of milliseconds to throttle invocations to.
         trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
-        leading: true      # Specify invoking on the leading edge of the timeout. Default is true
+        leading: true       # Specify invoking on the leading edge of the timeout. Default is true
+        autoRemove: true    # Auto remove it when reached the event. Default is false
       runs:
         - echo: Do this when it's free for 1s
 
@@ -38,6 +39,7 @@ export class FNThrottle implements Element {
   wait?: number
   leading = true
   trailing = true
+  autoRemove = false
   #fn?: DebouncedFunc<any>
   #parentState?: Record<string, any>
 
@@ -61,6 +63,9 @@ export class FNThrottle implements Element {
           this.wait = formatTextToMs(this.wait)
         }
         this.#fn = throttle(async (parentState?: Record<string, any>) => {
+          if (this.autoRemove) {
+            ThrottleManager.Instance.delete(this.name)
+          }
           await this.innerRunsProxy.exec(parentState)
         }, this.wait, {
           trailing: this.trailing,

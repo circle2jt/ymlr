@@ -17,7 +17,8 @@ test('cancel a fn-throttle', async () => {
     name: 'ttaskc1',
     leading: true,
     trailing: true,
-    wait: 1000
+    wait: 1000,
+    autoRemove: false
   }, {
     runs: [
       {

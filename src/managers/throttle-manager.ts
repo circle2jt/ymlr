@@ -1,6 +1,6 @@
-import { DebounceManager } from './debounce-manager'
+import type FNThrottle from 'src/components/fn-throttle'
 
-export class ThrottleManager extends DebounceManager {
+export class ThrottleManager extends Map<string, FNThrottle> {
   static #Instance: ThrottleManager
 
   static get Instance() {
@@ -8,5 +8,22 @@ export class ThrottleManager extends DebounceManager {
       this.#Instance = new ThrottleManager()
     }
     return this.#Instance
+  }
+
+  touch(name: string, parentState?: Record<string, any>) {
+    this.get(name)?.touch(parentState)
+  }
+
+  cancel(name: string) {
+    this.get(name)?.cancel()
+  }
+
+  flush(name: string) {
+    this.get(name)?.flush()
+  }
+
+  delete(name: string) {
+    this.cancel(name)
+    return super.delete(name)
   }
 }
