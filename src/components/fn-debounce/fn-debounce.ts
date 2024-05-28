@@ -21,6 +21,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
         leading: false          # Specify invoking on the leading edge of the timeout. Default is false
         maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
+        autoRemove: true        # Auto remove it when reached the event. Default is false.
       runs:
         - echo: Do this when it's free for 1s
 
@@ -40,6 +41,7 @@ export class FNDebounce implements Element {
   maxWait?: number
   trailing = true
   leading = false
+  autoRemove = false
   #fn?: DebouncedFunc<any>
   #parentState?: Record<string, any>
 
@@ -71,6 +73,9 @@ export class FNDebounce implements Element {
           opts.maxWait = this.maxWait
         }
         this.#fn = debounce(async (parentState?: Record<string, any>) => {
+          if (this.autoRemove) {
+            DebounceManager.Instance.delete(this.name)
+          }
           await this.innerRunsProxy.exec(parentState)
         }, this.wait, opts)
         DebounceManager.Instance.set(this.name, this)

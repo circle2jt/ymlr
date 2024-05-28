@@ -1,4 +1,5 @@
 import { sleep } from 'src/libs/time'
+import { DebounceManager } from 'src/managers/debounce-manager'
 import { Testing } from 'src/testing'
 import { FNDebounce } from './fn-debounce'
 
@@ -17,7 +18,8 @@ test('fn-debounce should be run correctly', async () => {
       name: 'dtask1',
       leading: false,
       trailing: true,
-      wait: 500
+      wait: 500,
+      autoRemove: true
     }, {
       runs: [
         {
@@ -38,6 +40,7 @@ test('fn-debounce should be run correctly', async () => {
   }
   await sleep(1000)
   expect(Testing.vars.i).toBe(2)
+  expect(DebounceManager.Instance.has('dtask1')).toBe(false)
 })
 
 test('fn-debounce recall', async () => {
@@ -45,7 +48,8 @@ test('fn-debounce recall', async () => {
     name: 'dtask2',
     leading: false,
     trailing: true,
-    wait: 200
+    wait: 200,
+    autoRemove: false
   }, {
     runs: [
       {
@@ -72,4 +76,5 @@ test('fn-debounce recall', async () => {
   await sleep(500)
   expect(Testing.vars.end).toBeGreaterThan(500)
   expect(Testing.vars.i).toBe(1)
+  expect(DebounceManager.Instance.has('dtask2')).toBe(true)
 })
