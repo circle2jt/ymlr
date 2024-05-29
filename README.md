@@ -838,6 +838,7 @@ Example:
       trailing: true          # Specify invoking on the trailing edge of the timeout. Default is true
       leading: false          # Specify invoking on the leading edge of the timeout. Default is false
       maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
+      autoRemove: true        # Auto remove it when reached the event. Default is false.
     runs:
       - echo: Do this when it's free for 1s
 
@@ -1030,7 +1031,8 @@ Example:
       name: Delay to do something
       wait: 1s            # The number of milliseconds to throttle invocations to.
       trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
-      leading: true      # Specify invoking on the leading edge of the timeout. Default is true
+      leading: true       # Specify invoking on the leading edge of the timeout. Default is true
+      autoRemove: true    # Auto remove it when reached the event. Default is false
     runs:
       - echo: Do this when it's free for 1s
 

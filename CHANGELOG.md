@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.7-alpha.0.md](#1716957002606)  -  _5/29/2024, 11:30:02 AM_
 - [1.2.6.md](#1716802907083)  -  _5/27/2024, 4:41:47 PM_
 - [1.2.6-alpha.34.md](#1713945921443)  -  _4/24/2024, 3:05:21 PM_
 - [1.2.6-alpha.33.md](#1713524306578)  -  _4/19/2024, 5:58:26 PM_
@@ -79,6 +80,14 @@
 
 ## Details
 
+<a id="1716957002606"></a>
+### 1.2.7-alpha.0
+
+* fix(fetch): could not download file via post method (faef319)
+* fix(test): sometimes package manager test failed (17e037a)
+* feat(fn-throttle): auto remove  when reached the event (792c59f)
+* feat(fn-debounce): auto remove  when reached the event (88807dc)
+  
 <a id="1716802907083"></a>
 ### 1.2.6
 
