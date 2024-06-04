@@ -358,57 +358,41 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     elemProxy.parentState = parentState
 
+    const [detach, async] = await Promise.all([
+      elemProxy.detach ?? this.innerScene.getVars(elemProxy.detach, elemProxy),
+      elemProxy.async ?? this.innerScene.getVars(elemProxy.async, elemProxy)
+    ])
+    if (!async && !detach && asyncJobs.length) {
+      await Promise.all(asyncJobs)
+      asyncJobs = []
+    }
+
     const condition = elemProxy.elseif ?? elemProxy.if
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
     if (!isContinue) return undefined
 
-    // if (elemProxy.$ instanceof Include) {
-    //   try {
-    //     await elemProxy.exec(parentState)
-    //   } finally {
-    //     await elemProxy.dispose()
-    //   }
-    // } else {
-    const proms: Array<Promise<any>> = []
-
     if (elemProxy.id) {
-      proms.push(elemProxy.scene.setVars(elemProxy.id, elemProxy))
-    }
-    if (elemProxy.detach) {
-      proms.push((async () => {
-        elemProxy.detach = await this.innerScene.getVars(elemProxy.detach, elemProxy)
-      })())
-    }
-    if (proms.length) {
-      await Promise.all(proms)
+      await elemProxy.scene.setVars(elemProxy.id, elemProxy)
     }
 
-    if (elemProxy.detach) {
+    if (detach) {
       this.rootScene.pushToBackgroundJob(elemProxy, parentState)
-    } else {
-      const async = elemProxy.async && await this.innerScene.getVars(elemProxy.async, elemProxy)
-      if (async) {
-        asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
-          try {
-            const rs = await elemProxy.exec(parentState)
-            return rs
-          } finally {
-            await elemProxy.dispose()
-          }
-        })(elemProxy))
-      } else {
-        if (asyncJobs.length) {
-          await Promise.all(asyncJobs)
-          asyncJobs = []
-        }
+    } else if (async) {
+      asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
         try {
-          await elemProxy.exec(parentState)
+          const rs = await elemProxy.exec(parentState)
+          return rs
         } finally {
           await elemProxy.dispose()
         }
+      })(elemProxy))
+    } else {
+      try {
+        await elemProxy.exec(parentState)
+      } finally {
+        await elemProxy.dispose()
       }
     }
-    // }
     return elemProxy
   }
 
