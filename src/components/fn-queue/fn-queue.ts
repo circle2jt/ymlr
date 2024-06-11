@@ -104,10 +104,16 @@ export class FNQueue implements Element {
     while (!this.#isStoped && this.#taskCount < this.concurrent && (task = this.#data.shift())) {
       ++this.#taskCount
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async (task) => {
+      setTimeout(async (task, that) => {
         this.logger.debug('Run a job in queue "%s"\t%j', this.name, task)
         try {
-          const parentState = { ...this.#parentState, queueData: task }
+          const parentState = {
+            ...this.#parentState,
+            queueData: task,
+            get queueCount() {
+              return that.data.length
+            }
+          }
           await this.innerRunsProxy.exec(parentState)
           --this.#taskCount
           this.run()
@@ -123,7 +129,7 @@ export class FNQueue implements Element {
             this.run()
           }
         }
-      }, 0, task)
+      }, 0, task, this)
       this.save()
     }
   }
