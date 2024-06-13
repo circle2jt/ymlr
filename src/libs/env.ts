@@ -40,13 +40,16 @@ export class Env {
 
   private castToObject(obj: Record<string, any>, pro: Record<string, any>, prefix = '') {
     for (const k in obj) {
-      if (typeof obj[k] === 'function') continue
-      if (typeof obj[k] === 'object') {
-        obj[k] = this.castToObject(obj[k], pro, (prefix + k + '_').toUpperCase())
-      } else if (Array.isArray(obj[k])) {
-        for (const i in obj[k]) {
-          obj[k][i] = this.castToObject(obj[k][i], pro, (prefix + k + '_' + i + '_').toUpperCase())
+      const value = obj[k]
+      if (typeof value === 'function') continue
+      if (typeof value === 'object') {
+        if (value === null || value === undefined) continue
+        if (Array.isArray(value)) {
+          obj[k] = value.map((itemValue: any, i: number) => this.castToObject(itemValue, pro, (prefix + k + '_' + i + '_').toUpperCase()))
+        } else if (value.constructor === Object) {
+          obj[k] = this.castToObject(value, pro, (prefix + k + '_').toUpperCase())
         }
+        continue
       } else {
         const lk = prefix + k.toUpperCase().replace('.', '_')
         if (pro[lk] !== undefined && obj[k] !== undefined) {
