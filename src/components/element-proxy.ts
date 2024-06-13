@@ -13,11 +13,11 @@ import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
-const EVAL_ELEMENT_SHADOW_BASE_PROPS = [
-  'name'
+const DEFAULT_AUTO_EVAL_BASE_PROPS = [
+  'name', 'failure'
 ]
 
-const DEFAULT_IGNORE_EVAL_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
+const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
 
 export class ElementProxy<T extends Element> {
   /** |**  id
@@ -585,7 +585,7 @@ export class ElementProxy<T extends Element> {
     const elem = this.element
     const proms = Object.keys(elem)
       .filter(key => {
-        return !DEFAULT_IGNORE_EVAL_PROPS.includes(key) && !elem.ignoreEvalProps?.includes(key) &&
+        return !DEFAULT_IGNORE_EVAL_ELEMENT_PROPS.includes(key) && !elem.ignoreEvalProps?.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {
@@ -595,7 +595,7 @@ export class ElementProxy<T extends Element> {
     const baseProps = Object.keys(this)
     proms.push(...baseProps
       .filter(key => {
-        return EVAL_ELEMENT_SHADOW_BASE_PROPS.includes(key) &&
+        return DEFAULT_AUTO_EVAL_BASE_PROPS.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(this[key])
       }).map(async key => {
