@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.7-alpha.3.md](#1718281838617)  -  _6/13/2024, 7:30:38 PM_
 - [1.2.7-alpha.2.md](#1717489631103)  -  _6/4/2024, 3:27:11 PM_
 - [1.2.7-alpha.0.md](#1716957002606)  -  _5/29/2024, 11:30:02 AM_
 - [1.2.6.md](#1716802907083)  -  _5/27/2024, 4:41:47 PM_
@@ -81,6 +82,13 @@
 
 ## Details
 
+<a id="1718281838617"></a>
+### 1.2.7-alpha.3
+
+* fix(scene): error when load env with non plain object (8e7f70c)
+* feat: allow eval 'failure' from a variable (b223365)
+* feat: add queueCount in fn-queue (3a2a1c2)
+  
 <a id="1717489631103"></a>
 ### 1.2.7-alpha.2
 
