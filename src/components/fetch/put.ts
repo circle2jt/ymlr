@@ -42,7 +42,7 @@ import { type PutProps } from './put.props'
           }
         }
       vars:
-        status: ${this.response.status}
+        status: ${this.$.response.status}
   ```
 */
 export class Put extends Post {

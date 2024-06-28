@@ -47,7 +47,7 @@ import { type RequestType, type UploadFile } from './types'
           }
         }
       vars:
-        status: ${this.response.status}
+        status: ${this.$.response.status}
   ```
 */
 export class Post extends Get {

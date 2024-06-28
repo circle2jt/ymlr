@@ -41,7 +41,7 @@ import { Post } from './post'
           }
         }
       vars:
-        status: ${this.response.status}
+        status: ${this.$.response.status}
   ```
 */
 export class Patch extends Post {

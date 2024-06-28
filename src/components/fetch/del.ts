@@ -16,7 +16,7 @@ import { Post } from './post'
           authorization: Bearer TOKEN
         timeout: 5000                   # !optional - Request timeout. Default is no timeout
       vars:                             # !optional - Global variable which store value after executed
-        status: ${this.response.status}
+        status: ${this.$.response.status}
   ```
 */
 export class Del extends Post {
