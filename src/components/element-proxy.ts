@@ -164,6 +164,7 @@ export class ElementProxy<T extends Element> {
   */
   failure?: {
     ignore?: boolean
+    logDetails?: boolean
     restart?: {
       max: number
       sleep: number | string
@@ -665,7 +666,8 @@ export class ElementProxy<T extends Element> {
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
-            this.logger.error('%o', err?.message || err).trace(err)
+            const log = this.failure?.logDetails ? this.logger.error('%o', err) : this.logger.error('%s', err?.message)
+            log.trace(err)
             await sleep(this.failure.restart.sleep)
           }
         }
@@ -677,7 +679,8 @@ export class ElementProxy<T extends Element> {
         if (!this.failure?.ignore) {
           throw err
         }
-        this.logger.warn('%o', err?.message || err).trace(err)
+        const log = this.failure?.logDetails ? this.logger.warn('%o', err) : this.logger.warn('%s', err?.message)
+        log.trace(err)
         return
       }
       await this.setVarsAfterExec()
