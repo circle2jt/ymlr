@@ -45,7 +45,7 @@ export class Get extends Head {
   responseType?: ResponseType
   saveTo?: string
 
-  #isDownload?: boolean
+  private isDownload?: boolean
   private onDownloadProgress?: (data: any) => any
 
   constructor({ responseType, saveTo, ...props }: GetProps) {
@@ -55,8 +55,8 @@ export class Get extends Head {
 
   override async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
-    if (this.responseType === 'stream') this.#isDownload = true
-    if (this.#isDownload) {
+    if (this.responseType === 'stream') this.isDownload = true
+    if (this.isDownload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
