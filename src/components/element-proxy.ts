@@ -660,6 +660,9 @@ export class ElementProxy<T extends Element> {
             else this.result = result
             break
           } catch (err: any) {
+            if (typeof err === 'string') {
+              err = new Error(err)
+            }
             if (this.name && !err.proxyName) {
               err.proxyName = this.name
             }
