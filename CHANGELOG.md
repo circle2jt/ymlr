@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.2.7-alpha.4.md](#1721296908195)  -  _7/18/2024, 5:01:48 PM_
 - [1.2.7-alpha.3.md](#1718281838617)  -  _6/13/2024, 7:30:38 PM_
 - [1.2.7-alpha.2.md](#1717489631103)  -  _6/4/2024, 3:27:11 PM_
 - [1.2.7-alpha.0.md](#1716957002606)  -  _5/29/2024, 11:30:02 AM_
@@ -82,6 +83,16 @@
 
 ## Details
 
+<a id="1721296908195"></a>
+### 1.2.7-alpha.4
+
+* fix: not passed eslint (8123e58)
+* fix: handle case error is string from custom element (ea0c290)
+* feat: support "logDetails" in "failure" to show error details (5304922)
+* refactor: replace scope variable when downloading (54aef59)
+* doc: update doc for http, fetch (b28c251)
+* feat(view'flow): preview flows in a scene (5d22138)
+  
 <a id="1718281838617"></a>
 ### 1.2.7-alpha.3
 

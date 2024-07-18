@@ -179,6 +179,7 @@ runs:
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
+| [view'flow](#view'flow) | View flows in a scene |
 
 
 ## <a id="Root scene"></a>Root scene  
@@ -1187,7 +1188,7 @@ Example:
         authorization: Bearer TOKEN
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
     vars:                             # !optional - Global variable which store value after executed
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1295,7 +1296,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1343,7 +1344,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1391,7 +1392,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1504,7 +1505,7 @@ Example:
         authorization: Bearer TOKEN
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
     vars:                             # !optional - Global variable which store value after executed
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1612,7 +1613,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1660,7 +1661,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -1708,7 +1709,7 @@ Upload file to server
         }
       }
     vars:
-      status: ${this.response.status}
+      status: ${this.$.response.status}
 ```  
 
 
@@ -2302,6 +2303,20 @@ Test with nodejs script
       title: Number must be greater than 10
       script: |
         if (vars.age > 10) this.$.failed('Age is not valid')
+```  
+
+
+## <a id="view'flow"></a>view'flow  
+  
+View flows in a scene  
+
+Example:  
+
+Quick test
+```yaml
+  - view'flow:
+      file: ~/index.yaml        # Path of a scene file
+      saveTo: /tmp/index.txt    # Save the result to file or console. Default is console (Optional)
 ```  
 
 
