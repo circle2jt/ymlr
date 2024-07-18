@@ -659,9 +659,12 @@ export class ElementProxy<T extends Element> {
             if (this.result instanceof Returns) this.result = this.result.result
             else this.result = result
             break
-          } catch (err: any) {
-            if (typeof err === 'string') {
-              err = new Error(err)
+          } catch (_err: any) {
+            let err: any
+            if (typeof _err === 'string') {
+              err = new Error(_err)
+            } else {
+              err = _err
             }
             if (this.name && !err.proxyName) {
               err.proxyName = this.name
