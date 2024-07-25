@@ -1,6 +1,5 @@
 import assert from 'assert'
 import { spawn, type StdioOptions } from 'child_process'
-import { ConsoleLogger } from 'src/libs/logger/console'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -59,14 +58,14 @@ export class Exec implements Element {
           c.stdout?.on('data', msg => {
             msg = msg.toString().replace(/\n$/, '')
             logs?.push(msg)
-            this.logger.trace(msg, ConsoleLogger.DISABLE_PREFIX)
+            this.logger.trace(msg)
           })
         }
         if (logs || this.logger.is(LoggerLevel.error)) {
           c.stderr?.on('data', msg => {
             msg = msg.toString().replace(/\n$/, '')
             logs?.push(msg)
-            this.logger.error(msg, ConsoleLogger.DISABLE_PREFIX)
+            this.logger.error(msg)
           })
         }
         c.on('close', (code: number, signal: NodeJS.Signals) => {

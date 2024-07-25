@@ -183,7 +183,7 @@ export class HttpServer implements Element {
         }
       }
     } catch (err: any) {
-      this.logger.error('%o', err?.message || err).trace(err)
+      this.logger.error(err)
     } finally {
       res.end()
     }

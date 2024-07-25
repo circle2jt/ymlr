@@ -3,7 +3,7 @@ import { Indent } from './indent'
 import { Level } from './level'
 import { LevelFactory } from './level-factory'
 import { LoggerFactory } from './logger-factory'
-import { type LoggerLevel } from './logger-level'
+import { LoggerLevel } from './logger-level'
 
 export abstract class Logger {
   static #ID = 0
@@ -27,14 +27,12 @@ export abstract class Logger {
 
   errorStack?: ErrorStack
 
-  constructor(level: LoggerLevel | Level | undefined, context = '', errorStack: ErrorStack = {}, public id = Logger.GenID(), public indent = new Indent()) {
+  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack = {}, public id = Logger.GenID(), public indent = new Indent()) {
     if (context) {
       this.context = context
     }
     this.errorStack = { ...errorStack }
-    if (LoggerFactory.DEBUG_CONTEXTS?.[this.context]) {
-      this.level = LevelFactory.GetInstance(LoggerFactory.DEBUG_CONTEXTS[this.context])
-    } else if (level) {
+    if (level) {
       if (level instanceof Level) {
         this.level = level
       } else {
@@ -46,7 +44,6 @@ export abstract class Logger {
     }
   }
 
-  abstract log(...args: any[]): this
   abstract trace(...args: any[]): this
   abstract debug(...args: any[]): this
   abstract info(...args: any[]): this
@@ -68,8 +65,10 @@ export abstract class Logger {
   }
 
   setLevel(level: LoggerLevel) {
-    if (!LoggerFactory.DEBUG_CONTEXTS?.[this.context] && !LoggerFactory.DEBUG) {
+    if (!LoggerFactory.DEBUG) {
       this.level = LevelFactory.GetInstance(level)
     }
   }
+
+  dispose() { }
 }

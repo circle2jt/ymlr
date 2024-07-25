@@ -1,4 +1,6 @@
 import assert from 'assert'
+import chalk from 'chalk'
+import merge from 'lodash.merge'
 import { bin, description, homepage, name, version } from '../package.json'
 import { FileRemote } from './libs/file-remote'
 import { LoggerLevel } from './libs/logger/logger-level'
@@ -21,17 +23,10 @@ async function cli() {
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
-    .option('-o, --out [type:opts]', `Which output logs to be printed. Default is "console"
-Example:
--o file:/tmp/all_logs.txt             > Print all of logs to "/tmp/all_logs.txt"
--o file:/tmp/logs.txt,/tmp/error.txt  > Print error, warning logs to "/tmp/error.txt". The others print to "/tmp/logs.txt"
--o event:console                      > Emit data via event and console
--o event                              > Only emit data via event
-`)
     .option('-t, --tty', 'allocate a pseudo-TTY')
     .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
-    .option('-c, --debug-context <context=log_level...>', 'Force set log_level to tag context. Example: "context1=debug"')
+    .option('-do, --debug-options [json_config]', 'Example: {"transport":{"options":{"colorize":true}}}. Ref: https://github.com/pinojs/pino')
     .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
@@ -39,7 +34,7 @@ Example:
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, tty, flow, out = '', env = [], tagDirs, envFile = [], debugContext } = opts
+          const { debug, tty, flow, env = [], tagDirs, envFile = [], debugOptions = {} } = opts
           process.env.FORCE_COLOR = !tty ? '0' : '1'
           process.env.MODE = !flow ? '' : 'flow'
 
@@ -64,37 +59,17 @@ Example:
             process.env.DEBUG = debug
           }
 
-          let [outType, config] = out.split(':')
-          let outOpts: any
-          if (outType === 'event') {
-            outOpts = {
-              console: config === 'console',
-              colorMode: !!tty
-            }
-          } else if (outType === 'file') {
-            const [outFile, errorFile] = config.split(',').map((e: string) => e.trim())
-            outOpts = {
-              stdout: outFile,
-              stderr: errorFile || undefined
-            }
-          } else {
-            outType = 'console'
-            // --out console
-            outOpts = {
-              colorMode: !!tty
-            }
-          }
           const { LoggerFactory } = await import('./libs/logger/logger-factory')
-          LoggerFactory.Configure(outType, outOpts)
-
-          if (debugContext?.length > 0) {
-            LoggerFactory.DEBUG_CONTEXTS = debugContext
-          }
+          LoggerFactory.Configure('', LoggerFactory.DEFAULT_LOGGER_CONFIG = merge({
+            transport: {
+              options: {
+                colorize: tty ? chalk.supportsColor : false
+              }
+            }
+          }, debugOptions))
           LoggerFactory.LoadFromEnv()
-          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG)
-          const chalk = require('chalk')
-          appLogger.log('%s\t%s', chalk.yellow(`${name} 🚀`), chalk.gray(`${version}`))
-          appLogger.log('')
+          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG, undefined, undefined, undefined, LoggerFactory.DEFAULT_LOGGER_CONFIG.opts)
+          appLogger.info('🚀 %s@%s\n--------------------------------------------------------', chalk.yellow(`${name}`), chalk.gray(`${version}`))
           const { App } = require('./app')
           const app = new App(appLogger, {
             path,

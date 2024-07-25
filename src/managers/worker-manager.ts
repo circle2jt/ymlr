@@ -19,7 +19,7 @@ export class WorkerManager {
         toIDs = opts.toIDs
       }
     }
-    this.broadcastEvent(Constants.FROM_GLOBAL_EVENT, data, App.ProcessID, toIDs)
+    this.broadcastEvent(Constants.FROM_GLOBAL_EVENT, data, App.ThreadID, toIDs)
   }
 
   constructor(private readonly logger: Logger) {
@@ -51,7 +51,6 @@ export class WorkerManager {
     id?: string
     tagDirs?: string[]
     templates?: Map<string, any>
-    loggerDebugContexts?: Record<string, LoggerLevel>
     loggerDebug?: LoggerLevel
     loggerConfig?: any
   }) {
@@ -66,15 +65,15 @@ export class WorkerManager {
   broadcastEvent(name: string | symbol, value: any, fromID: string, toIDs?: string[]) {
     if (!toIDs) {
       toIDs = [
-        App.ProcessID,
+        App.ThreadID,
         ...this.#workers.map(wk => wk.id)
       ]
     }
     toIDs
       .filter(workerID => workerID !== fromID)
       .forEach(workerID => {
-        if (workerID === App.ProcessID) {
-          this.logger.trace(`<worker -> main.event> Emited data "#${App.ProcessID}.%s": %j`, App.ProcessID, name, value)
+        if (workerID === App.ThreadID) {
+          this.logger.trace(`<worker -> main.event> Emited data "#${App.ThreadID}.%s": %j`, App.ThreadID, name, value)
           GlobalEvent.emit(name, value, {
             fromID,
             toID: workerID

@@ -1,7 +1,6 @@
 import 'src/managers/modules-manager'
 
 import assert from 'assert'
-import chalk from 'chalk'
 import { RootScene } from 'src/components/root-scene'
 import { type Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
@@ -11,7 +10,7 @@ import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
-  static ProcessID = '#0'
+  static ThreadID = '#0'
   readonly #rootSceneProxy: ElementProxy<RootScene>
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
@@ -45,8 +44,8 @@ export class App {
     try {
       await this.#rootSceneProxy.exec()
     } catch (err: any) {
-      this.logger.error(`${err.message}\n${chalk.gray(err.cause || '')}\n${chalk.gray(err.proxyName || '')}`).trace(err)
-      throw err
+      this.logger.fatal(err)
+      process.exit(1)
     } finally {
       await this.#rootSceneProxy.dispose()
       summary?.print()

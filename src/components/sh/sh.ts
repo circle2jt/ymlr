@@ -3,7 +3,6 @@ import { execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio, t
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
-import { ConsoleLogger } from 'src/libs/logger/console'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -140,10 +139,10 @@ export class Sh implements Element {
           return
         }
         if (stdout && this.logger.is(LoggerLevel.trace)) {
-          this.logger.trace(stdout, ConsoleLogger.DISABLE_PREFIX)
+          this.logger.trace(stdout)
         }
         if (stderr && this.logger.is(LoggerLevel.error)) {
-          this.logger.error(stderr, ConsoleLogger.DISABLE_PREFIX)
+          this.logger.error(stderr)
         }
         resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)
       })

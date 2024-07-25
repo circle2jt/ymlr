@@ -61,7 +61,7 @@ export class Echo implements Element, Formater {
     } else {
       input = this.content?.toString()
     }
-    this.logger.log(this.format(input))
+    this.logger.info(this.format(input))
     return this.content
   }
 

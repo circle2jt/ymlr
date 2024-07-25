@@ -5,12 +5,11 @@ import { LoggerFactory } from './libs/logger/logger-factory'
 import { Constants } from './managers/constants'
 
 void (async () => {
-  const { baseProps = {}, props = {}, tagDirs, templates, id, loggerDebugContexts, loggerDebug, loggerConfig } = workerData
+  const { baseProps = {}, props = {}, tagDirs, templates, id, loggerDebug, loggerConfig } = workerData
   let allEventListener: any
   try {
-    App.ProcessID = id
+    App.ThreadID = id
     LoggerFactory.DEBUG = loggerDebug
-    LoggerFactory.DEBUG_CONTEXTS = loggerDebugContexts
     LoggerFactory.Configure(loggerConfig?.name, loggerConfig?.opts)
     LoggerFactory.LoadFromEnv()
     const appLogger = LoggerFactory.NewLogger(baseProps.debug || LoggerFactory.DEBUG, undefined, baseProps.errorStack)
@@ -23,19 +22,19 @@ void (async () => {
           toIDs = opts.toIDs
         }
       }
-      appLogger.trace('<worker.event -> main> Transfer data from #%d to %j: %j', App.ProcessID, toIDs, data)
+      appLogger.trace('<worker.event -> main> Transfer data from #%d to %j: %j', App.ThreadID, toIDs, data)
       parentPort?.postMessage({
         type: 'event',
         name: Constants.FROM_GLOBAL_EVENT,
         value: data,
         toIDs,
-        fromID: App.ProcessID
+        fromID: App.ThreadID
       })
     }
     parentPort?.on('message', (data: any) => {
       const { type, name, value, fromID, toID } = data
       if (type === 'event') {
-        appLogger.trace('<main -> worker.event> Emited data to "%d.%s": %s', App.ProcessID, name, value)
+        appLogger.trace('<main -> worker.event> Emited data to "%d.%s": %s', App.ThreadID, name, value)
         GlobalEvent.emit(name, value, {
           fromID,
           toID

@@ -129,7 +129,6 @@ export class SceneThread extends Scene {
       tagDirs: tagDirs.map(dir => this.scene.getPath(dir)),
       templates: this.rootScene.templatesManager,
       loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
-      loggerDebugContexts: LoggerFactory.DEBUG_CONTEXTS,
       loggerDebug: LoggerFactory.DEBUG
     })
     if (!this.#id) {

@@ -22,7 +22,6 @@ export class Worker {
     others: {
       tagDirs?: string[]
       templates?: Record<string, any>
-      loggerDebugContexts?: Record<string, LoggerLevel>
       loggerDebug?: LoggerLevel
       loggerConfig?: any
     }) {

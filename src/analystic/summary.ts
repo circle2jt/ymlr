@@ -38,12 +38,11 @@ export class Summary {
   }
 
   print() {
-    this.#logger.log('')
-    this.#logger.log(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
-    this.#logger.log('%s\t%s', 'Duration', `${formatDuration(this.#time.execution)}`)
-    this.#logger.log('%s\t%s', 'Runs    ', `${this.#count.exec}(items)`)
-    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items)'), 'executed', this.#count.exec)
-    this.#logger.log(chalk.gray('          \t ↳ %s\t%d(items)'), 'disposed', this.#count.dispose)
-    this.#logger.log(chalk.gray('«««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««'))
+    this.#logger.debug(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
+    this.#logger.debug('%s\t%s', 'Duration', `${formatDuration(this.#time.execution)}`)
+    this.#logger.debug('%s\t%s', 'Runs    ', `${this.#count.exec}(items)`)
+    this.#logger.debug(chalk.gray('          \t ↳ %s\t%d(items)'), 'executed', this.#count.exec)
+    this.#logger.debug(chalk.gray('          \t ↳ %s\t%d(items)'), 'disposed', this.#count.dispose)
+    this.#logger.debug(chalk.gray('«««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««'))
   }
 }

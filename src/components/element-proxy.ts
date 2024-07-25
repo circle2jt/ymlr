@@ -645,7 +645,7 @@ export class ElementProxy<T extends Element> {
       try {
         await this.evalPropsBeforeExec()
         if (this.name && !this.element.hideName) {
-          this.logger.info((this.runs?.length) ? '▼' : '▸', this.name)
+          this.logger.info(`${this.runs?.length ? '▼' : '▸'} ${this.name}`)
         }
         while (true) {
           try {
@@ -672,8 +672,7 @@ export class ElementProxy<T extends Element> {
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
-            const log = this.failure?.logDetails ? this.logger.error('%o', err) : this.logger.error('%s', err?.message)
-            log.trace(err)
+            this.failure?.logDetails ? this.logger.error(err) : this.logger.error(err?.message).trace(err)
             await sleep(this.failure.restart.sleep)
           }
         }
@@ -704,7 +703,10 @@ export class ElementProxy<T extends Element> {
     try {
       await this.element.dispose?.()
       this.parentState = undefined
-      this.logger = undefined as any
+      if (this.#logger) {
+        this.logger.dispose()
+        this.#logger = undefined
+      }
     } finally {
       GlobalEvent.emit('@app/proxy/after:dispose', this)
     }
