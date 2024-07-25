@@ -13,7 +13,7 @@ const { chindingsSym, msgPrefixSym } = require('pino/lib/symbols')
 export const SPACE = chalk.gray('┆')
 
 export class ConsoleLogger extends Logger {
-  private static readonly UpdateEvent = new EventEmitter()
+  private static readonly UpdateEvent = new EventEmitter().setMaxListeners(0)
   private readonly updateContext: () => void
   private static MaxContextLength = 0
 
