@@ -46,9 +46,6 @@ export class LevelFactory {
       case LoggerLevel.fatal:
         levelObj = new FatalLevel()
         break
-      case LoggerLevel.log:
-        levelObj = new LogLevel()
-        break
       case LoggerLevel.silent:
         levelObj = new SilentLevel()
         break

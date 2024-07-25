@@ -1,9 +1,5 @@
 import assert from 'assert'
-import chalk from 'chalk'
-import merge from 'lodash.merge'
 import { bin, description, homepage, name, version } from '../package.json'
-import { FileRemote } from './libs/file-remote'
-import { LoggerLevel } from './libs/logger/logger-level'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
@@ -23,10 +19,9 @@ async function cli() {
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
-    .option('-t, --tty', 'allocate a pseudo-TTY')
+    .option('-nc --no-color', 'Disable pseudo-TTY')
     .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
-    .option('-do, --debug-options [json_config]', 'Example: {"transport":{"options":{"colorize":true}}}. Ref: https://github.com/pinojs/pino')
     .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
@@ -34,17 +29,18 @@ async function cli() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, tty, flow, env = [], tagDirs, envFile = [], debugOptions = {} } = opts
-          process.env.FORCE_COLOR = !tty ? '0' : '1'
+          const { debug, noColor, flow, env = [], tagDirs, envFile = [] } = opts
+          process.env.FORCE_COLOR = noColor ? '0' : '1'
           process.env.MODE = !flow ? '' : 'flow'
 
           if (envFile.length) {
+            const { FileRemote } = require('./libs/file-remote')
             for (const efile of envFile) {
               const fileRemote = new FileRemote(efile, null)
               const envFileContent = await fileRemote.getTextContent()
               env.splice(0, 0, ...envFileContent
                 .split('\n')
-                .filter(e => e?.trim().length)
+                .filter((e: string) => e?.trim().length)
               )
             }
           }
@@ -60,16 +56,13 @@ async function cli() {
           }
 
           const { LoggerFactory } = await import('./libs/logger/logger-factory')
-          LoggerFactory.Configure('', LoggerFactory.DEFAULT_LOGGER_CONFIG = merge({
-            transport: {
-              options: {
-                colorize: tty ? chalk.supportsColor : false
-              }
-            }
-          }, debugOptions))
+          LoggerFactory.Configure('', {
+            noColor: !!noColor
+          })
           LoggerFactory.LoadFromEnv()
-          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG, undefined, undefined, undefined, LoggerFactory.DEFAULT_LOGGER_CONFIG.opts)
-          appLogger.info('🚀 %s@%s\n--------------------------------------------------------', chalk.yellow(`${name}`), chalk.gray(`${version}`))
+          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG, undefined, undefined, undefined)
+          const chalk = require('chalk')
+          appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
           const { App } = require('./app')
           const app = new App(appLogger, {
             path,
@@ -94,6 +87,7 @@ async function cli() {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const { LoggerFactory } = await import('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
@@ -115,6 +109,7 @@ async function cli() {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const { LoggerFactory } = await import('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
@@ -136,6 +131,7 @@ async function cli() {
           try {
             assert(packages?.length, '"package(s)" is requried')
             const { LoggerFactory } = await import('./libs/logger/logger-factory')
+            const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
             await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)

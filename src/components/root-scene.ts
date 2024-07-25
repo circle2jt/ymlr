@@ -168,7 +168,7 @@ export class RootScene extends Scene {
       props.template = undefined
     }
     this.templatesManager.set(id, cached)
-    this.logger.trace('->    \t%s', id)
+    this.logger.trace('export to id "%s"', id)
   }
 
   // protected async getRemoteFileProps() {

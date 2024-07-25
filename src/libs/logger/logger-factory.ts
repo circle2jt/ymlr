@@ -36,8 +36,8 @@ export class LoggerFactory {
     }
   }
 
-  static NewLogger(level: LoggerLevel | undefined, context?: string, errorStack?: ErrorStack, indent?: Indent, loggerOptions?: any) {
-    const logger = new ConsoleLogger(level, context, errorStack, undefined, indent, undefined, loggerOptions)
+  static NewLogger(level: LoggerLevel | undefined, context?: string, errorStack?: ErrorStack, indent?: Indent) {
+    const logger = new ConsoleLogger(level, context, errorStack, undefined, indent)
     return logger as Logger
   }
 
