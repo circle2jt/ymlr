@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.0-alpha.3.md](#1725617515319)  -  _9/6/2024, 5:11:55 PM_
 - [1.3.0-alpha.2.md](#1721902676013)  -  _7/25/2024, 5:17:56 PM_
 - [1.3.0-alpha.1.md](#1721886161363)  -  _7/25/2024, 12:42:41 PM_
 - [1.2.7-alpha.4.md](#1721296908195)  -  _7/18/2024, 5:01:48 PM_
@@ -85,6 +86,12 @@
 
 ## Details
 
+<a id="1725617515319"></a>
+### 1.3.0-alpha.3
+
+* feat(sleep): support sleep infinity (3faf1fc)
+* refactor(template): remove global template (543f689)
+  
 <a id="1721902676013"></a>
 ### 1.3.0-alpha.2
 

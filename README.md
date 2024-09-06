@@ -2216,6 +2216,10 @@ Full props
 ```yaml
   - name: Sleep 10s
     sleep: 10000          # Sleep 10s then keep continue
+
+  - name: sleep infinity
+    sleep:
+
 ```  
 
 
