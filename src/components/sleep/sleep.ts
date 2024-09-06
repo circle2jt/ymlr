@@ -23,17 +23,25 @@ import { type Element } from '../element.interface'
   ```yaml
     - name: Sleep 10s
       sleep: 10000          # Sleep 10s then keep continue
+
+    - name: sleep infinity
+      sleep:
+
   ```
 */
 export class Sleep implements Element {
   readonly proxy!: ElementProxy<this>
 
-  constructor(public duration: number | string) { }
+  constructor(public duration: number | string | null) { }
 
   async exec() {
-    this.duration = formatTextToMs(this.duration)
-    assert(this.duration)
-    await sleep(this.duration)
+    if (this.duration === null) {
+      await new Promise(() => { })
+    } else {
+      this.duration = formatTextToMs(this.duration)
+      assert(this.duration)
+      await sleep(this.duration)
+    }
     return this.duration
   }
 
