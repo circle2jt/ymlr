@@ -25,10 +25,8 @@ export class App {
     this.#rootSceneProxy.element.tagsManager.tagDirs = dirs
   }
 
-  setTemplates(cached: Map<string, any>) {
-    for (const [key, props] of cached.entries()) {
-      this.#rootSceneProxy.element.templatesManager.set(key, props)
-    }
+  setTemplates(cached: Record<string, any>) {
+    Object.assign(this.#rootSceneProxy.element.templatesManager, cached)
   }
 
   async exec() {

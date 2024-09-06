@@ -6,7 +6,7 @@ import { SAND_SCENE_PASSWORD } from 'src/env'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
-import { getVars, setVars } from 'src/libs/variable'
+import { cloneDeep, getVars, setVars } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -52,6 +52,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   vars?: Record<string, any>
   cached?: boolean
   curDir = ''
+
+  templatesManager: Record<string, any> = {}
 
   protected readonly password?: string
   protected override get innerScene() {
@@ -127,11 +129,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     this.password = password
     this.#content = content
     Object.assign(this, { path, vars })
-    this.ignoreEvalProps.push('curDir', 'password')
+    this.ignoreEvalProps.push('curDir', 'password', 'templatesManager')
   }
 
   async asyncConstructor() {
     this.localVars = this.rootScene.globalVars
+    Object.assign(this.templatesManager, this.scene.templatesManager)
     await this.handleFile()
   }
 
@@ -201,6 +204,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   override async dispose() {
     this.#localVars?.revoke()
+    this.templatesManager = {}
     await super.dispose()
   }
 
@@ -271,6 +275,38 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.scene.localCaches.set(fileRemote.uri, props)
     }
     return props
+  }
+
+  extend(tagName: string | undefined, baseProps: any, ids: string[] | string) {
+    if (!ids?.length) return
+    if (typeof ids === 'string') ids = [ids]
+    ids.forEach(id => {
+      let cached = this.templatesManager[id]
+      if (!cached) {
+        this.logger.warn(`Could not found element with id "${id}"`)
+        cached = {
+          skip: true
+        }
+      }
+      cached = cloneDeep(cached)
+      if (tagName && cached.template) {
+        cached[tagName] = cached.template
+        cached.template = undefined
+      }
+      baseProps = merge(cached, baseProps)
+    })
+    return baseProps
+  }
+
+  export(tagName: string | undefined, props: any, id: string) {
+    if (!id) return
+    const { errorStack, ...cached } = cloneDeep(props)
+    if (tagName && props.template) {
+      props[tagName] = props.template
+      props.template = undefined
+    }
+    this.templatesManager[id] = cached
+    this.logger.trace('export to id "%s"', id)
   }
 
   /** |**  # @include

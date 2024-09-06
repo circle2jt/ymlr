@@ -16,18 +16,25 @@ export class ConsoleLogger extends Logger {
   private static MaxContextLength = 0
   private tab = ''
 
+  set context(ctx: string) {
+    super.context = ctx
+    if (this.context?.length > ConsoleLogger.MaxContextLength) {
+      ConsoleLogger.MaxContextLength = this.context.length
+      ConsoleLogger.UpdateEvent.emit('update-context')
+    }
+  }
+
+  get context() {
+    return super.context
+  }
+
   constructor(level: LoggerLevel | Level | undefined, context = '', errorStack: ErrorStack = {}, id = Logger.GenID(), indent = new Indent()) {
     super(level, context, errorStack, id, indent)
     this.updateContext = () => {
       this.tab = new Array(ConsoleLogger.MaxContextLength - this.context.length).fill('┄').join('')
     }
-
-    if (this.context?.length > ConsoleLogger.MaxContextLength) {
-      ConsoleLogger.MaxContextLength = this.context.length
-      ConsoleLogger.UpdateEvent.emit('update-context')
-    }
-    this.updateContext()
     ConsoleLogger.UpdateEvent.on('update-context', this.updateContext)
+    this.context = context
   }
 
   getPrefixMsg(level: any) {

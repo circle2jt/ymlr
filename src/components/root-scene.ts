@@ -1,7 +1,6 @@
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import { GlobalEvent } from 'src/libs/global-event'
-import { cloneDeep } from 'src/libs/variable'
 import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
@@ -49,7 +48,6 @@ export class RootScene extends Scene {
 
   readonly #backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
   readonly tagsManager = new TagsManager(this)
-  readonly templatesManager = new Map<string, any>()
   readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
@@ -78,7 +76,7 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'templatesManager', 'rootDir', 'onAppExit')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'rootDir', 'onAppExit')
   }
 
   override async asyncConstructor() {
@@ -120,27 +118,6 @@ export class RootScene extends Scene {
     }
   }
 
-  extend(tagName: string | undefined, baseProps: any, ids: string[] | string) {
-    if (!ids?.length) return
-    if (typeof ids === 'string') ids = [ids]
-    ids.forEach(id => {
-      let cached = this.templatesManager.get(id)
-      if (!cached) {
-        this.logger.warn(`Could not found element with id "${id}"`)
-        cached = {
-          skip: true
-        }
-      }
-      cached = cloneDeep(cached)
-      if (tagName && cached.template) {
-        cached[tagName] = cached.template
-        cached.template = undefined
-      }
-      baseProps = merge(cached, baseProps)
-    })
-    return baseProps
-  }
-
   getTagName(props: any) {
     const keys = Object.keys(props)
     let tagName: string | undefined
@@ -158,17 +135,6 @@ export class RootScene extends Scene {
       }
     }
     return tagName
-  }
-
-  export(tagName: string | undefined, props: any, id: string) {
-    if (!id) return
-    const { errorStack, ...cached } = cloneDeep(props)
-    if (tagName && props.template) {
-      props[tagName] = props.template
-      props.template = undefined
-    }
-    this.templatesManager.set(id, cached)
-    this.logger.trace('export to id "%s"', id)
   }
 
   // protected async getRemoteFileProps() {

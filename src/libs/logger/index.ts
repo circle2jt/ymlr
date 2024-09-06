@@ -16,13 +16,13 @@ export abstract class Logger {
     return this.level?.name
   }
 
-  #context = ''
+  protected _context = ''
   set context(ctx: string) {
-    this.#context = ctx
+    this._context = ctx
   }
 
   get context() {
-    return this.#context
+    return this._context
   }
 
   errorStack?: ErrorStack
