@@ -1,7 +1,7 @@
 import { callFunctionScript } from 'src/libs/async-function'
 import { inspect } from 'util'
 
-const REGEX_FIRST_ALPHA = /^[A-Za-z]/
+const REGEX_FIRST_ALPHA = /(^_$)|(^[A-Za-z])/
 const PATTERN_JS_CODE_BLOCK = /^[\n\s\t]*\$\{([^}]+)\}[\n\s\t]*$/
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
@@ -14,7 +14,11 @@ export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   const keys = Object.keys(varObj)
     .filter(key => REGEX_FIRST_ALPHA.test(key))
   for (const k of keys) {
-    $vars[k] = await getVars(varObj[k], ctx, others)
+    if (k !== '_') {
+      $vars[k] = await getVars(varObj[k], ctx, others)
+    } else {
+      await getVars(varObj[k], ctx, others)
+    }
   }
   return keys
 }

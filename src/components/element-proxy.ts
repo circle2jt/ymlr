@@ -267,6 +267,13 @@ export class ElementProxy<T extends Element> {
       - scene:
           path: ./child.scene.yaml
 
+      - fetch'get:
+          url: http://localhost/data.json
+        vars:
+          myResponseData: ${ this.$.response.data }                         # Assign response data to scene variable
+          MyResponseData: ${ this.$.response.data }                         # Assign response data to global variable
+          _: ${ $parentState.responseDataInContext = this.$.response.data } # Assign response data to context variable
+
       - echo: ${$vars.MainName}      # => global var
       - echo: ${$vars.mainName}      # => local var
       - echo: ${$vars.name}          # => undefined
