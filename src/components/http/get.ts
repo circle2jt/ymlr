@@ -59,6 +59,7 @@ export class Get extends Head {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
     if (this.responseType === 'stream') this.isDownload = true
     if (this.isDownload) {
+      if (!this.responseType) this.responseType = 'stream'
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
