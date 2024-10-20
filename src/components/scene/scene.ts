@@ -255,7 +255,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         this.curDir = dirPath
       }
       if (this.cached) {
-        props = this.scene.localCaches.get(fileRemote.uri)
+        props = this.rootScene.localCaches.get(fileRemote.uri)
         if (props) {
           return props
         }
@@ -272,7 +272,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       props = load(content, { schema: yamlType.spaceSchema })
     }
     if (this.cached && fileRemote) {
-      this.scene.localCaches.set(fileRemote.uri, props)
+      this.rootScene.localCaches.set(fileRemote.uri, props)
     }
     return props
   }
