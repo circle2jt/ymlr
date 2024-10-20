@@ -673,6 +673,13 @@ A main scene file
   - scene:
       path: ./child.scene.yaml
 
+  - fetch'get:
+      url: http://localhost/data.json
+    vars:
+      myResponseData: ${ this.$.response.data }                         # Assign response data to scene variable
+      MyResponseData: ${ this.$.response.data }                         # Assign response data to global variable
+      _: ${ $parentState.responseDataInContext = this.$.response.data } # Assign response data to context variable
+
   - echo: ${$vars.MainName}      # => global var
   - echo: ${$vars.mainName}      # => local var
   - echo: ${$vars.name}          # => undefined
@@ -2410,6 +2417,19 @@ Example:
 
 ```yaml
 - echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }  
+
+
+## <a id="$utils.sleep"></a>$utils.sleep  
+`Utility function`  
+Sleep before do the next  
+
+Example:  
+
+```yaml
+- js: |
+    this.logger.info('Sleep 5s')
+    await $utils.sleep('5s')
+    this.logger.info('Do it')  
 
 
 ## <a id="$utils.url"></a>$utils.url  

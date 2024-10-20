@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.0.md](#1729427736671)  -  _10/20/2024, 7:35:36 PM_
 - [1.3.0-alpha.3.md](#1725617515319)  -  _9/6/2024, 5:11:55 PM_
 - [1.3.0-alpha.2.md](#1721902676013)  -  _7/25/2024, 5:17:56 PM_
 - [1.3.0-alpha.1.md](#1721886161363)  -  _7/25/2024, 12:42:41 PM_
@@ -86,6 +87,40 @@
 
 ## Details
 
+<a id="1729427736671"></a>
+### 1.3.0
+
+* feat($utils): add sleep function (23a254a)
+* fix(http): auto add response type when downloading (776d90a)
+* fix(scene): move cached scene file from parent scene to root scene (622e607)
+* feat(vars): support "_" to exec without assign value to any variable (bec107f)
+* chore: prerelease 1.3.0-alpha.3 (0e10bff)
+* feat(sleep): support sleep infinity (3faf1fc)
+* refactor(template): remove global template (543f689)
+* chore: prerelease 1.3.0-alpha.2 (b16cfad)
+* feat!: replace --tty to --no-color. (6e24aff)
+* fix: warning UpdateEvent limit 10 listener (56f0799)
+* chore: prerelease 1.3.0-alpha.1 (663bb28)
+* refactor!: replace console.log to pino js (ab791ad)
+* chore: prerelease 1.2.7-alpha.4 (d5cca1e)
+* fix: not passed eslint (8123e58)
+* fix: handle case error is string from custom element (ea0c290)
+* feat: support "logDetails" in "failure" to show error details (5304922)
+* refactor: replace scope variable when downloading (54aef59)
+* doc: update doc for http, fetch (b28c251)
+* feat(view'flow): preview flows in a scene (5d22138)
+* chore: prerelease 1.2.7-alpha.3 (e774d8d)
+* fix(scene): error when load env with non plain object (8e7f70c)
+* feat: allow eval 'failure' from a variable (b223365)
+* feat: add queueCount in fn-queue (3a2a1c2)
+* chore: prerelease 1.2.7-alpha.2 (5268dfb)
+* fix: async jobs not wait to done before execute the next (df9db63)
+* chore: prerelease 1.2.7-alpha.0 (6476187)
+* fix(fetch): could not download file via post method (faef319)
+* fix(test): sometimes package manager test failed (17e037a)
+* feat(fn-throttle): auto remove  when reached the event (792c59f)
+* feat(fn-debounce): auto remove  when reached the event (88807dc)
+  
 <a id="1725617515319"></a>
 ### 1.3.0-alpha.3
 
