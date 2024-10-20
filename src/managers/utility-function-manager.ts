@@ -5,6 +5,7 @@ import { type Url } from 'src/libs/encode/url'
 import { type AES } from 'src/libs/encrypt/aes'
 import { type MD5 } from 'src/libs/encrypt/md5'
 import { GlobalEvent } from 'src/libs/global-event'
+import { sleep } from 'src/libs/time'
 
 export class UtilityFunctionManager {
   static #Instance: UtilityFunctionManager
@@ -167,6 +168,19 @@ export class UtilityFunctionManager {
       return load(content)
     }
   }
+
+  /** |**  $utils.sleep
+    Sleep before do the next
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+    - js: |
+        this.logger.info('Sleep 5s')
+        await $utils.sleep('5s')
+        this.logger.info('Do it')
+  */
+  sleep = sleep
 
   get debounceManager() {
     const { DebounceManager } = require('./debounce-manager')
