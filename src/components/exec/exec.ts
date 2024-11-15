@@ -11,8 +11,10 @@ import { type Element } from '../element.interface'
   ```yaml
     - name: Run a bash script
       exec:
-        - /bin/sh
-        - /startup.sh
+        exitCodes: [0, 1] # expect exit code is 0, 1 is success
+        commands:
+          - /bin/sh
+          - /startup.sh
   ```
   Execute a python app
   ```yaml
@@ -25,6 +27,7 @@ export class Exec implements Element {
   readonly proxy!: ElementProxy<this>
 
   #abortController?: AbortController
+  exitCodes = [0]
 
   private get logger() { return this.proxy.logger }
 
@@ -69,7 +72,7 @@ export class Exec implements Element {
           })
         }
         c.on('close', (code: number, signal: NodeJS.Signals) => {
-          if (code) {
+          if (!this.exitCodes.includes(code)) {
             const err = new Error(`Error code ${code}, signal: ${signal}`)
             reject(err)
             return

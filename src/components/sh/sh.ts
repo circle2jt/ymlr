@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio, type StdioOptions } from 'child_process'
+import { type ChildProcess, execFile, spawn, type ExecFileOptions, type SpawnOptionsWithoutStdio, type StdioOptions } from 'child_process'
 import { FileRemote } from 'src/libs/file-remote'
 import { FileTemp } from 'src/libs/file-temp'
 import { formatTextToMs } from 'src/libs/format'
@@ -23,6 +23,7 @@ import { type ShProps } from './sh.props'
   ```yaml
     - name: Write a hello file
       sh:
+        exitCodes: [0, 1]               # expect exit code is 0, 1 is success. Default is [0]
         script: |                       # Shell script content
           touch hello.txt
           echo "Hello world" > /tmp/hello.txt
@@ -46,6 +47,7 @@ export class Sh implements Element {
   process?: boolean
   bin = '/bin/sh'
   opts?: SpawnOptionsWithoutStdio | ExecFileOptions
+  exitCodes = [0]
 
   #abortController?: AbortController
 
@@ -112,7 +114,7 @@ export class Sh implements Element {
         })
       }
       c.on('close', (code: number) => {
-        if (code) {
+        if (!this.exitCodes.includes(code)) {
           const err = new Error(logs?.join(''))
           err.cause = `Exit code is ${code}`
           reject(err)
@@ -125,28 +127,37 @@ export class Sh implements Element {
   }
 
   private async ShortScript(tmpFile: FileTemp, timeout: number | undefined) {
-    return await new Promise((resolve, reject) => {
-      this.#abortController = new AbortController()
-      execFile(this.bin, [tmpFile.file], {
-        env: process.env,
-        cwd: this.proxy.scene.curDir,
-        timeout,
-        signal: this.#abortController.signal,
-        ...this.opts
-      }, (err, stdout, stderr) => {
-        if (err) {
-          reject(err)
-          return
-        }
-        if (stdout && this.logger.is(LoggerLevel.trace)) {
-          this.logger.trace(stdout)
-        }
-        if (stderr && this.logger.is(LoggerLevel.error)) {
-          this.logger.error(stderr)
-        }
-        resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)
+    let proc: ChildProcess | undefined
+    let log: string | undefined
+    try {
+      log = await new Promise((resolve, reject) => {
+        this.#abortController = new AbortController()
+        proc = execFile(this.bin, [tmpFile.file], {
+          env: process.env,
+          cwd: this.proxy.scene.curDir,
+          timeout,
+          signal: this.#abortController.signal,
+          ...this.opts
+        }, (err, stdout, stderr) => {
+          if (err) {
+            reject(err)
+            return
+          }
+          if (stdout && this.logger.is(LoggerLevel.trace)) {
+            this.logger.trace(stdout)
+          }
+          if (stderr && this.logger.is(LoggerLevel.error)) {
+            this.logger.error(stderr)
+          }
+          resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)
+        })
       })
-    })
+    } catch (err) {
+      if (!proc?.exitCode || !this.exitCodes.includes(proc.exitCode)) {
+        throw err
+      }
+    }
+    return log
   }
 
   dispose() {
