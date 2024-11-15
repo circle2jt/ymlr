@@ -9,8 +9,22 @@ import { type Element } from '../element.interface'
   @group event
   @example
   ```yaml
-    - event'emit:
+    - name: send data to an event
+      event'emit:
         name: test-event
+        data:
+          name: Test event
+          data: Hello
+        opts:
+          - params 1
+          - params 2
+
+    - name: send data to multiple events
+      event'emit:
+        names:
+          - test-event1
+          - test-event2
+          - test-event3
         data:
           name: Test event
           data: Hello
@@ -22,20 +36,23 @@ import { type Element } from '../element.interface'
 export class EventEmiter implements Element {
   readonly proxy!: ElementProxy<this>
 
-  name!: string
+  names!: string[]
   data?: any
   opts?: any
 
-  constructor(props: any) {
-    Object.assign(this, props)
+  constructor({ name, names = [], ...props }: any) {
+    if (name) names.push(name)
+    Object.assign(this, { names, ...props })
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.names?.length)
 
     const opts = Array.isArray(this.opts) ? this.opts : (this.opts ? [this.opts] : [])
-    this.proxy.logger.trace('Emited to event "%s": %j', this.name, this.data)
-    GlobalEvent.emit(this.name, this.data, ...opts)
+    this.names.forEach(name => {
+      this.proxy.logger.trace('Emited to event "%s": %j', name, this.data)
+      GlobalEvent.emit(name, this.data, ...opts)
+    })
   }
 
   dispose() { }
