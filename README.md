@@ -794,8 +794,22 @@ Send data via global event
 Example:  
 
 ```yaml
-  - event'emit:
+  - name: send data to an event
+    event'emit:
       name: test-event
+      data:
+        name: Test event
+        data: Hello
+      opts:
+        - params 1
+        - params 2
+
+  - name: send data to multiple events
+    event'emit:
+      names:
+        - test-event1
+        - test-event2
+        - test-event3
       data:
         name: Test event
         data: Hello
@@ -812,8 +826,19 @@ Handle global events in app
 Example:  
 
 ```yaml
-  - event'on:
+  - name: listen to handle an events
+    event'on:
       name: test-event
+    runs:
+      - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+      - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+
+  - name: listen to handle multiple events
+    event'on:
+      names:
+        - test-event1
+        - test-event2
+        - test-event3
     runs:
       - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
       - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
@@ -1133,8 +1158,10 @@ Execute a bash script
 ```yaml
   - name: Run a bash script
     exec:
-      - /bin/sh
-      - /startup.sh
+      exitCodes: [0, 1] # expect exit code is 0, 1 is success
+      commands:
+        - /bin/sh
+        - /startup.sh
 ```
 Execute a python app
 ```yaml
@@ -2188,6 +2215,7 @@ Execute a bash script
 ```yaml
   - name: Write a hello file
     sh:
+      exitCodes: [0, 1]               # expect exit code is 0, 1 is success. Default is [0]
       script: |                       # Shell script content
         touch hello.txt
         echo "Hello world" > /tmp/hello.txt
