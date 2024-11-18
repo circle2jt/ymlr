@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.1.md](#1731911275224)  -  _11/18/2024, 1:27:55 PM_
 - [1.3.1-alpha.0.md](#1731653968043)  -  _11/15/2024, 1:59:28 PM_
 - [1.3.0.md](#1729427736671)  -  _10/20/2024, 7:35:36 PM_
 - [1.3.0-alpha.3.md](#1725617515319)  -  _9/6/2024, 5:11:55 PM_
@@ -88,6 +89,12 @@
 
 ## Details
 
+<a id="1731911275224"></a>
+### 1.3.1-alpha.1
+
+* refactor: replace require to import module (ee1efe6)
+* refactor(logger): change format and optimize performance (e0cefa5)
+  
 <a id="1731653968043"></a>
 ### 1.3.1-alpha.0
 

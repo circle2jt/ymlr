@@ -2331,6 +2331,7 @@ Quick test
   - test:
       title: Number must be greater than 10
       check: ${$vars.age > 10}
+      stopWhenFailed: true
 
   - test: ${$vars.age < 10}
 ```
@@ -2383,6 +2384,24 @@ Example:
 
   - echo: ${ $utils.aes.decrypt('$ENCRYPTED_STRING') }
 ```  
+
+
+## <a id="$utils.debounceManager"></a>$utils.debounceManager  
+`Utility function`  
+Return using map debounce function via fn-debounce  
+
+Example:  
+
+```yaml
+- fn-debounce:
+    name: testDebounce
+    wait: 5s
+  runs:
+    - echo: Hello
+- js: |
+    const count = $utils.debounceManager.size()
+    const hasDebounce = $utils.debounceManager.has('testDebounce')
+    $utils.debounceManager.get('testDebounce').flush()  
 
 
 ## <a id="$utils.format"></a>$utils.format  
@@ -2458,6 +2477,36 @@ Example:
     this.logger.info('Sleep 5s')
     await $utils.sleep('5s')
     this.logger.info('Do it')  
+
+
+## <a id="$utils.styles"></a>$utils.styles  
+`Utility function`  
+Return [chalk](https://www.npmjs.com/package/chalk) which decorate text style (color, italic, bold, bgColor....)  
+
+Example:  
+
+```yaml
+- js: |
+    this.logger.debug($utils.styles.red('Red text'))
+    this.logger.debug($utils.styles.blue.italic('Blue and italic text'))  
+
+
+## <a id="$utils.throttleManager"></a>$utils.throttleManager  
+`Utility function`  
+Return using map throttle function via fn-throttle  
+
+Example:  
+
+```yaml
+- fn-throttle:
+    name: testThrottle
+    wait: 5s
+  runs:
+    - echo: Hello
+- js: |
+    const count = $utils.throttleManager.size()
+    const hasThrottle = $utils.throttleManager.has('testThrottle')
+    $utils.throttleManager.get('testThrottle').flush()  
 
 
 ## <a id="$utils.url"></a>$utils.url  
