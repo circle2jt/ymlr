@@ -346,12 +346,15 @@ How to print log details for each of item.
 Default is `info`
 Value must be in:
 - `true`: is `debug`
-- `all`: Print all of debug message
-- `trace`: Print all of debug message
-- `debug`: Print short of debug
-- `info`: Print name, description without log details
-- `warn`: Only show warning debug
-- `error`: Only show error debug  
+- `all`: Same `trace`
+- `trace`: Print all of messages
+- `debug`: Print of `debug`, `info`, `warn`, `error`, `fatal` messages
+- `info`: Print `info`, `warn`, `error`, `fatal` messages
+- `warn`: Print `warn`, `error`, `fatal` messages
+- `error`: Print `error`, `fatal` messages
+- `fatal`: Print `fatal` messages
+- `secret`: Only show secret log. Example config, password, keys...
+- `silent`: Not print anything  
 
 Example:  
 
