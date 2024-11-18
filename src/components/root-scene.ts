@@ -1,6 +1,10 @@
+import chalk from 'chalk'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
+import { DEBUG_GROUP_RESULT, MODE, SAND_SCENE_PASSWORD } from 'src/env'
 import { GlobalEvent } from 'src/libs/global-event'
+import { LoggerFactory } from 'src/libs/logger/logger-factory'
+import { PackageManagerSupported } from 'src/managers/packages-manager-factory'
 import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
@@ -81,6 +85,30 @@ export class RootScene extends Scene {
 
   override async asyncConstructor() {
     await this.handleFile()
+    if (process.env.DEBUG_CONFIG) {
+      const logger = this.logger.clone('DEBUG_CONFIG')
+      logger.info(`${chalk.cyan.bold('Environments')} %O`, [
+        'DEBUG',
+        'DEBUG_CONTEXT_FILTER',
+        'FORCE_COLOR',
+        'MODE',
+        'DEBUG_GROUP_RESULT',
+        'SAND_SCENE_PASSWORD',
+        'PACKAGE_MANAGERS'
+      ].reduce((obj: Record<string, any>, k) => {
+        obj[k] = process.env[k]
+        return obj
+      }, {}))
+      logger.info(`${chalk.cyan.bold('Config variables')} %O`, {
+        DEBUG: LoggerFactory.DEBUG,
+        DEBUG_CONTEXT_FILTER: LoggerFactory.DEBUG_CONTEXT_FILTER,
+        TTY: LoggerFactory.TTY,
+        MODE,
+        DEBUG_GROUP_RESULT,
+        SAND_SCENE_PASSWORD,
+        PACKAGE_MANAGERS: PackageManagerSupported
+      })
+    }
   }
 
   pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {

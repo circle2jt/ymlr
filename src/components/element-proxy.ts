@@ -697,8 +697,9 @@ export class ElementProxy<T extends Element> {
         if (!this.failure?.ignore) {
           throw err
         }
-        const log = this.failure?.logDetails ? this.logger.warn('%o', err) : this.logger.warn('%s', err?.message)
-        log.trace(err)
+        this.logger
+          .warn(this.failure?.logDetails ? err : err?.message)
+          .trace(err)
         return
       }
       await this.setVarsAfterExec()

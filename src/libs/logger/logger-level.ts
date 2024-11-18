@@ -6,7 +6,7 @@ export enum LoggerCoreLevel {
   warn = 8,
   error = 10,
   fail = 11,
-  fatal = 11,
+  fatal = 12,
 }
 
 export enum LoggerLevel {

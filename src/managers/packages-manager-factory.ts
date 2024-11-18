@@ -7,7 +7,7 @@ import { Pnpm } from './package-managers/pnpm'
 import { Yarn } from './package-managers/yarn'
 
 type NPMSupport = 'npm' | 'yarn' | 'pnpm' | 'bun'
-const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['yarn', 'npm', 'pnpm', 'bun']) as NPMSupport[]
+export const PackageManagerSupported = (process.env.PACKAGE_MANAGERS?.split(',') || ['yarn', 'npm', 'pnpm', 'bun']) as NPMSupport[]
 
 export class PackagesManagerFactory {
   private static PackageManagerType?: NPMSupport

@@ -77,16 +77,16 @@ export class ConsoleLogger extends Logger {
         this.#timestamp,
         LevelFactory.GetInstance(level).icon,
         this.#indentString,
-        chalk.gray.dim.italic(this.fullContextPath),
-        ...prms)
+        ...prms,
+        this.#fullContextPath)
     } else {
-      printToConsole(`%s %s %s %s ${LevelFactory.GetInstance(level).format('%o')} \t %s`,
+      printToConsole(`%s %s %s %s \t %s\n${LevelFactory.GetInstance(level).format('%o')}`,
         this.#threadID,
         this.#timestamp,
         LevelFactory.GetInstance(level).icon,
         this.#indentString,
-        msg,
         this.#fullContextPath,
+        msg,
         ...prms)
     }
     return this

@@ -69,6 +69,15 @@ export abstract class Logger {
     if (context) this.context = context
     if (errorStack) this.errorStack = { ...errorStack }
     this.level = level instanceof Level ? level : LevelFactory.GetInstance(level)
+    // Inject global check for performance
+    if (LoggerFactory.DEBUG || LoggerFactory.DEBUG_CONTEXT_FILTER) {
+      const is = this.is.bind(this)
+      this.is = function (level: LoggerLevel) {
+        if (LoggerFactory.DEBUG?.is(level) === true) return true
+        if (LoggerFactory.DEBUG_CONTEXT_FILTER?.test(this.fullContextPath) === false) return false
+        return is(level)
+      }
+    }
   }
 
   abstract trace(...args: any[]): this
@@ -82,8 +91,6 @@ export abstract class Logger {
   abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {
-    if (LoggerFactory.DEBUG?.is(level) === true) return true
-    if (LoggerFactory.DEBUG_CONTEXT_FILTER?.test(this.fullContextPath) === false) return false
     return this.level.is(level)
   }
 
