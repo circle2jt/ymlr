@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { bin, description, homepage, name, version } from '../package.json'
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -6,6 +7,8 @@ import { bin, description, homepage, name, version } from '../package.json'
   const t = cli()
   await t
 })()
+
+process.env.FORCE_COLOR = '1'
 
 async function cli() {
   const { program } = require('commander')
@@ -22,6 +25,7 @@ async function cli() {
     .option('-nc --no-color', 'Disable pseudo-TTY')
     .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
+    .option('-df, --debug-context-filter [context_path]', 'allow filter message by context path. It\'s regex pattern. Example: @group/')
     .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
@@ -29,10 +33,7 @@ async function cli() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, noColor, flow, env = [], tagDirs, envFile = [] } = opts
-          process.env.FORCE_COLOR = noColor ? '0' : '1'
-          process.env.MODE = !flow ? '' : 'flow'
-
+          const { debug, noColor, flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
           if (envFile.length) {
             const { FileRemote } = require('./libs/file-remote')
             for (const efile of envFile) {
@@ -51,16 +52,13 @@ async function cli() {
               const vl = keyValue.substring(idx + 1)
               process.env[key] = vl
             })
-          if (debug) {
-            process.env.DEBUG = debug
-          }
+          if (debug) process.env.DEBUG = debug
+          if (noColor) process.env.FORCE_COLOR = '0'
+          if (flow) process.env.MODE = 'flow'
+          if (debugContextFilter) process.env.DEBUG_CONTEXT_FILTER = debugContextFilter
 
-          const { LoggerFactory } = await import('./libs/logger/logger-factory')
-          LoggerFactory.Configure('', {
-            noColor: !!noColor
-          })
           LoggerFactory.LoadFromEnv()
-          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG, undefined, undefined, undefined)
+          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level, undefined, undefined, undefined)
           const chalk = require('chalk')
           appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
           const { App } = require('./app')
@@ -86,7 +84,6 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
@@ -108,7 +105,6 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
@@ -130,7 +126,6 @@ async function cli() {
         t = new Promise(async (resolve, reject) => {
           try {
             assert(packages?.length, '"package(s)" is requried')
-            const { LoggerFactory } = await import('./libs/logger/logger-factory')
             const { LoggerLevel } = require('./libs/logger/logger-level')
             const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
             const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
@@ -145,8 +140,9 @@ async function cli() {
     .addHelpText('after', () => {
       const chalk = require('chalk')
       const { dependencies = {} } = require('./package.json')
-      const msg = ['Sub modules version']
-      Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}`))
+      const msg = []
+      msg.push(`Installed modules of ${chalk.green(name)}${chalk.gray(`@${version}`)}`)
+      Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}\t${chalk.gray.dim(`https://www.npmjs.com/package/${key}`)}`))
       return msg.length > 1 ? msg.join('\n') : ''
     })
     .addHelpText('after', `More:

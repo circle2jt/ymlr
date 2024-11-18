@@ -2,52 +2,29 @@ import { type ErrorStack } from 'src/libs/error-stack'
 import { type Logger } from '.'
 import { ConsoleLogger } from './console'
 import { type Indent } from './indent'
-import { GetLoggerLevel, LoggerLevel } from './logger-level'
+import { type Level } from './level'
+import { LevelFactory } from './level-factory'
+import { GetLoggerLevel, type LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
-  static DEBUG?: LoggerLevel
-  static DEFAULT_LOGGER_CONFIG: any
+  static DEBUG?: Level
+  static DEBUG_CONTEXT_FILTER?: RegExp
 
   static LoadFromEnv() {
-    const DEBUG = process.env.DEBUG
-    // Validate --debug
-    if (DEBUG === 'true') {
-      LoggerFactory.DEBUG = LoggerLevel.debug
-    } else if (DEBUG) {
-      const debug = GetLoggerLevel(DEBUG)
-      if (!debug) {
-        console.warn(`--debug "${DEBUG}", Log level is not valid`)
-      } else {
-        LoggerFactory.DEBUG = debug
+    if (process.env.DEBUG) {
+      const defaultLoggerLevel = GetLoggerLevel(process.env.DEBUG || 'info')
+      if (!defaultLoggerLevel) {
+        throw new Error(`--debug "${process.env.DEBUG}", Log level is not valid`)
       }
+      LoggerFactory.DEBUG = LevelFactory.GetInstance(defaultLoggerLevel)
     }
+    LoggerFactory.DEBUG_CONTEXT_FILTER = process.env.DEBUG_CONTEXT_FILTER ? new RegExp(process.env.DEBUG_CONTEXT_FILTER) : undefined
   }
 
-  static Dispose() {
-    // this.Event?.removeAllListeners()
-    // this.Event = undefined
-    // LoggerFactory.DEFAULT_LOGGER?.Dispose?.()
-  }
+  static Dispose() { }
 
-  static Configure(name: string, opts = {} as any) {
-    LoggerFactory.DEFAULT_LOGGER_CONFIG = {
-      name,
-      opts
-    }
-  }
-
-  static NewLogger(level: LoggerLevel | undefined, context?: string, errorStack?: ErrorStack, indent?: Indent) {
-    const logger = new ConsoleLogger(level, context, errorStack, undefined, indent)
+  static NewLogger(level?: LoggerLevel, context?: string, errorStack?: ErrorStack, indent?: Indent) {
+    const logger = new ConsoleLogger(level, context, errorStack, indent)
     return logger as Logger
   }
-
-  // static Event?: EventEmitter
-  // static On(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
-  //   if (!this.Event) this.Event = new EventEmitter().setMaxListeners(0)
-  //   eventNames.forEach(eventName => this.Event?.on(eventName, cb))
-  // }
-
-  // static Off(eventNames: Array<LoggerLevel.warn | LoggerLevel.error | LoggerLevel.fatal>, cb: () => any) {
-  //   this.Event && eventNames.forEach(eventName => this.Event?.off(eventName, cb))
-  // }
 }

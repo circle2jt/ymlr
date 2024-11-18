@@ -2,7 +2,6 @@ import { join } from 'path'
 import { type ElementBaseProps } from 'src/components/element.interface'
 import { type RootSceneProps } from 'src/components/root-scene.props'
 import { type Logger } from 'src/libs/logger'
-import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { Worker as WorkerThread } from 'worker_threads'
 import { type WorkerManager } from './worker-manager'
 
@@ -18,12 +17,11 @@ export class Worker {
     public id: string,
     private readonly props: RootSceneProps,
     baseProps: ElementBaseProps,
+    env: Record<string, any> = {},
     private readonly logger: Logger,
     others: {
       tagDirs?: string[]
       templates?: Record<string, any>
-      loggerDebug?: LoggerLevel
-      loggerConfig?: any
     }) {
     this.worker = new WorkerThread(join(__dirname, '../worker-service.js'), {
       workerData: {
@@ -32,7 +30,10 @@ export class Worker {
         props,
         ...others
       },
-      env: process.env
+      env: {
+        ...process.env,
+        ...env
+      }
     })
     this.worker.on('message', this.onMessage.bind(this))
     this.worker.on('error', this.onError.bind(this))

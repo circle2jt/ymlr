@@ -3,57 +3,88 @@ import { Indent } from './indent'
 import { Level } from './level'
 import { LevelFactory } from './level-factory'
 import { LoggerFactory } from './logger-factory'
-import { LoggerLevel } from './logger-level'
+import { LoggerCoreLevel, LoggerLevel } from './logger-level'
 
 export abstract class Logger {
-  static #ID = 0
-  static GenID(parent = '') {
-    return `${parent}${parent && '-'}${this.#ID++}`
+  #level!: Level
+  get level() {
+    return this.#level
   }
 
-  public level?: Level | null
-  public get levelName(): string | undefined {
-    return this.level?.name
+  set level(level: Level) {
+    this.#level = level
+    const levelsDisable = new Array<string>()
+    if (this.is(LoggerLevel.debug)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace])
+    } else if (this.is(LoggerLevel.info)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug])
+    } else if (this.is(LoggerLevel.warn)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass])
+    } else if (this.is(LoggerLevel.error)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn])
+    } else if (this.is(LoggerLevel.fatal)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn], LoggerLevel[LoggerLevel.error], LoggerLevel[LoggerLevel.fail])
+    } else if (this.is(LoggerLevel.silent)) {
+      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn], LoggerLevel[LoggerLevel.error], LoggerLevel[LoggerLevel.fail], LoggerLevel[LoggerLevel.fatal])
+    }
+    Object.keys(LoggerCoreLevel)
+      .forEach(level => {
+        if (levelsDisable.includes(level)) {
+          (this as any)[level] = this.silent
+        } else if ((this as any)[level] === this.silent) {
+          (this as any)[level] = this.constructor.prototype[level].bind(this)
+        }
+      })
   }
 
-  protected _context = ''
+  public get levelName() {
+    return this.level.name
+  }
+
+  #context = ''
   set context(ctx: string) {
-    this._context = ctx
+    this.#context = ctx
+    this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
   }
 
   get context() {
-    return this._context
+    return this.#context
   }
+
+  #contextPath = ''
+  set contextPath(ctx: string) {
+    this.#contextPath = ctx
+    this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
+  }
+
+  get contextPath() {
+    return this.#contextPath
+  }
+
+  protected fullContextPath = ''
 
   errorStack?: ErrorStack
 
-  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack = {}, public id = Logger.GenID(), public indent = new Indent()) {
-    if (context) {
-      this.context = context
-    }
-    this.errorStack = { ...errorStack }
-    if (level) {
-      if (level instanceof Level) {
-        this.level = level
-      } else {
-        this.setLevel(level)
-      }
-    }
-    if (this.level === undefined && LoggerFactory.DEBUG) {
-      this.level = LevelFactory.GetInstance(LoggerFactory.DEBUG)
-    }
+  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, public indent = new Indent()) {
+    if (context) this.context = context
+    if (errorStack) this.errorStack = { ...errorStack }
+    this.level = level instanceof Level ? level : LevelFactory.GetInstance(level)
   }
 
   abstract trace(...args: any[]): this
   abstract debug(...args: any[]): this
   abstract info(...args: any[]): this
+  abstract pass(...args: any[]): this
   abstract warn(...args: any[]): this
   abstract error(...args: any[]): this
+  abstract fail(...args: any[]): this
   abstract fatal(...args: any[]): this
   abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {
-    return this.level?.is(level)
+    if (LoggerFactory.DEBUG?.is(level) === true) return true
+    if (LoggerFactory.DEBUG_CONTEXT_FILTER?.test(this.fullContextPath) === false) return false
+    return this.level.is(level)
   }
 
   addIndent(indent = 1) {
@@ -64,11 +95,9 @@ export abstract class Logger {
     this.indent.add(indent * -1)
   }
 
-  setLevel(level: LoggerLevel) {
-    if (!LoggerFactory.DEBUG) {
-      this.level = LevelFactory.GetInstance(level)
-    }
-  }
-
   dispose() { }
+
+  private silent(..._: any[]) {
+    return this
+  }
 }

@@ -182,13 +182,59 @@ export class UtilityFunctionManager {
   */
   sleep = sleep
 
+  /** |**  $utils.debounceManager
+    Return using map debounce function via fn-debounce
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+    - fn-debounce:
+        name: testDebounce
+        wait: 5s
+      runs:
+        - echo: Hello
+    - js: |
+        const count = $utils.debounceManager.size()
+        const hasDebounce = $utils.debounceManager.has('testDebounce')
+        $utils.debounceManager.get('testDebounce').flush()
+  */
   get debounceManager() {
     const { DebounceManager } = require('./debounce-manager')
     return DebounceManager.Instance
   }
 
+  /** |**  $utils.throttleManager
+    Return using map throttle function via fn-throttle
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+    - fn-throttle:
+        name: testThrottle
+        wait: 5s
+      runs:
+        - echo: Hello
+    - js: |
+        const count = $utils.throttleManager.size()
+        const hasThrottle = $utils.throttleManager.has('testThrottle')
+        $utils.throttleManager.get('testThrottle').flush()
+  */
   get throttleManager() {
     const { ThrottleManager } = require('./throttle-manager')
     return ThrottleManager.Instance
+  }
+
+  /** |**  $utils.styles
+    Return [chalk](https://www.npmjs.com/package/chalk) which decorate text style (color, italic, bold, bgColor....)
+    @position bottom
+    @tag Utility function
+    @example
+    ```yaml
+    - js: |
+        this.logger.debug($utils.styles.red('Red text'))
+        this.logger.debug($utils.styles.blue.italic('Blue and italic text'))
+  */
+  get styles() {
+    return require('chalk')
   }
 }

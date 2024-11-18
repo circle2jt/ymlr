@@ -64,7 +64,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
-    elemProxy.tag = typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name)
+    elemProxy.tag = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
     Object.defineProperty(elemProxy, 'scene', {
       enumerable: false,
       configurable: false,

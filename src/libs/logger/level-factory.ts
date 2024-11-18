@@ -1,9 +1,10 @@
 import { type Level } from './level'
 import { DebugLevel } from './level/debug-level'
 import { ErrorLevel } from './level/error-level'
+import { FailLevel } from './level/fail-level'
 import { FatalLevel } from './level/fatal-level'
 import { InfoLevel } from './level/info-level'
-import { LogLevel } from './level/log-level'
+import { PassLevel } from './level/pass-level'
 import { SilentLevel } from './level/silent-level'
 import { TraceLevel } from './level/trace-level'
 import { WarnLevel } from './level/warn-level'
@@ -12,47 +13,45 @@ import { LoggerLevel } from './logger-level'
 export class LevelFactory {
   static readonly #Instance = new Map<number, Level>()
 
-  static GetLogInstance() {
-    const level = -1
-    let levelObj = this.#Instance.get(level)
-    if (levelObj) { return levelObj }
-
-    levelObj = new LogLevel()
-    this.#Instance.set(level, levelObj)
-    return levelObj
-  }
-
   static GetInstance(level: LoggerLevel) {
-    let levelObj: Level | undefined | null = this.#Instance.get(level)
-    if (levelObj) { return levelObj }
+    let loggerLevel = this.#Instance.get(level)
+    if (loggerLevel) {
+      return loggerLevel
+    }
 
     switch (level) {
       case LoggerLevel.all:
       case LoggerLevel.trace:
-        levelObj = new TraceLevel()
+        loggerLevel = new TraceLevel()
         break
       case LoggerLevel.debug:
-        levelObj = new DebugLevel()
+        loggerLevel = new DebugLevel()
         break
       case LoggerLevel.info:
-        levelObj = new InfoLevel()
+        loggerLevel = new InfoLevel()
+        break
+      case LoggerLevel.pass:
+        loggerLevel = new PassLevel()
         break
       case LoggerLevel.warn:
-        levelObj = new WarnLevel()
+        loggerLevel = new WarnLevel()
         break
       case LoggerLevel.error:
-        levelObj = new ErrorLevel()
+        loggerLevel = new ErrorLevel()
+        break
+      case LoggerLevel.fail:
+        loggerLevel = new FailLevel()
         break
       case LoggerLevel.fatal:
-        levelObj = new FatalLevel()
+        loggerLevel = new FatalLevel()
         break
       case LoggerLevel.silent:
-        levelObj = new SilentLevel()
+        loggerLevel = new SilentLevel()
         break
     }
-    if (levelObj) {
-      this.#Instance.set(level, levelObj)
+    if (loggerLevel) {
+      this.#Instance.set(level, loggerLevel)
     }
-    return levelObj
+    return loggerLevel
   }
 }

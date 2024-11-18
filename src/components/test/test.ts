@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { TestError } from './test-error'
@@ -16,6 +15,7 @@ export type TestProps = string | {
     - test:
         title: Number must be greater than 10
         check: ${$vars.age > 10}
+        stopWhenFailed: true
 
     - test: ${$vars.age < 10}
   ```
@@ -37,6 +37,7 @@ export class Test implements Element {
 
   check?: string
   script?: string
+  stopWhenFailed = true
 
   readonly #defaultTestTitle?: string
 
@@ -50,26 +51,31 @@ export class Test implements Element {
     this.#defaultTestTitle = this.check || this.script || ''
   }
 
-  failed(description = ''): never {
+  failed(description = '') {
     const err = new TestError(this.proxy.name)
     err.cause = description || this.#defaultTestTitle
-    throw err
+    if (this.stopWhenFailed) {
+      throw err
+    }
+    this.logger.fail('%s\n%o', err.message, err.cause)
+    return err
   }
 
   async exec() {
     if (this.check !== undefined) {
       const rs = this.check
-      if (!rs) this.failed('')
+      if (!rs) {
+        return this.failed('')
+      }
     }
     if (this.script) {
       try {
         await this.proxy.callFunctionScript(this.script)
       } catch (err: any) {
-        this.failed(err?.message)
+        return this.failed(err?.message)
       }
     }
-    this.proxy.name && this.logger.info(`${chalk.green('✔')} ${this.proxy.name}`)
-    return true
+    this.proxy.name && this.logger.pass('✔', this.proxy.name)
   }
 
   dispose() { }

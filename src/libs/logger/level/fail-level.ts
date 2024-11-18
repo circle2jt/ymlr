@@ -2,14 +2,14 @@ import chalk from 'chalk'
 import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
-export class InfoLevel extends Level {
-  readonly icon = chalk.green('info')
+export class FailLevel extends Level {
+  readonly icon = chalk.redBright('fail')
 
   constructor() {
-    super(LoggerLevel.info)
+    super(LoggerLevel.error)
   }
 
   override format(msg: string) {
-    return msg
+    return chalk.redBright(msg)
   }
 }

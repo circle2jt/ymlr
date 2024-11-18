@@ -2,6 +2,7 @@ import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
+import { LevelFactory } from 'src/libs/logger/level-factory'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
@@ -16,6 +17,9 @@ import { type VarsProps } from './vars.props'
 const DEFAULT_AUTO_EVAL_BASE_PROPS = [
   'name', 'failure'
 ]
+
+const ICON_MULTIPLE_STEP = '' // '▼'
+const ICON_SINGLE_STEP = '' // '▸'
 
 const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
 
@@ -526,7 +530,7 @@ export class ElementProxy<T extends Element> {
   }
 
   get contextName() {
-    return this.context || this.tag
+    return this.context || `@${this.tag}`
   }
 
   get isSkipNext() {
@@ -564,7 +568,9 @@ export class ElementProxy<T extends Element> {
   setDebug(debug?: string) {
     if (!debug) return
     this.debug = GetLoggerLevel(debug)
-    this.#logger?.setLevel(this.debug)
+    if (this.#logger) {
+      this.#logger.level = LevelFactory.GetInstance(this.debug)
+    }
   }
 
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
@@ -652,7 +658,7 @@ export class ElementProxy<T extends Element> {
       try {
         await this.evalPropsBeforeExec()
         if (this.name && !this.element.hideName) {
-          this.logger.info(`${this.runs?.length ? '▼' : '▸'} ${this.name}`)
+          this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.name}`)
         }
         while (true) {
           try {

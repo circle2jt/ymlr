@@ -2,7 +2,7 @@ import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
 export class SilentLevel extends Level {
-  readonly icon = ''
+  readonly icon = 'sile'
 
   constructor() {
     super(LoggerLevel.silent)

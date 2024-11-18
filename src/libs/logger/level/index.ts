@@ -1,9 +1,9 @@
-import { LoggerLevel } from '../logger-level'
+import { GetLoggerLevel, type LoggerLevel } from '../logger-level'
 
 export abstract class Level {
   abstract readonly icon: string
   get name() {
-    return LoggerLevel[this.level]
+    return GetLoggerLevel(this.level)
   }
 
   constructor(public level: LoggerLevel) { }

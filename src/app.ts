@@ -17,7 +17,7 @@ export class App {
     assert(rootSceneProps.path, 'Scene file is required')
     this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps))
     // this.#rootSceneProxy.scene = this.#rootSceneProxy.rootScene = this.#rootSceneProxy.element
-    this.#rootSceneProxy.logger = this.logger.clone('root-scene')
+    this.#rootSceneProxy.logger = this.logger
   }
 
   setDirTags(dirs: string[]) {

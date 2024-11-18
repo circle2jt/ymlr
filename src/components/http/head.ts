@@ -45,7 +45,7 @@ export class Head implements Element {
   baseURL?: string
   timeout?: number | string
   url = ''
-  headers = {} as any
+  headers: Record<string, any> = {}
   query?: any
   response?: Response
   executionTime?: number

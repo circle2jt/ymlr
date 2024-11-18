@@ -1,7 +1,6 @@
 import assert from 'assert'
 import toPlainObject from 'lodash.toplainobject'
 import { removeCircleRef } from 'src/libs/format'
-import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { type Worker } from 'src/managers/worker'
 import { Scene } from './scene'
 import { type SceneThreadProps } from './scene-thread.props'
@@ -123,13 +122,11 @@ export class SceneThread extends Scene {
       globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
       vars: this.vars
     }, {
-      debug: this.proxy.logger.level?.level
-    }, {
+      debug: this.proxy.logger.level.level
+    }, {}, {
       id: this.#id,
       tagDirs: tagDirs.map(dir => this.scene.getPath(dir)),
-      templates: this.rootScene.templatesManager,
-      loggerConfig: LoggerFactory.DEFAULT_LOGGER_CONFIG,
-      loggerDebug: LoggerFactory.DEBUG
+      templates: this.rootScene.templatesManager
     })
     if (!this.#id) {
       this.#id = this.#thread.id

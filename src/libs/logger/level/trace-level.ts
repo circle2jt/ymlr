@@ -3,7 +3,7 @@ import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
 export class TraceLevel extends Level {
-  readonly icon = chalk.magenta('T')
+  readonly icon = chalk.magenta('trac')
 
   constructor() {
     super(LoggerLevel.trace)

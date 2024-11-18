@@ -3,7 +3,6 @@ import { type ElementBaseProps } from 'src/components/element.interface'
 import { type RootSceneProps } from 'src/components/root-scene.props'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
-import { type LoggerLevel } from 'src/libs/logger/logger-level'
 import { Constants } from './constants'
 import { Worker } from './worker'
 
@@ -47,17 +46,15 @@ export class WorkerManager {
     }))
   }
 
-  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, others: {
+  createWorker(props: RootSceneProps, baseProps: ElementBaseProps, env: any, others: {
     id?: string
     tagDirs?: string[]
     templates?: Record<string, any>
-    loggerDebug?: LoggerLevel
-    loggerConfig?: any
   }) {
     if (!others.id) {
       others.id = `#${this.#workers.length + 1}`
     }
-    const wk = new Worker(this, others.id, props, baseProps, this.logger.clone(`worker:${others.id}`), others)
+    const wk = new Worker(this, others.id, props, baseProps, env, this.logger.clone(`worker:${others.id}`), others)
     this.#workers.push(wk)
     return wk
   }
@@ -73,7 +70,7 @@ export class WorkerManager {
       .filter(workerID => workerID !== fromID)
       .forEach(workerID => {
         if (workerID === App.ThreadID) {
-          this.logger.trace(`<worker -> main.event> Emited data "#${App.ThreadID}.%s": %j`, App.ThreadID, name, value)
+          this.logger.trace(`<worker -> main.event> Emited data "${App.ThreadID}.%s": %j`, App.ThreadID, name, value)
           GlobalEvent.emit(name, value, {
             fromID,
             toID: workerID
