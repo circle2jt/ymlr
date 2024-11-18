@@ -18,9 +18,10 @@ export async function RunCLI() {
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
-    .option('-nc --no-color', 'Disable pseudo-TTY')
+    .option('--color [level]', 'Enable pseudo-TTY. Level must in (0,1,2,3). "0": All colors disabled, "1": Basic color support (16 colors), "2": 256 color support, "3": Truecolor support (16 million colors)')
+    .option('--no-color', 'Disable pseudo-TTY')
     .option('-f, --flow', 'display flows in the application')
-    .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent"). Default is "debug"')
+    .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent", "secret"). Default is "debug"')
     .option('-df, --debug-context-filter [context_path]', 'allow filter message by context path. It\'s regex pattern. Example: @group/')
     .option('-x, --tag-dirs <path...>', 'path to folder which includes external tags')
     .option('-e, --env <key=value...>', 'environment variables')
@@ -29,7 +30,7 @@ export async function RunCLI() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, noColor, flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
+          const { debug, color, noColor, flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
           if (envFile.length) {
             for (const efile of envFile) {
               const fileRemote = new FileRemote(efile, null)
@@ -47,8 +48,8 @@ export async function RunCLI() {
               const vl = keyValue.substring(idx + 1)
               process.env[key] = vl
             })
+          process.env.FORCE_COLOR = noColor ? '0' : color === true ? '1' : color || '1'
           if (debug) process.env.DEBUG = debug
-          if (noColor) process.env.FORCE_COLOR = '0'
           if (flow) process.env.MODE = 'flow'
           if (debugContextFilter) process.env.DEBUG_CONTEXT_FILTER = debugContextFilter
 

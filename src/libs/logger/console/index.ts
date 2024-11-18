@@ -51,6 +51,10 @@ export class ConsoleLogger extends Logger {
     return this.print(LoggerLevel.error, console.error, msg, ...prms)
   }
 
+  override secret(msg: any, ...prms: any) {
+    return this.print(LoggerLevel.secret, console.log, msg, ...prms)
+  }
+
   override fatal(msg: any, ...prms: any) {
     this.print(LoggerLevel.fatal, console.error, msg, ...prms)
     if (this.errorStack) {

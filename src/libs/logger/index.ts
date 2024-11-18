@@ -2,6 +2,7 @@ import { type ErrorStack } from 'src/libs/error-stack'
 import { Indent } from './indent'
 import { Level } from './level'
 import { LevelFactory } from './level-factory'
+import { SecretLevel } from './level/secret-level'
 import { LoggerFactory } from './logger-factory'
 import { LoggerCoreLevel, LoggerLevel } from './logger-level'
 
@@ -13,23 +14,63 @@ export abstract class Logger {
 
   set level(level: Level) {
     this.#level = level
-    const levelsDisable = new Array<string>()
+    const levelsDisable = new Set<string>()
     if (this.is(LoggerLevel.debug)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
     } else if (this.is(LoggerLevel.info)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
     } else if (this.is(LoggerLevel.warn)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
+        .add(LoggerLevel[LoggerLevel.info])
+        .add(LoggerLevel[LoggerLevel.pass])
     } else if (this.is(LoggerLevel.error)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
+        .add(LoggerLevel[LoggerLevel.info])
+        .add(LoggerLevel[LoggerLevel.pass])
+        .add(LoggerLevel[LoggerLevel.warn])
     } else if (this.is(LoggerLevel.fatal)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn], LoggerLevel[LoggerLevel.error], LoggerLevel[LoggerLevel.fail])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
+        .add(LoggerLevel[LoggerLevel.info])
+        .add(LoggerLevel[LoggerLevel.pass])
+        .add(LoggerLevel[LoggerLevel.warn])
+        .add(LoggerLevel[LoggerLevel.error])
+        .add(LoggerLevel[LoggerLevel.fail])
+    } else if (this.is(LoggerLevel.secret)) {
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
+        .add(LoggerLevel[LoggerLevel.info])
+        .add(LoggerLevel[LoggerLevel.pass])
+        .add(LoggerLevel[LoggerLevel.warn])
+        .add(LoggerLevel[LoggerLevel.error])
+        .add(LoggerLevel[LoggerLevel.fail])
+        .add(LoggerLevel[LoggerLevel.fatal])
     } else if (this.is(LoggerLevel.silent)) {
-      levelsDisable.push(LoggerLevel[LoggerLevel.trace], LoggerLevel[LoggerLevel.debug], LoggerLevel[LoggerLevel.info], LoggerLevel[LoggerLevel.pass], LoggerLevel[LoggerLevel.warn], LoggerLevel[LoggerLevel.error], LoggerLevel[LoggerLevel.fail], LoggerLevel[LoggerLevel.fatal])
+      levelsDisable
+        .add(LoggerLevel[LoggerLevel.trace])
+        .add(LoggerLevel[LoggerLevel.debug])
+        .add(LoggerLevel[LoggerLevel.info])
+        .add(LoggerLevel[LoggerLevel.pass])
+        .add(LoggerLevel[LoggerLevel.warn])
+        .add(LoggerLevel[LoggerLevel.error])
+        .add(LoggerLevel[LoggerLevel.fail])
+        .add(LoggerLevel[LoggerLevel.fatal])
+    }
+    if (!LoggerFactory.DEBUG_SECRET && !(this.level instanceof SecretLevel)) {
+      levelsDisable.add(LoggerLevel[LoggerLevel.secret])
     }
     Object.keys(LoggerCoreLevel)
       .forEach(level => {
-        if (levelsDisable.includes(level)) {
+        if (levelsDisable.has(level)) {
           (this as any)[level] = this.silent
         } else if ((this as any)[level] === this.silent) {
           (this as any)[level] = this.constructor.prototype[level].bind(this)
@@ -88,6 +129,7 @@ export abstract class Logger {
   abstract error(...args: any[]): this
   abstract fail(...args: any[]): this
   abstract fatal(...args: any[]): this
+  abstract secret(...args: any[]): this
   abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {

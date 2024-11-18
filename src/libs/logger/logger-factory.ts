@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { type ErrorStack } from 'src/libs/error-stack'
 import { type Logger } from '.'
 import { ConsoleLogger } from './console'
@@ -9,10 +8,13 @@ import { GetLoggerLevel, type LoggerLevel } from './logger-level'
 
 export class LoggerFactory {
   static DEBUG?: Level
+  static DEBUG_SECRET?: boolean
   static DEBUG_CONTEXT_FILTER?: RegExp
-  static TTY = !!chalk.supportsColor
 
   static LoadFromEnv() {
+    if (process.env.DEBUG_SECRET === '1') {
+      LoggerFactory.DEBUG_SECRET = true
+    }
     if (process.env.DEBUG) {
       const defaultLoggerLevel = GetLoggerLevel(process.env.DEBUG || 'info')
       if (!defaultLoggerLevel) {
@@ -21,9 +23,6 @@ export class LoggerFactory {
       LoggerFactory.DEBUG = LevelFactory.GetInstance(defaultLoggerLevel)
     }
     LoggerFactory.DEBUG_CONTEXT_FILTER = process.env.DEBUG_CONTEXT_FILTER ? new RegExp(process.env.DEBUG_CONTEXT_FILTER) : undefined
-    if (process.env.FORCE_COLOR && ['1', '0'].includes(process.env.FORCE_COLOR)) {
-      LoggerFactory.TTY = process.env.FORCE_COLOR === '1'
-    }
   }
 
   static Dispose() { }

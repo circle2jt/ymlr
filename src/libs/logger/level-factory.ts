@@ -5,6 +5,7 @@ import { FailLevel } from './level/fail-level'
 import { FatalLevel } from './level/fatal-level'
 import { InfoLevel } from './level/info-level'
 import { PassLevel } from './level/pass-level'
+import { SecretLevel } from './level/secret-level'
 import { SilentLevel } from './level/silent-level'
 import { TraceLevel } from './level/trace-level'
 import { WarnLevel } from './level/warn-level'
@@ -47,6 +48,9 @@ export class LevelFactory {
         break
       case LoggerLevel.silent:
         loggerLevel = new SilentLevel()
+        break
+      case LoggerLevel.secret:
+        loggerLevel = new SecretLevel()
         break
     }
     if (loggerLevel) {

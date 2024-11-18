@@ -7,6 +7,7 @@ export enum LoggerCoreLevel {
   error = 10,
   fail = 11,
   fatal = 12,
+  secret = 14,
 }
 
 export enum LoggerLevel {
@@ -19,7 +20,8 @@ export enum LoggerLevel {
   error = LoggerCoreLevel.error,
   fail = LoggerCoreLevel.fail,
   fatal = LoggerCoreLevel.fatal,
-  silent = 12,
+  secret = LoggerCoreLevel.secret,
+  silent = 16,
 }
 
 export function GetLoggerLevel(name: string | number) {

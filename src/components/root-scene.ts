@@ -85,30 +85,30 @@ export class RootScene extends Scene {
 
   override async asyncConstructor() {
     await this.handleFile()
-    if (process.env.DEBUG_CONFIG) {
-      const logger = this.logger.clone('DEBUG_CONFIG')
-      logger.info(`${chalk.cyan.bold('Environments')} %O`, [
-        'DEBUG',
-        'DEBUG_CONTEXT_FILTER',
-        'FORCE_COLOR',
-        'MODE',
-        'DEBUG_GROUP_RESULT',
-        'SAND_SCENE_PASSWORD',
-        'PACKAGE_MANAGERS'
-      ].reduce((obj: Record<string, any>, k) => {
-        obj[k] = process.env[k]
-        return obj
-      }, {}))
-      logger.info(`${chalk.cyan.bold('Config variables')} %O`, {
-        DEBUG: LoggerFactory.DEBUG,
-        DEBUG_CONTEXT_FILTER: LoggerFactory.DEBUG_CONTEXT_FILTER,
-        TTY: LoggerFactory.TTY,
-        MODE,
-        DEBUG_GROUP_RESULT,
-        SAND_SCENE_PASSWORD,
-        PACKAGE_MANAGERS: PackageManagerSupported
-      })
-    }
+    const logger = this.logger.clone('Configurations')
+    logger.secret('Environments', [
+      'DEBUG',
+      'DEBUG_CONTEXT_FILTER',
+      'FORCE_COLOR',
+      'DEBUG_SECRET',
+      'MODE',
+      'DEBUG_GROUP_RESULT',
+      'SAND_SCENE_PASSWORD',
+      'PACKAGE_MANAGERS'
+    ].reduce((obj: Record<string, any>, k) => {
+      obj[k] = process.env[k]
+      return obj
+    }, {}))
+    logger.secret('Global Configurations', {
+      DEBUG: LoggerFactory.DEBUG,
+      DEBUG_CONTEXT_FILTER: LoggerFactory.DEBUG_CONTEXT_FILTER,
+      DEBUG_SECRET: LoggerFactory.DEBUG_SECRET,
+      TTY: !!chalk.supportsColor,
+      MODE,
+      DEBUG_GROUP_RESULT,
+      SAND_SCENE_PASSWORD,
+      PACKAGE_MANAGERS: PackageManagerSupported
+    })
   }
 
   pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {

@@ -11,8 +11,4 @@ export class SilentLevel extends Level {
   override format(_msg: string) {
     return ''
   }
-
-  override is(_: LoggerLevel) {
-    return false
-  }
 }
