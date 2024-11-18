@@ -1,1 +1,1 @@
-export { Exit as default } from './exit'
+export default () => require('./exit').Exit

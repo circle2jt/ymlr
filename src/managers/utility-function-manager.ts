@@ -1,11 +1,15 @@
+import chalk from 'chalk'
 import type EventEmitter from 'events'
-import { type DumpOptions } from 'js-yaml'
-import { type Base64 } from 'src/libs/encode/base64'
-import { type Url } from 'src/libs/encode/url'
-import { type AES } from 'src/libs/encrypt/aes'
-import { type MD5 } from 'src/libs/encrypt/md5'
+import { dump, load, type DumpOptions } from 'js-yaml'
+import { Base64 } from 'src/libs/encode/base64'
+import { Url } from 'src/libs/encode/url'
+import { AES } from 'src/libs/encrypt/aes'
+import { MD5 } from 'src/libs/encrypt/md5'
+import { formatDate, formatDuration, formatFileName, formatFixLengthNumber, formatNumber, formatTextToMs } from 'src/libs/format'
 import { GlobalEvent } from 'src/libs/global-event'
 import { sleep } from 'src/libs/time'
+import { DebounceManager } from './debounce-manager'
+import { ThrottleManager } from './throttle-manager'
 
 export class UtilityFunctionManager {
   static #Instance: UtilityFunctionManager
@@ -47,7 +51,6 @@ export class UtilityFunctionManager {
     ```
   */
   get url(): Url {
-    const { Url } = require('../libs/encode/url')
     return new Url()
   }
 
@@ -63,7 +66,6 @@ export class UtilityFunctionManager {
     ```
   */
   get base64(): Base64 {
-    const { Base64 } = require('../libs/encode/base64')
     return new Base64()
   }
 
@@ -77,7 +79,6 @@ export class UtilityFunctionManager {
     ```
   */
   get md5(): MD5 {
-    const { MD5 } = require('../libs/encrypt/md5')
     return new MD5()
   }
 
@@ -93,7 +94,6 @@ export class UtilityFunctionManager {
     ```
   */
   get aes(): AES {
-    const { AES } = require('../libs/encrypt/aes')
     return new AES()
   }
 
@@ -121,34 +121,27 @@ export class UtilityFunctionManager {
   */
   format = {
     date(date: Date, format: string) {
-      const { formatDate } = require('../libs/format')
       return formatDate(date, format)
     },
     fileName(fileName: string) {
-      const { formatFileName } = require('../libs/format')
       return formatFileName(fileName)
     },
     fixLengthNumber(n: number, length?: number) {
-      const { formatFixLengthNumber } = require('../libs/format')
       return formatFixLengthNumber(n, length)
     },
     number(num: number, opts?: Intl.NumberFormatOptions) {
-      const { formatNumber } = require('../libs/format')
       return formatNumber(num, opts)
     },
     duration(ms: number) {
-      const { formatDuration } = require('../libs/format')
       return formatDuration(ms)
     },
     textToMs(time: string | number) {
-      const { formatTextToMs } = require('../libs/format')
       return formatTextToMs(time)
     },
     yaml(obj: any, opts: DumpOptions) {
       if (obj === null || obj === undefined) {
         return obj
       }
-      const { dump } = require('js-yaml')
       return dump(obj, opts)
     }
   }
@@ -164,7 +157,6 @@ export class UtilityFunctionManager {
   parse = {
     yaml(content?: string) {
       if (!content) return undefined
-      const { load } = require('js-yaml')
       return load(content)
     }
   }
@@ -199,7 +191,6 @@ export class UtilityFunctionManager {
         $utils.debounceManager.get('testDebounce').flush()
   */
   get debounceManager() {
-    const { DebounceManager } = require('./debounce-manager')
     return DebounceManager.Instance
   }
 
@@ -220,7 +211,6 @@ export class UtilityFunctionManager {
         $utils.throttleManager.get('testThrottle').flush()
   */
   get throttleManager() {
-    const { ThrottleManager } = require('./throttle-manager')
     return ThrottleManager.Instance
   }
 
@@ -235,6 +225,6 @@ export class UtilityFunctionManager {
         this.logger.debug($utils.styles.blue.italic('Blue and italic text'))
   */
   get styles() {
-    return require('chalk')
+    return chalk
   }
 }

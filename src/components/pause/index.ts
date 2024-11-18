@@ -1,1 +1,1 @@
-export { Pause as default } from './pause'
+export default () => require('./pause').Pause

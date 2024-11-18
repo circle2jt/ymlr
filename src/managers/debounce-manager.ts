@@ -1,4 +1,4 @@
-import type FNDebounce from 'src/components/fn-debounce'
+import { type FNDebounce } from 'src/components/fn-debounce/fn-debounce'
 
 export class DebounceManager extends Map<string, FNDebounce> {
   static #Instance: DebounceManager

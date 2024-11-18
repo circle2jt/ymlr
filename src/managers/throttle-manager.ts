@@ -1,4 +1,4 @@
-import type FNThrottle from 'src/components/fn-throttle'
+import { type FNThrottle } from 'src/components/fn-throttle/fn-throttle'
 
 export class ThrottleManager extends Map<string, FNThrottle> {
   static #Instance: ThrottleManager

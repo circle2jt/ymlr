@@ -1,1 +1,1 @@
-export { Sh as default } from './sh'
+export default () => require('./sh').Sh

@@ -7,13 +7,13 @@ export class MemStorage implements StorageInterface {
   }
 
   load(defaultData?: any) {
-    this.logger.debug('Loaded')
+    this.logger.debug('Loaded').trace(defaultData)
     this.data = defaultData
     return this.data
   }
 
   save(data = {}) {
-    this.logger.debug('Saved')
+    this.logger.debug('Saved').trace(data)
     this.data = data
   }
 

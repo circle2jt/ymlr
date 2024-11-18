@@ -5,7 +5,7 @@ import { formatTextToMs } from 'src/libs/format'
 import { DebounceManager } from 'src/managers/debounce-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import type Group from '../group'
+import { type Group } from '../group/group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 
 /** |**  fn-debounce

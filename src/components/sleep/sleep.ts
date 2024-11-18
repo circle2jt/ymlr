@@ -35,9 +35,7 @@ export class Sleep implements Element {
   constructor(public duration: number | string | null) { }
 
   async exec() {
-    if (this.duration === null) {
-      await new Promise(() => { })
-    } else {
+    if (this.duration) {
       this.duration = formatTextToMs(this.duration)
       assert(this.duration)
       await sleep(this.duration)

@@ -5,7 +5,7 @@ import { bindFunctionScript } from 'src/libs/async-function'
 import { promisify } from 'util'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import type Group from '../group'
+import { type Group } from '../group/group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 import { BasicAuth } from './auth/BasicAuth'
 import { CustomAuth } from './auth/CustomAuth'
@@ -191,8 +191,8 @@ export class HttpServer implements Element {
 
   private async getRequestBody(req: IncomingMessage) {
     return await new Promise<string>((resolve, reject) => {
-      const chunks: Buffer[] = []
-      req.on('data', (chunk: Buffer) => chunks.push(chunk))
+      const chunks = new Array<Uint8Array>()
+      req.on('data', (chunk: Uint8Array) => chunks.push(chunk))
       req.on('error', reject)
       req.on('end', () => {
         resolve(Buffer.concat(chunks).toString())

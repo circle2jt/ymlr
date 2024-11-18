@@ -1,1 +1,1 @@
-export { Test as default } from './test'
+export default () => require('./test').Test

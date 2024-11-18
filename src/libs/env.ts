@@ -1,5 +1,5 @@
 import merge from 'lodash.merge'
-import type Scene from 'src/components/scene'
+import { type Scene } from 'src/components/scene/scene'
 import { FileRemote } from './file-remote'
 import { type Logger } from './logger'
 

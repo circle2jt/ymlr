@@ -2,7 +2,7 @@ import assert from 'assert'
 import { singleton } from 'src/libs/singleton-function'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import type Group from '../group'
+import { type Group } from '../group/group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 
 /** |**  fn-singleton

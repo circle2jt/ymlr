@@ -1,1 +1,1 @@
-export { Clear as default } from './clear'
+export default () => require('./clear').Clear

@@ -1,5 +1,5 @@
 import { type ElementProxy } from './element-proxy'
-import type Group from './group'
+import { type Group } from './group/group'
 import { type GroupItemProps, type GroupProps } from './group/group.props'
 
 export interface Element {

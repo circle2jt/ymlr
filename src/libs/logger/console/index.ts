@@ -11,6 +11,18 @@ export const SPACE = chalk.gray('┆')
 export class ConsoleLogger extends Logger {
   #threadID = chalk.gray.dim(App.ThreadID)
 
+  get #timestamp() {
+    return chalk.gray(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))
+  }
+
+  get #fullContextPath() {
+    return chalk.gray.dim.italic(this.fullContextPath)
+  }
+
+  get #indentString() {
+    return this.indent.indentString
+  }
+
   override trace(msg: any, ...prms: any) {
     return this.print(LoggerLevel.trace, console.debug, msg, ...prms)
   }
@@ -40,7 +52,7 @@ export class ConsoleLogger extends Logger {
   }
 
   override fatal(msg: any, ...prms: any) {
-    this.print(LoggerLevel.fatal, msg, console.error, ...prms)
+    this.print(LoggerLevel.fatal, console.error, msg, ...prms)
     if (this.errorStack) {
       this.trace(this.errorStack)
     }
@@ -62,20 +74,20 @@ export class ConsoleLogger extends Logger {
     if (typeof msg === 'string') {
       printToConsole(`%s %s %s %s ${LevelFactory.GetInstance(level).format(msg)} \t %s`,
         this.#threadID,
-        chalk.gray(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms')),
+        this.#timestamp,
         LevelFactory.GetInstance(level).icon,
-        this.indent.indentString,
-        chalk.gray.dim.italic(this.fullContextPath)
-        , ...prms)
+        this.#indentString,
+        chalk.gray.dim.italic(this.fullContextPath),
+        ...prms)
     } else {
       printToConsole(`%s %s %s %s ${LevelFactory.GetInstance(level).format('%o')} \t %s`,
         this.#threadID,
-        chalk.gray(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms')),
+        this.#timestamp,
         LevelFactory.GetInstance(level).icon,
-        this.indent.indentString,
+        this.#indentString,
         msg,
-        chalk.gray.dim.italic(this.fullContextPath)
-        , ...prms)
+        this.#fullContextPath,
+        ...prms)
     }
     return this
   }

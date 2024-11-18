@@ -60,11 +60,11 @@ export class TagsManager {
       const errors = []
       try {
         try {
-          ElementModule = require(`../components/${path}`)
+          ElementModule = await import(`../components/${path}`)
         } catch (err) {
           for (const dir of this.tagDirs) {
             try {
-              ElementModule = require(scene.getPath(join(dir, path)))
+              ElementModule = await import(scene.getPath(join(dir, path)))
             } catch (err) {
               errors.push(err)
             }
@@ -80,7 +80,7 @@ export class TagsManager {
           errors.push(err2)
           if (err2.$$exit) throw err2
           try {
-            ElementModule = require(path)
+            ElementModule = await import(path)
           } catch (err3: any) {
             errors.push(err3)
             if (triedToInstall) {

@@ -1,1 +1,1 @@
-export { Sleep as default } from './sleep'
+export default () => require('./sleep').Sleep

@@ -4,10 +4,10 @@ export default () => require('./exec').Exec
   @example
   Refers to "js" tag document
 */
-export const js = () => require('../js').default
+export const js = () => require('../js/js').Js
 /** |**  exec'sh
   Execute a shell script
   @example
   Refers to "sh" tag document
 */
-export const sh = () => require('../sh').default
+export const sh = () => require('../sh/sh').Sh

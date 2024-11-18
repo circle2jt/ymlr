@@ -1,1 +1,1 @@
-export { Group as default } from './group'
+export default () => require('./group').Group

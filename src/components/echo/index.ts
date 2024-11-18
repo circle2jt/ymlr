@@ -1,3 +1,2 @@
-export { Echo as default } from './echo'
-
+export default () => require('./echo').Echo
 export const debug = () => require('./debug').EchoDebug

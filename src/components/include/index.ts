@@ -1,1 +1,1 @@
-export { Include as default } from './include'
+export default () => require('./include').Include

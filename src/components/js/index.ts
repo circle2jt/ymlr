@@ -1,1 +1,1 @@
-export { Js as default } from './js'
+export default () => require('./js').Js
