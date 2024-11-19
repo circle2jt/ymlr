@@ -1,8 +1,9 @@
 import assert from 'assert'
-import { spawn, type StdioOptions } from 'child_process'
+import { spawn, type SpawnOptions, type StdioOptions } from 'child_process'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
+import { type ExecProps } from './exec.props'
 
 /** |**  exec
   Execute a program
@@ -15,6 +16,8 @@ import { type Element } from '../element.interface'
         commands:
           - /bin/sh
           - /startup.sh
+        opts:
+          cwd: /home/user/app
   ```
   Execute a python app
   ```yaml
@@ -25,13 +28,21 @@ import { type Element } from '../element.interface'
 */
 export class Exec implements Element {
   readonly proxy!: ElementProxy<this>
+  get logger() { return this.proxy.logger }
+
+  exitCodes = [0]
+  opts?: SpawnOptions
+  commands!: string[]
 
   #abortController?: AbortController
-  exitCodes = [0]
 
-  private get logger() { return this.proxy.logger }
-
-  constructor(public commands: string[]) { }
+  constructor(props: string[] | ExecProps) {
+    if (Array.isArray(props)) {
+      this.commands = props
+    } else {
+      Object.assign(this, props)
+    }
+  }
 
   async exec() {
     assert(this.commands?.length)
@@ -55,7 +66,8 @@ export class Exec implements Element {
           stdio,
           env: process.env,
           cwd: this.proxy.scene?.curDir,
-          signal: this.#abortController.signal
+          signal: this.#abortController.signal,
+          ...this.opts
         })
         if (logs || this.logger.is(LoggerLevel.trace)) {
           c.stdout?.on('data', msg => {
