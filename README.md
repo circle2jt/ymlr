@@ -1165,6 +1165,8 @@ Execute a bash script
       commands:
         - /bin/sh
         - /startup.sh
+      opts:
+        cwd: /home/user/app
 ```
 Execute a python app
 ```yaml

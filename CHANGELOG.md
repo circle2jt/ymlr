@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.4.md](#1732098570998)  -  _11/20/2024, 5:29:30 PM_
 - [1.3.1-alpha.3.md](#1731931542453)  -  _11/18/2024, 7:05:42 PM_
 - [1.3.1-alpha.2.md](#1731920227072)  -  _11/18/2024, 3:57:07 PM_
 - [1.3.1-alpha.1.md](#1731911275224)  -  _11/18/2024, 1:27:55 PM_
@@ -91,6 +92,16 @@
 
 ## Details
 
+<a id="1732098570998"></a>
+### 1.3.1-alpha.4
+
+* fix(fetch,http): handle error when download files (d80840c)
+* feat(cli): support output json, colorful log format (b7c7d99)
+* chore: update package modules name (e5ca72c)
+* perf: cache external module (a688882)
+* fix(fetch, http): handle error when download file (cdb3176)
+* refactor(exec): Support opts as SpawnOptions (163712b)
+  
 <a id="1731931542453"></a>
 ### 1.3.1-alpha.3
 
