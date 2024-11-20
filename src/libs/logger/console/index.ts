@@ -1,62 +1,110 @@
 import chalk from 'chalk'
 import { App } from 'src/app'
 import { type ErrorStack } from 'src/libs/error-stack'
-import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { Logger } from '..'
-import { LevelFactory } from '../level-factory'
 import { LoggerLevel } from '../logger-level'
+import { StyleFactory } from './styles/style-factory'
 
-export const SPACE = chalk.gray('┆')
+export const V_SPACE = chalk.gray.dim('│')
+export const H_SPACE = chalk.gray.dim('╴')
 
 export class ConsoleLogger extends Logger {
-  #threadID = chalk.gray.dim(App.ThreadID)
-
-  get #timestamp() {
-    return chalk.gray(UtilityFunctionManager.Instance.format.date(new Date(), 'hh:mm:ss.ms'))
-  }
-
-  get #fullContextPath() {
-    return chalk.gray.dim.italic(this.fullContextPath)
-  }
-
-  get #indentString() {
-    return this.indent.indentString
-  }
-
   override trace(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.trace, console.debug, msg, ...prms)
+    StyleFactory.Instance.print(console.debug, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.trace,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override debug(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.debug, console.debug, msg, ...prms)
+    StyleFactory.Instance.print(console.debug, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.debug,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override info(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.info, console.info, msg, ...prms)
+    StyleFactory.Instance.print(console.info, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.info,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override pass(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.pass, console.info, msg, ...prms)
+    StyleFactory.Instance.print(console.info, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.pass,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override warn(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.warn, console.warn, msg, ...prms)
+    StyleFactory.Instance.print(console.warn, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.warn,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override fail(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.fail, console.error, msg, ...prms)
+    StyleFactory.Instance.print(console.error, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.fail,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override error(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.error, console.error, msg, ...prms)
+    StyleFactory.Instance.print(console.error, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.error,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override secret(msg: any, ...prms: any) {
-    return this.print(LoggerLevel.secret, console.log, msg, ...prms)
+    StyleFactory.Instance.print(console.log, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.secret,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
+    return this
   }
 
   override fatal(msg: any, ...prms: any) {
-    this.print(LoggerLevel.fatal, console.error, msg, ...prms)
+    StyleFactory.Instance.print(console.error, {
+      threadID: App.ThreadID,
+      timestamp: new Date(),
+      level: LoggerLevel.fatal,
+      indent: this.indent,
+      fullContextPath: this.fullContextPath
+    }, msg, ...prms)
     if (this.errorStack) {
       this.trace(this.errorStack)
     }
@@ -70,29 +118,5 @@ export class ConsoleLogger extends Logger {
     const logger = new ConsoleLogger(level || this.level.level, context || this.context, this.errorStack, this.indent.clone())
     logger.contextPath = this.fullContextPath
     return logger
-  }
-
-  // override dispose() {}
-
-  private print(level: LoggerLevel, printToConsole: (...args: any[]) => any, msg: string | any, ...prms: any) {
-    if (typeof msg === 'string') {
-      printToConsole(`%s %s %s %s ${LevelFactory.GetInstance(level).format(msg)} \t %s`,
-        this.#threadID,
-        this.#timestamp,
-        LevelFactory.GetInstance(level).icon,
-        this.#indentString,
-        ...prms,
-        this.#fullContextPath)
-    } else {
-      printToConsole(`%s %s %s %s \t %s\n${LevelFactory.GetInstance(level).format('%o')}`,
-        this.#threadID,
-        this.#timestamp,
-        LevelFactory.GetInstance(level).icon,
-        this.#indentString,
-        this.#fullContextPath,
-        msg,
-        ...prms)
-    }
-    return this
   }
 }

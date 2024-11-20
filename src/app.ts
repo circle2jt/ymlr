@@ -1,5 +1,3 @@
-import 'src/managers/modules-manager'
-
 import assert from 'assert'
 import { RootScene } from 'src/components/root-scene'
 import { type Summary } from './analystic/summary'

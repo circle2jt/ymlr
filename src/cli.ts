@@ -5,6 +5,7 @@ import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import { FileRemote } from './libs/file-remote'
+import { StyleFactory } from './libs/logger/console/styles/style-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export async function RunCLI() {
@@ -18,8 +19,13 @@ export async function RunCLI() {
     .enablePositionalOptions(true)
     .passThroughOptions(true)
     .showHelpAfterError(true)
-    .option('--color [level]', 'Enable pseudo-TTY. Level must in (0,1,2,3). "0": All colors disabled, "1": Basic color support (16 colors), "2": 256 color support, "3": Truecolor support (16 million colors)')
-    .option('--no-color', 'Disable pseudo-TTY')
+    .option('-s, --style <style>', `Style to print to console. Default is "color16"
+  "json" : Output to json format
+  "color0" : Pretty format with no color
+  "color16" : Pretty format with basic color (16 colors)
+  "color256" : Pretty format with 256 color support
+  "color16M" : Pretty format with Truecolor support (16 million colors)
+      `)
     .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent", "secret"). Default is "debug"')
     .option('-df, --debug-context-filter [context_path]', 'allow filter message by context path. It\'s regex pattern. Example: @group/')
@@ -30,7 +36,7 @@ export async function RunCLI() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, color, noColor, flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
+          const { debug, style = 'color16', flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
           if (envFile.length) {
             for (const efile of envFile) {
               const fileRemote = new FileRemote(efile, null)
@@ -48,12 +54,13 @@ export async function RunCLI() {
               const vl = keyValue.substring(idx + 1)
               process.env[key] = vl
             })
-          process.env.FORCE_COLOR = noColor ? '0' : color === true ? '1' : color || '1'
           if (debug) process.env.DEBUG = debug
           if (flow) process.env.MODE = 'flow'
           if (debugContextFilter) process.env.DEBUG_CONTEXT_FILTER = debugContextFilter
 
           LoggerFactory.LoadFromEnv()
+          StyleFactory.SetLogStyle(style)
+
           const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level, undefined, undefined, undefined)
           appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
           const app = new App(appLogger, {

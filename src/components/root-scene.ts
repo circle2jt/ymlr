@@ -3,6 +3,7 @@ import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import { DEBUG_GROUP_RESULT, MODE, SAND_SCENE_PASSWORD } from 'src/env'
 import { GlobalEvent } from 'src/libs/global-event'
+import { StyleFactory } from 'src/libs/logger/console/styles/style-factory'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { PackageManagerSupported } from 'src/managers/packages-manager-factory'
 import { TagsManager } from 'src/managers/tags-manager'
@@ -103,6 +104,7 @@ export class RootScene extends Scene {
       DEBUG: LoggerFactory.DEBUG,
       DEBUG_CONTEXT_FILTER: LoggerFactory.DEBUG_CONTEXT_FILTER,
       DEBUG_SECRET: LoggerFactory.DEBUG_SECRET,
+      LOG_STYLE: StyleFactory.Instance.constructor.name,
       TTY: !!chalk.supportsColor,
       MODE,
       DEBUG_GROUP_RESULT,
