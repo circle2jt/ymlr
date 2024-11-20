@@ -96,28 +96,30 @@ export class Get extends Head {
       }
     }
     if (!rs.body) return undefined
-    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: true })
-    const t = new Promise((resolve, reject) => {
-      stream
-        .once('error', reject)
-        .once('close', resolve)
-    })
+    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false })
     let loaded = 0
     const wstream = new WritableStream({
       write: async (chunk: any) => {
         const bytes = chunk.length
         loaded += bytes
-        stream.write(chunk)
+        await new Promise((resolve, reject) => {
+          stream.write(chunk, err => {
+            if (!err) resolve(undefined)
+            else reject(err)
+          })
+        })
         this.onDownloadProgress?.({
           bytes,
           loaded
         })
       }
     })
-    await Promise.all([
-      rs.body.pipeTo(wstream),
-      t
-    ])
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+    await new Promise(async (resolve, reject) => {
+      stream.once('error', reject)
+      await (rs.body as ReadableStream).pipeTo(wstream, { signal: this.abortController.signal })
+      resolve(undefined)
+    })
     this.onDownloadProgress?.({
       bytes: 0,
       loaded

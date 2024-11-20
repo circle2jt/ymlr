@@ -5,6 +5,7 @@ import { type IncomingMessage } from 'http'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { finished } from 'stream/promises'
 import { type GetProps } from './get.props'
 import { Head } from './head'
 import { type ResponseType } from './types'
@@ -131,15 +132,9 @@ export class Get extends Head {
     }
     if (!this.saveTo) return rs.data
     // eslint-disable-next-line no-case-declarations
-    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: true })
-    const t = new Promise((resolve, reject) => {
-      stream
-        .once('error', reject)
-        .once('close', resolve)
-    })
+    const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
     const body: IncomingMessage = rs.data
-    await t
-    body.pipe(stream)
+    await finished(body.pipe(stream))
     return new File(this.saveTo, this.proxy.scene)
   }
 }

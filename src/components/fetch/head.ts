@@ -43,7 +43,7 @@ export class Head implements Element {
   executionTime?: number
   opts?: RequestInit
 
-  readonly #abortController = new AbortController()
+  protected readonly abortController = new AbortController()
 
   protected get fullURL() {
     return `${this.baseURL || ''}${this.url}`
@@ -57,7 +57,7 @@ export class Head implements Element {
     const opts: RequestInit = {
       method: this.method,
       headers: this.headers,
-      signal: this.#abortController.signal,
+      signal: this.abortController.signal,
       ...this.opts
     }
     return opts
@@ -68,7 +68,7 @@ export class Head implements Element {
   }
 
   abort() {
-    this.#abortController.abort()
+    this.abortController.abort()
   }
 
   async exec() {
