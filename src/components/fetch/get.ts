@@ -96,25 +96,28 @@ export class Get extends Head {
       }
     }
     if (!rs.body) return undefined
-    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false })
+    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: true })
+    const t = new Promise((resolve, reject) => {
+      stream
+        .once('error', reject)
+        .once('close', resolve)
+    })
     let loaded = 0
     const wstream = new WritableStream({
       write: async (chunk: any) => {
-        await new Promise((resolve, reject) => {
-          const bytes = chunk.length
-          loaded += bytes
-          this.onDownloadProgress?.({
-            bytes,
-            loaded
-          })
-          stream.write(chunk, err => {
-            if (err) { reject(err); return }
-            resolve(undefined)
-          })
+        const bytes = chunk.length
+        loaded += bytes
+        stream.write(chunk)
+        this.onDownloadProgress?.({
+          bytes,
+          loaded
         })
       }
     })
-    await rs.body.pipeTo(wstream)
+    await Promise.all([
+      rs.body.pipeTo(wstream),
+      t
+    ])
     this.onDownloadProgress?.({
       bytes: 0,
       loaded
