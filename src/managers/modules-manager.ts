@@ -12,11 +12,19 @@ export async function loadESModule(name: string) {
 }
 
 function registerModulePlatform() {
+  const pattern = new RegExp(`^${libName}`)
+  const caches = new Map<string, string>()
   const _require = Module.prototype.require
   // @ts-expect-error Overrided to load custimize modules
   Module.prototype.require = function (basePath: string) {
-    if (basePath.startsWith(libName)) {
-      basePath = libDir + basePath.substring(name.length)
+    if (pattern.test(basePath)) {
+      const cache = caches.get(basePath)
+      if (cache) {
+        return _require.call(this, cache)
+      }
+      const newBasePath = libDir + basePath.substring(name.length)
+      caches.set(basePath, newBasePath)
+      return _require.call(this, newBasePath)
     }
     return _require.call(this, basePath)
   }
