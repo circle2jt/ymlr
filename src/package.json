@@ -1,1 +1,4 @@
-{}
+{
+  "name": "ymlr-modules",
+  "description": "Auto generate, dont override it"
+}
