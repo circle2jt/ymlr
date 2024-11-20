@@ -15,55 +15,57 @@ export abstract class Logger {
   set level(level: Level) {
     this.#level = level
     const levelsDisable = new Set<string>()
-    if (this.is(LoggerLevel.debug)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-    } else if (this.is(LoggerLevel.info)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-    } else if (this.is(LoggerLevel.warn)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-        .add(LoggerLevel[LoggerLevel.info])
-        .add(LoggerLevel[LoggerLevel.pass])
-    } else if (this.is(LoggerLevel.error)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-        .add(LoggerLevel[LoggerLevel.info])
-        .add(LoggerLevel[LoggerLevel.pass])
-        .add(LoggerLevel[LoggerLevel.warn])
-    } else if (this.is(LoggerLevel.fatal)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-        .add(LoggerLevel[LoggerLevel.info])
-        .add(LoggerLevel[LoggerLevel.pass])
-        .add(LoggerLevel[LoggerLevel.warn])
-        .add(LoggerLevel[LoggerLevel.error])
-        .add(LoggerLevel[LoggerLevel.fail])
-    } else if (this.is(LoggerLevel.secret)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-        .add(LoggerLevel[LoggerLevel.info])
-        .add(LoggerLevel[LoggerLevel.pass])
-        .add(LoggerLevel[LoggerLevel.warn])
-        .add(LoggerLevel[LoggerLevel.error])
-        .add(LoggerLevel[LoggerLevel.fail])
-        .add(LoggerLevel[LoggerLevel.fatal])
-    } else if (this.is(LoggerLevel.silent)) {
-      levelsDisable
-        .add(LoggerLevel[LoggerLevel.trace])
-        .add(LoggerLevel[LoggerLevel.debug])
-        .add(LoggerLevel[LoggerLevel.info])
-        .add(LoggerLevel[LoggerLevel.pass])
-        .add(LoggerLevel[LoggerLevel.warn])
-        .add(LoggerLevel[LoggerLevel.error])
-        .add(LoggerLevel[LoggerLevel.fail])
-        .add(LoggerLevel[LoggerLevel.fatal])
+    if (!this.is(LoggerLevel.trace)) {
+      if (this.is(LoggerLevel.debug)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+      } else if (this.is(LoggerLevel.info)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+      } else if (this.is(LoggerLevel.warn)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+          .add(LoggerLevel[LoggerLevel.info])
+          .add(LoggerLevel[LoggerLevel.pass])
+      } else if (this.is(LoggerLevel.error)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+          .add(LoggerLevel[LoggerLevel.info])
+          .add(LoggerLevel[LoggerLevel.pass])
+          .add(LoggerLevel[LoggerLevel.warn])
+      } else if (this.is(LoggerLevel.fatal)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+          .add(LoggerLevel[LoggerLevel.info])
+          .add(LoggerLevel[LoggerLevel.pass])
+          .add(LoggerLevel[LoggerLevel.warn])
+          .add(LoggerLevel[LoggerLevel.error])
+          .add(LoggerLevel[LoggerLevel.fail])
+      } else if (this.is(LoggerLevel.secret)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+          .add(LoggerLevel[LoggerLevel.info])
+          .add(LoggerLevel[LoggerLevel.pass])
+          .add(LoggerLevel[LoggerLevel.warn])
+          .add(LoggerLevel[LoggerLevel.error])
+          .add(LoggerLevel[LoggerLevel.fail])
+          .add(LoggerLevel[LoggerLevel.fatal])
+      } else if (this.is(LoggerLevel.silent)) {
+        levelsDisable
+          .add(LoggerLevel[LoggerLevel.trace])
+          .add(LoggerLevel[LoggerLevel.debug])
+          .add(LoggerLevel[LoggerLevel.info])
+          .add(LoggerLevel[LoggerLevel.pass])
+          .add(LoggerLevel[LoggerLevel.warn])
+          .add(LoggerLevel[LoggerLevel.error])
+          .add(LoggerLevel[LoggerLevel.fail])
+          .add(LoggerLevel[LoggerLevel.fatal])
+      }
     }
     if (!LoggerFactory.DEBUG_SECRET && !(this.level instanceof SecretLevel)) {
       levelsDisable.add(LoggerLevel[LoggerLevel.secret])
