@@ -3,7 +3,7 @@ import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
 export class WarnLevel extends Level {
-  readonly icon = chalk.yellow('warn')
+  readonly icon = 'warn'
 
   constructor() {
     super(LoggerLevel.warn)

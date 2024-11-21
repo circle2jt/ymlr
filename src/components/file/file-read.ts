@@ -46,7 +46,7 @@ export class FileRead implements Element {
     assert(this.path)
     const file = new FileRemote(this.path, this.proxy.scene)
     let content = await file.getTextContent()
-    this.logger.debug(`Read ${this.format || ''} file "${file.uri}"`).trace('%s', content)
+    this.logger.debug(`Read ${this.format || ''} file "${file.uri}"`)?.trace('%s', content)
     const formater = this.getFormater()
     if (formater) content = formater.format(content)
     return content

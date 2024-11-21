@@ -44,11 +44,11 @@ export abstract class InstallAbstract implements Element {
       return sum
     }, [])
     if (!packsInstall.length) return false
-    if (this.proxy.name) this.logger.addIndent()
+    if (this.proxy.name) this.logger.emit('addIndent')
     try {
       await this.action(...packsInstall)
     } finally {
-      if (this.proxy.name) this.logger.removeIndent()
+      if (this.proxy.name) this.logger.emit('removeIndent')
     }
     return true
   }

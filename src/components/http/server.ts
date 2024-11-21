@@ -119,9 +119,7 @@ export class HttpServer implements Element {
       req,
       res
     } as any
-    this.logger
-      .debug('%s %s \t%s', '⥃', req.method, req.url)
-      .trace('%j', parentState)
+    this.logger.debug('%s %s \t%s', '⥃', req.method, req.url)?.trace('%j', parentState)
     try {
       if (this.#authVerifier) {
         const code = await this.#authVerifier.verify(parentState)

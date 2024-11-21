@@ -1,4 +1,5 @@
 {
   "name": "ymlr-modules",
-  "description": "Auto generate, dont override it"
+  "description": "Auto generate, dont override it",
+  "license": "ISC"
 }

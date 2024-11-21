@@ -9,7 +9,7 @@ export class Input<T extends InputProps> implements Element {
   readonly ignoreEvalProps = ['InputClass']
   readonly proxy!: ElementProxy<this>
 
-  private get logger() { return this.proxy.logger }
+  private get logger() { return this.proxy.logger as any }
 
   props: any
 
@@ -31,7 +31,7 @@ export class Input<T extends InputProps> implements Element {
 
   async exec() {
     assert(!!this.InputClass)
-    globalThis.inputIndent = this.logger.indent.indentString
+    globalThis.inputIndent = this.logger.indent?.indentString || ''
     this.#input = new this.InputClass(this.props)
     const value = await this.#input.exec()
     if (value === undefined) {

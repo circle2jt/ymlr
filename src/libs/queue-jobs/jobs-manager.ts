@@ -41,11 +41,11 @@ export class JobsManager {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setImmediate(async (job: Job) => {
           this.runningJobsCount++
-          this.logger.debug('Pulled a job').trace('%j', job)
+          this.logger.debug('Pulled a job')?.trace('%j', job)
           try {
             if (this.jobHandler?.onJobRun) await this.jobHandler.onJobRun(job)
             await job.jobExecute()
-            this.logger.debug('Job successed      ').trace('%j', job)
+            this.logger.debug('Job successed      ')?.trace('%j', job)
             if (this.jobHandler?.onJobSuccess) await this.jobHandler.onJobSuccess(job)
             this.dbJobs.splice(this.dbJobs.indexOf(job), 1)
             await this.storage?.save(this.dbJobs)

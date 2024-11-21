@@ -287,26 +287,28 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         cached = {
           skip: true
         }
+      } else {
+        cached = cloneDeep(cached)
       }
-      cached = cloneDeep(cached)
       if (tagName && cached.template) {
         cached[tagName] = cached.template
         cached.template = undefined
       }
       baseProps = merge(cached, baseProps)
     })
+    // this.logger.trace('extends id "%s": %j', ids, baseProps)
     return baseProps
   }
 
   export(tagName: string | undefined, props: any, id: string) {
     if (!id) return
-    const { errorStack, ...cached } = cloneDeep(props)
     if (tagName && props.template) {
       props[tagName] = props.template
       props.template = undefined
     }
-    this.templatesManager[id] = cached
-    this.logger.trace('export to id "%s"', id)
+    const { errorStack, ...cached } = props
+    this.templatesManager[id] = cloneDeep(cached)
+    // this.logger.trace('export to id "%s": %j', id, this.templatesManager[id])
   }
 
   /** |**  # @include

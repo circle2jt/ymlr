@@ -1,9 +1,8 @@
-import chalk from 'chalk'
 import { Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 
 export class InfoLevel extends Level {
-  readonly icon = chalk.green('info')
+  readonly icon = 'info'
 
   constructor() {
     super(LoggerLevel.info)

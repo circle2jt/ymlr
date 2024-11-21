@@ -540,16 +540,17 @@ export class ElementProxy<T extends Element> {
     return this.skipNext === null || !!this.skipNext
   }
 
-  #logger?: Logger
+  private _logger?: Logger
   get logger(): Logger {
-    if (!this.#logger) {
-      this.#logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug, this.errorStack)
+    if (!this._logger) {
+      this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug, this.errorStack)
     }
-    return this.#logger
+    return this._logger
   }
 
+  // TODO: need to update others plugins before remove it
   set logger(logger: Logger) {
-    this.#logger = logger
+    this._logger = logger
   }
 
   result?: any
@@ -571,8 +572,8 @@ export class ElementProxy<T extends Element> {
   setDebug(debug?: string) {
     if (!debug) return
     this.debug = GetLoggerLevel(debug)
-    if (this.#logger) {
-      this.#logger.level = LevelFactory.GetInstance(this.debug)
+    if (this._logger) {
+      this._logger.level = LevelFactory.GetInstance(this.debug)
     }
   }
 
@@ -653,15 +654,15 @@ export class ElementProxy<T extends Element> {
 
     GlobalEvent.emit('@app/proxy/before:exec:exec', this)
 
-    const isAddIndent = this.parentProxy?.name !== undefined
-    if (isAddIndent) {
-      this.logger.addIndent()
-    }
+    const isAddIndent = this.parentProxy?.logger.meta?.printedName
+    if (isAddIndent) this.logger.emit('addIndent')
     try {
       try {
         await this.evalPropsBeforeExec()
         if (this.name && !this.element.hideName) {
-          this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.name}`)
+          if (this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.name}`)) {
+            this.logger.meta = { printedName: true }
+          }
         }
         while (true) {
           try {
@@ -688,7 +689,7 @@ export class ElementProxy<T extends Element> {
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
-            this.failure?.logDetails ? this.logger.error(err) : this.logger.error(err?.message).trace(err)
+            this.failure?.logDetails ? this.logger.error(err) : this.logger.error(err?.message)?.trace(err)
             await sleep(this.failure.restart.sleep)
           }
         }
@@ -700,16 +701,12 @@ export class ElementProxy<T extends Element> {
         if (!this.failure?.ignore) {
           throw err
         }
-        this.logger
-          .warn(this.failure?.logDetails ? err : err?.message)
-          .trace(err)
+        this.logger.warn(this.failure?.logDetails ? err : err?.message)?.trace(err)
         return
       }
       await this.setVarsAfterExec()
     } finally {
-      if (isAddIndent) {
-        this.logger.removeIndent()
-      }
+      if (isAddIndent) this.logger.emit('removeIndent')
       GlobalEvent.emit('@app/proxy/after:exec', this)
     }
     return this.result
@@ -720,10 +717,8 @@ export class ElementProxy<T extends Element> {
     try {
       await this.element.dispose?.()
       this.parentState = undefined
-      if (this.#logger) {
-        this.logger.dispose()
-        this.#logger = undefined
-      }
+      this._logger?.dispose()
+      this._logger = undefined
     } finally {
       GlobalEvent.emit('@app/proxy/after:dispose', this)
     }

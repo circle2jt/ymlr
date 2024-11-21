@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { H_SPACE, V_SPACE } from './console'
 
 export class Indent {
@@ -6,13 +5,9 @@ export class Indent {
 
   #indent = 0
 
-  get indentStringLength() {
-    return this.indent * 2
-  }
-
   set indent(indent: number) {
     this.#indent = indent
-    this.indentString = chalk.gray.dim(new Array(indent).fill(`${V_SPACE}${H_SPACE}`).join(''))
+    this.indentString = new Array(indent).fill(`${V_SPACE}${H_SPACE}`).join('')
   }
 
   get indent() {
@@ -20,9 +15,7 @@ export class Indent {
   }
 
   constructor(indent = 0) {
-    if (indent) {
-      this.add(indent)
-    }
+    this.update(indent)
   }
 
   add(indent = 1) {
@@ -31,10 +24,6 @@ export class Indent {
 
   update(indent: number) {
     this.indent = indent
-  }
-
-  format(str: string) {
-    return `${this.indentString}${str}`
   }
 
   clone() {

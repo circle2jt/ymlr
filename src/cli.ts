@@ -61,7 +61,7 @@ export async function RunCLI() {
           LoggerFactory.LoadFromEnv()
           StyleFactory.SetLogStyle(style)
 
-          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level, undefined, undefined, undefined)
+          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level)
           appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
           const app = new App(appLogger, {
             path,

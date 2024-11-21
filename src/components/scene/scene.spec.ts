@@ -109,8 +109,7 @@ varsFiles: ${tmp.file}
 runs:
   - name: Test env
 `
-    }))
-    scene.logger = Testing.logger
+    }), { _logger: Testing.logger })
     await scene.exec()
     expect(scene.element.localVars.name).toBe('name 1')
     expect(scene.element.localVars.age).toBe(1)
@@ -144,8 +143,7 @@ varsFiles: ${tmp.file}
 runs:
   - name: Test env
 `
-    }))
-    scene.logger = Testing.logger
+    }), { _logger: Testing.logger })
     await scene.exec()
     expect(scene.element.localVars.name).toBe('name 1')
     expect(scene.element.localVars.age).toBe(1)
@@ -180,9 +178,7 @@ vars:
 runs:
   - name: Test env
 `
-  }))
-  scene.logger = Testing.logger
-
+  }), { _logger: Testing.logger })
   await scene.exec()
   expect(scene.element.localVars.name).toBe('name 1')
   expect(scene.element.localVars.age).toBe(1)

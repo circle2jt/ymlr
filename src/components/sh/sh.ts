@@ -101,14 +101,14 @@ export class Sh implements Element {
       })
       if (logs || this.logger.is(LoggerLevel.trace)) {
         c.stdout?.on('data', msg => {
-          msg = msg.toString()
+          msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
           this.logger.trace(msg)
         })
       }
       if (logs || this.logger.is(LoggerLevel.error)) {
         c.stderr?.on('data', msg => {
-          msg = msg.toString()
+          msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
           this.logger.error(msg)
         })

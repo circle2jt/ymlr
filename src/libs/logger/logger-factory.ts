@@ -1,7 +1,6 @@
 import { type ErrorStack } from 'src/libs/error-stack'
 import { type Logger } from '.'
 import { ConsoleLogger } from './console'
-import { type Indent } from './indent'
 import { type Level } from './level'
 import { LevelFactory } from './level-factory'
 import { GetLoggerLevel, type LoggerLevel } from './logger-level'
@@ -27,8 +26,8 @@ export class LoggerFactory {
 
   static Dispose() { }
 
-  static NewLogger(level?: LoggerLevel, context?: string, errorStack?: ErrorStack, indent?: Indent) {
-    const logger = new ConsoleLogger(level, context, errorStack, indent)
+  static NewLogger(level?: LoggerLevel, context?: string, errorStack?: ErrorStack, parent?: Logger) {
+    const logger = new ConsoleLogger(level, context, errorStack, parent)
     return logger as Logger
   }
 }

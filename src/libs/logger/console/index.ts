@@ -2,13 +2,28 @@ import chalk from 'chalk'
 import { App } from 'src/app'
 import { type ErrorStack } from 'src/libs/error-stack'
 import { Logger } from '..'
+import { Indent } from '../indent'
+import { type Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 import { StyleFactory } from './styles/style-factory'
 
-export const V_SPACE = chalk.gray.dim('│')
+export const V_SPACE = chalk.gray.dim('├')
 export const H_SPACE = chalk.gray.dim('╴')
 
 export class ConsoleLogger extends Logger {
+  indent = new Indent()
+
+  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, parent?: Logger) {
+    super(level, context, errorStack, parent)
+    this
+      .on('addIndent', (indent = 1) => {
+        this.indent.add(indent)
+      })
+      .on('removeIndent', (indent = 1) => {
+        this.indent.add(indent * -1)
+      })
+  }
+
   override trace(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.debug, {
       threadID: App.ThreadID,
@@ -111,12 +126,10 @@ export class ConsoleLogger extends Logger {
     return this
   }
 
-  override clone(context?: string, level?: LoggerLevel, errorStack?: ErrorStack) {
-    if (errorStack) {
-      this.errorStack = { ...this.errorStack, ...errorStack }
-    }
-    const logger = new ConsoleLogger(level || this.level.level, context || this.context, this.errorStack, this.indent.clone())
+  override clone(context?: string, level?: LoggerLevel, errorStack?: ErrorStack): Logger {
+    const logger = new ConsoleLogger(level || this.level.level, context || this.context, { ...this.errorStack, ...errorStack }, this)
     logger.contextPath = this.fullContextPath
+    logger.emit('addIndent', this.indent.indent)
     return logger
   }
 }

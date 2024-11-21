@@ -13,9 +13,8 @@ export class App {
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
     assert(rootSceneProps.path, 'Scene file is required')
-    this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps))
+    this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps), { _logger: this.logger })
     // this.#rootSceneProxy.scene = this.#rootSceneProxy.rootScene = this.#rootSceneProxy.element
-    this.#rootSceneProxy.logger = this.logger
   }
 
   setDirTags(dirs: string[]) {

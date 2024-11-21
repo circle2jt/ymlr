@@ -7,6 +7,8 @@ import { type Element, type ElementBaseProps, type ElementClass } from '../eleme
 import Include from '../include'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
+const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
+
 /** |**  runs
   Group elements
   @example
@@ -64,60 +66,41 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
-    elemProxy.tag = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
-    Object.defineProperty(elemProxy, 'scene', {
-      enumerable: false,
-      configurable: false,
-      writable: false,
-      value: this.innerScene
-    })
-    if (this.proxy.tag === 'inner-runs-proxy') {
-      Object.defineProperty(elemProxy, 'parent', {
+    Object.assign(elemProxy, loopObj)
+    const innerRunProxyParent = props?.[INNERRUN_PROXY_PARENT]
+    Object.defineProperties(elemProxy, {
+      tag: {
         enumerable: false,
-        // configurable: false,
-        writable: false,
-        value: this.proxy.parent
-      })
-    } else {
-      Object.defineProperty(elemProxy, 'parent', {
-        enumerable: false,
-        // configurable: false,
-        writable: false,
-        value: this
-      })
-    }
-    if (this.innerScene.isRootScene) {
-      Object.defineProperty(elemProxy, 'rootScene', {
+        configurable: false,
+        writable: true,
+        value: innerRunProxyParent ? INNERRUN_PROXY_PARENT.description : (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
+      },
+      scene: {
         enumerable: false,
         configurable: false,
         writable: false,
         value: this.innerScene
-      })
-    } else {
-      Object.defineProperty(elemProxy, 'rootScene', {
+      },
+      parent: {
         enumerable: false,
         configurable: false,
         writable: false,
-        value: this.rootScene
-      })
-    }
-    Object.assign(elemProxy, loopObj)
+        value: innerRunProxyParent ?? this
+      },
+      rootScene: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this.innerScene.isRootScene ? this.innerScene : this.rootScene
+      }
+    })
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const { name, ...innerRunProxyProps } = baseProps
-      const innerRunsProxy = await this.newElementProxy(Group, props, innerRunProxyProps)
-      innerRunsProxy.tag = 'inner-runs-proxy'
+      const innerRunsProxy = await this.newElementProxy(Group, { ...props, [INNERRUN_PROXY_PARENT]: elem }, innerRunProxyProps)
       const innerRuns = innerRunsProxy.$
-      Object.defineProperties(innerRunsProxy, {
-        parent: {
-          enumerable: false,
-          // configurable: false,
-          writable: false,
-          value: elem
-        }
-      })
       const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
       innerRunsProxy.dispose = async () => {
         await disposeInnerRunsProxy()

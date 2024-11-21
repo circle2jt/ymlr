@@ -57,7 +57,7 @@ export class MDDoc implements Element {
   }
 
   async exec() {
-    this.logger.addIndent()
+    this.logger.emit('addIndent')
     try {
       if (!this.includeDirs?.length || !this.saveTo) return
       this.includeDirs = this.includeDirs.map(dir => this.scene.getPath(dir))
@@ -85,7 +85,7 @@ export class MDDoc implements Element {
 
       this.logger.info('Exported/Total files\t%d/%d', this.count.handled, this.count.handled + this.count.ignored)
     } finally {
-      this.logger.removeIndent()
+      this.logger.emit('removeIndent')
     }
   }
 

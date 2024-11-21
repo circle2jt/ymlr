@@ -52,7 +52,7 @@ export class FileWrite implements Element {
       this.path = this.proxy.scene.getPath(this.path || '')
       try {
         assert(this.path)
-        this.logger.debug(`Write ${this.format || ''}/${this.pretty ? '(pretty)' : ''} file to "${this.path}"`).trace('%s', this.content)
+        this.logger.debug(`Write ${this.format || ''}/${this.pretty ? '(pretty)' : ''} file to "${this.path}"`)?.trace('%s', this.content)
         const formater = this.getFormater()
         if (formater) {
           this.content = formater.format(this.content)

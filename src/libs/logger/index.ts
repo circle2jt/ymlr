@@ -1,12 +1,12 @@
+import EventEmitter from 'events'
 import { type ErrorStack } from 'src/libs/error-stack'
-import { Indent } from './indent'
 import { Level } from './level'
 import { LevelFactory } from './level-factory'
 import { SecretLevel } from './level/secret-level'
 import { LoggerFactory } from './logger-factory'
 import { LoggerCoreLevel, LoggerLevel } from './logger-level'
 
-export abstract class Logger {
+export abstract class Logger extends EventEmitter {
   #level!: Level
   get level() {
     return this.#level
@@ -106,9 +106,11 @@ export abstract class Logger {
 
   protected fullContextPath = ''
 
+  meta?: any
   errorStack?: ErrorStack
 
-  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, public indent = new Indent()) {
+  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, protected parent?: Logger) {
+    super()
     if (context) this.context = context
     if (errorStack) this.errorStack = { ...errorStack }
     this.level = level instanceof Level ? level : LevelFactory.GetInstance(level)
@@ -123,32 +125,26 @@ export abstract class Logger {
     }
   }
 
-  abstract trace(...args: any[]): this
-  abstract debug(...args: any[]): this
-  abstract info(...args: any[]): this
-  abstract pass(...args: any[]): this
-  abstract warn(...args: any[]): this
-  abstract error(...args: any[]): this
-  abstract fail(...args: any[]): this
-  abstract fatal(...args: any[]): this
-  abstract secret(...args: any[]): this
+  abstract trace(...args: any[]): this | undefined
+  abstract debug(...args: any[]): this | undefined
+  abstract info(...args: any[]): this | undefined
+  abstract pass(...args: any[]): this | undefined
+  abstract warn(...args: any[]): this | undefined
+  abstract error(...args: any[]): this | undefined
+  abstract fail(...args: any[]): this | undefined
+  abstract fatal(...args: any[]): this | undefined
+  abstract secret(...args: any[]): this | undefined
   abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {
     return this.level.is(level)
   }
 
-  addIndent(indent = 1) {
-    this.indent.add(indent)
+  dispose() {
+    this.removeAllListeners()
   }
-
-  removeIndent(indent = 1) {
-    this.indent.add(indent * -1)
-  }
-
-  dispose() { }
 
   private silent(..._: any[]) {
-    return this
+    return undefined
   }
 }

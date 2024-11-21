@@ -75,14 +75,13 @@ export abstract class PM {
     if (!packages.length) return
     const cmd = [...cmds, ...packages]
     const msg = `tags ${packages.map(e => `"${e}"`).join(', ')}`
-    const exec = new ElementProxy(new Exec(cmd))
-    exec.logger = this.logger
+    const exec = new ElementProxy(new Exec(cmd), { _logger: this.logger })
     try {
       this.logger.info(`${des} ${msg}`)
       await exec.exec()
       this.logger.info(`${chalk.green('✔')} ${des}ed ${msg} successfully`, LoggerLevel.info)
     } catch (err) {
-      this.logger.error(`${chalk.red('✘')} ${des}ed ${msg} failed`, LoggerLevel.error).trace(err)
+      this.logger.error(`${chalk.red('✘')} ${des}ed ${msg} failed`, LoggerLevel.error)?.trace(err)
       throw err
     } finally {
       await exec.dispose()
