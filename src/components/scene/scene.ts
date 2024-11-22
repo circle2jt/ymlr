@@ -280,20 +280,24 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   inherit(tagName: string | undefined, baseProps: any, ids: string[] | string) {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
-    for (let i = ids.length - 1; i >= 0; i--) {
-      const id = ids[i]
-      let cached = this.templatesManager[id]
+    const caches = ids.reverse().map(id => {
+      const cached = this.templatesManager[id]
       if (!cached) {
         throw new Error(`Could not found element with id "${id}"`)
       }
-
-      cached = cloneDeep(cached)
-      if (tagName && cached.template) {
+      const { tagName: _tagName, ...props } = cached
+      if (!tagName) {
+        tagName = _tagName
+      }
+      return cloneDeep(props)
+    })
+    caches.forEach(cached => {
+      if (tagName && cached.template !== undefined) {
         cached[tagName] = cached.template
         cached.template = undefined
       }
       baseProps = merge(cached, baseProps)
-    }
+    })
     // this.logger.trace('extends id "%s": %j', ids, baseProps)
     return baseProps
   }
@@ -304,8 +308,11 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     const { errorStack, if: condition, elseif: elseIfCondition, else: elseCondition, ...props } = allProps
     const newOne = cloneDeep(props)
     if (tagName) {
-      newOne.template = newOne[tagName]
-      newOne[tagName] = undefined
+      newOne.tagName = tagName
+      if (newOne[tagName] !== undefined) {
+        newOne.template = newOne[tagName]
+        newOne[tagName] = undefined
+      }
     }
     this.templatesManager[id] = newOne
     // this.logger.trace('export to id "%s": %j', id, this.templatesManager[id])
