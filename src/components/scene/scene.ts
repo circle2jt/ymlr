@@ -222,6 +222,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
+      $v: this.scene.localVars,
+      $u: this.rootScene?.globalUtils,
+      $c: Constants,
       ...others
     })
   }
@@ -233,6 +236,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
+      $v: this.scene.localVars,
+      $u: this.rootScene?.globalUtils,
+      $c: Constants,
       ...others
     })
   }
