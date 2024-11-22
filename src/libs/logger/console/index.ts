@@ -13,7 +13,7 @@ export const H_SPACE = chalk.gray.dim('╴')
 export class ConsoleLogger extends Logger {
   indent = new Indent()
 
-  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, parent?: Logger) {
+  constructor(level: LoggerLevel | Level | boolean = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, parent?: Logger) {
     super(level, context, errorStack, parent)
     this
       .on('addIndent', (indent = 1) => {
@@ -126,7 +126,7 @@ export class ConsoleLogger extends Logger {
     return this
   }
 
-  override clone(context?: string, level?: LoggerLevel, errorStack?: ErrorStack): Logger {
+  override clone(context?: string, level?: LoggerLevel | boolean, errorStack?: ErrorStack): Logger {
     const logger = new ConsoleLogger(level || this.level.level, context || this.context, { ...this.errorStack, ...errorStack }, this)
     logger.contextPath = this.fullContextPath
     logger.emit('addIndent', this.indent.indent)

@@ -138,7 +138,7 @@ export async function RunCLI() {
     .addHelpText('after', () => {
       const { dependencies = {} } = require('./package.json')
       const msg = []
-      msg.push(`Installed modules of ${chalk.green(name)}${chalk.gray(`@${version}`)}`)
+      msg.push(`Installed tags of ${chalk.green(name)}${chalk.gray(`@${version}`)}`)
       Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}\t${chalk.gray.dim(`https://www.npmjs.com/package/${key}`)}`))
       return msg.length > 1 ? msg.join('\n') : ''
     })

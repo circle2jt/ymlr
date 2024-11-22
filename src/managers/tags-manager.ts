@@ -30,7 +30,7 @@ export class TagsManager {
     const path = this.modules[name]
     let isExit: boolean | undefined
     try {
-      assert(path, `Could not found tag module "${name}"`)
+      assert(path, `Could not found tag "${name}"`)
       isExit = true
       const Clazz = await import(path)
       return Clazz

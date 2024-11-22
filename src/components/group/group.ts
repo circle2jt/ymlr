@@ -211,15 +211,23 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const isTemplate = !!eProps.template
 
       // Only support template or tag name. Prefer tag name
-      if (tagName && eProps.template) eProps.template = undefined
+      if (tagName && eProps.template) {
+        eProps.template = undefined
+      }
 
-      if (inheritKeys) eProps = this.rootScene.extend(tagName, eProps, inheritKeys)
+      if (inheritKeys) {
+        eProps = this.rootScene.inherit(tagName, eProps, inheritKeys)
+      }
       const { '->': exposeKey, ..._eProps } = eProps
       eProps = _eProps
-      if (exposeKey) this.rootScene.export(tagName, eProps, exposeKey)
+      if (exposeKey) {
+        this.rootScene.export(tagName, eProps, exposeKey)
+      }
 
       // Skip this if it's a template
-      if (isTemplate) continue
+      if (isTemplate) {
+        continue
+      }
 
       let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
 

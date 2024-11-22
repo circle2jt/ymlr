@@ -109,7 +109,7 @@ export abstract class Logger extends EventEmitter {
   meta?: any
   errorStack?: ErrorStack
 
-  constructor(level: LoggerLevel | Level = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, protected parent?: Logger) {
+  constructor(level: LoggerLevel | Level | boolean = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, protected parent?: Logger) {
     super()
     if (context) this.context = context
     if (errorStack) this.errorStack = { ...errorStack }
@@ -134,7 +134,7 @@ export abstract class Logger extends EventEmitter {
   abstract fail(...args: any[]): this | undefined
   abstract fatal(...args: any[]): this | undefined
   abstract secret(...args: any[]): this | undefined
-  abstract clone(context?: string | undefined, level?: LoggerLevel | undefined, errorStack?: ErrorStack): Logger
+  abstract clone(context?: string | undefined, level?: LoggerLevel | boolean | undefined, errorStack?: ErrorStack): Logger
 
   is(level: LoggerLevel) {
     return this.level.is(level)

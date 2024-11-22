@@ -101,10 +101,10 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   get globalVars() {
     return Object.keys(this.localVars)
       .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-      .reduce<Record<string, any>>((sum, key) => {
-      sum[key] = this.localVars[key]
-      return sum
-    }, {})
+      .reduce((sum: Record<string, any>, key) => {
+        sum[key] = this.localVars[key]
+        return sum
+      }, {})
   }
 
   #localCaches!: Map<string, any[]>
@@ -277,37 +277,36 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return props
   }
 
-  extend(tagName: string | undefined, baseProps: any, ids: string[] | string) {
+  inherit(tagName: string | undefined, baseProps: any, ids: string[] | string) {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
-    ids.forEach(id => {
+    for (let i = ids.length - 1; i >= 0; i--) {
+      const id = ids[i]
       let cached = this.templatesManager[id]
       if (!cached) {
-        this.logger.warn(`Could not found element with id "${id}"`)
-        cached = {
-          skip: true
-        }
-      } else {
-        cached = cloneDeep(cached)
+        throw new Error(`Could not found element with id "${id}"`)
       }
+
+      cached = cloneDeep(cached)
       if (tagName && cached.template) {
         cached[tagName] = cached.template
         cached.template = undefined
       }
       baseProps = merge(cached, baseProps)
-    })
+    }
     // this.logger.trace('extends id "%s": %j', ids, baseProps)
     return baseProps
   }
 
-  export(tagName: string | undefined, props: any, id: string) {
+  export(tagName: string | undefined, allProps: any, id: string) {
     if (!id) return
-    if (tagName && props.template) {
-      props[tagName] = props.template
-      props.template = undefined
+    const { errorStack, ...props } = allProps
+    const newOne = cloneDeep(props)
+    if (tagName) {
+      newOne.template = newOne[tagName]
+      newOne[tagName] = undefined
     }
-    const { errorStack, ...cached } = props
-    this.templatesManager[id] = cloneDeep(cached)
+    this.templatesManager[id] = newOne
     // this.logger.trace('export to id "%s": %j', id, this.templatesManager[id])
   }
 

@@ -12,9 +12,9 @@ import { WarnLevel } from './level/warn-level'
 import { LoggerLevel } from './logger-level'
 
 export class LevelFactory {
-  static readonly #Instance = new Map<number, Level>()
+  static readonly #Instance = new Map<number | boolean, Level>()
 
-  static GetInstance(level: LoggerLevel) {
+  static GetInstance(level: LoggerLevel | boolean) {
     let loggerLevel = this.#Instance.get(level)
     if (loggerLevel) {
       return loggerLevel
@@ -25,6 +25,7 @@ export class LevelFactory {
       case LoggerLevel.trace:
         loggerLevel = new TraceLevel()
         break
+      case true:
       case LoggerLevel.debug:
         loggerLevel = new DebugLevel()
         break
@@ -46,16 +47,17 @@ export class LevelFactory {
       case LoggerLevel.fatal:
         loggerLevel = new FatalLevel()
         break
+      case level === false:
       case LoggerLevel.silent:
         loggerLevel = new SilentLevel()
         break
       case LoggerLevel.secret:
         loggerLevel = new SecretLevel()
         break
+      default:
+        throw new Error(`Invalid logger level: ${level}`)
     }
-    if (loggerLevel) {
-      this.#Instance.set(level, loggerLevel)
-    }
+    this.#Instance.set(level, loggerLevel)
     return loggerLevel
   }
 }

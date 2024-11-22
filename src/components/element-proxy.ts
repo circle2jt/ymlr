@@ -252,7 +252,7 @@ export class ElementProxy<T extends Element> {
           url: http://...../data.json
     ```
   */
-  debug?: LoggerLevel
+  debug?: LoggerLevel | boolean
   /** |**  vars
     - Set value in the item to global vars to reused later
     - Declare and set value to variables to reused in the scene/global scope
