@@ -498,7 +498,10 @@ Example:
 
 ## <a id="loop"></a>loop  
 `It's a property in a tag`  
-Loop to run items with a condition  
+Loop to run items with a condition.
+Variables:
+- `$lv`, `$loopValue`: Get loop value
+- `$lk`, `$loopKey`: Get loop key  
 
 Example:  
 
@@ -548,7 +551,13 @@ Loop in nested items
   - loop: ${$vars.arrs}
     name: group ${$loopValue}
     runs:
-      - echo: item value is ${this.parent.loopValue}
+      - echo: value is ${$loopValue}                                  # => item value is "1" then "2" then "3"
+
+      - loop: ${ [4,5,6] }
+        runs:
+          - echo: value is ${$loopValue}                              # => item value is "4" then "5" then "6"
+
+          - echo: parent is ${this.parentProxy.parentProxy.loopValue} # => item value is "1" then "2" then "3"
   # =>
   # group 1
   # item value is 1
@@ -583,6 +592,33 @@ Example:
 
   - only: true
     echo: Bye                  # Only print "Bye"
+```  
+
+
+## <a id="parentState"></a>parentState  
+`It's used in js code`  
+- Set/Get value to context variables. Used in tags support `runs` and support parentState
+Variables:
+- `$ps`, `$parentState`: Reference to context state  
+
+Example:  
+
+```yaml
+  - name: listen to handle an events
+    event'on:
+      name: test-event
+    runs:
+      - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+      - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+
+  - event'emit:
+      name: test-event
+      data:
+        name: Test event
+        data: Hello
+      opts:
+        - params 1
+        - params 2
 ```  
 
 
@@ -659,7 +695,9 @@ Example:
 - Set value in the item to global vars to reused later
 - Declare and set value to variables to reused in the scene/global scope
 - If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
-- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene  
+- If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene
+Variables:
+- `$v`, `$vars`: Reference to variables  
 
 Example:  
 

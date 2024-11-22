@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.7.md](#1732269960347)  -  _11/22/2024, 5:06:00 PM_
 - [1.3.1-alpha.6.md](#1732188676633)  -  _11/21/2024, 6:31:16 PM_
 - [1.3.1-alpha.5.md](#1732100555378)  -  _11/20/2024, 6:02:35 PM_
 - [1.3.1-alpha.4.md](#1732098570998)  -  _11/20/2024, 5:29:30 PM_
@@ -94,6 +95,14 @@
 
 ## Details
 
+<a id="1732269960347"></a>
+### 1.3.1-alpha.7
+
+* fix(template): not override tagName (e18b8f5)
+* feat: add shortcut to references to variables (a2d8817)
+* fix: always reference $loopValue, $loopKey to nearest loop (8dbadfa)
+* feat: support debug is boolean (5407635)
+  
 <a id="1732188676633"></a>
 ### 1.3.1-alpha.6
 
