@@ -111,3 +111,95 @@ runs:
   ymlr test.yaml
 ```
 
+## Visual Studio Code extensions
+
+- [ymlr-vscode](https://marketplace.visualstudio.com/items?itemName=circle2jt.ymlr-vscode) Play ymlr scenarios in vscode.   
+After install the extension, please open a scenario file then press `shift+alt+r` to run the scenario.
+
+- [Hightlight](https://marketplace.visualstudio.com/items?itemName=fabiospampinato.vscode-highlight) variables, utils, constants... in yaml scenarios.
+
+  Add the below configuration to your `settings.json`
+  ```json
+  {
+    "highlight.regexes": {
+        "^\\s*#(.+)": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#333333"
+                }
+            ]
+        },
+        "[^#].*?(\\$v\\.)|(\\$vars\\.)": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#98ffa0"
+                },
+                {
+                    "color": "#98ffa0"
+                }
+            ]
+        },
+        "(\\$ps\\.)|(\\$parentState\\.)|(this\\.)": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#55b85d"
+                },
+                {
+                    "color": "#55b85d"
+                }
+            ]
+        },
+        "(\\$loopValue[\\. ])|(\\$lv[\\. ])|(\\.loopValue)|(\\$loopKey[\\. ])|(\\$lk[\\. ]|(\\.loopKey))": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#40723a"
+                },
+                {
+                    "color": "#40723a"
+                },
+                {
+                    "color": "#509549"
+                },
+                {
+                    "color": "#509549"
+                }
+            ]
+        },
+        "(\\$u\\.)|(\\$utils\\.)": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#70aeff"
+                },
+                {
+                    "color": "#70aeff"
+                }
+            ]
+        },
+        "(\\$\\{[^}]+\\})": {
+            "regexFlags": "g",
+            "filterLanguageRegex": "yaml",
+            "filterFileRegex": ".*\\.yaml",
+            "decorations": [
+                {
+                    "color": "#cf36bb"
+                }
+            ]
+        }
+    }
+  }
+  ```
