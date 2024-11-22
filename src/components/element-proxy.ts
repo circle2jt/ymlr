@@ -255,6 +255,8 @@ export class ElementProxy<T extends Element> {
     - Declare and set value to variables to reused in the scene/global scope
     - If the first character is uppercase, it's auto assigned to global which is used in the program (all of scenes)
     - If the first character is NOT uppercase, it will be assigned to scene scope which is only used in the scene
+    Variables:
+      - `$v`, `$vars`: Reference to variables
     @position top
     @tag It's a property in a tag
     @example
@@ -297,7 +299,10 @@ export class ElementProxy<T extends Element> {
   */
   vars?: VarsProps
   /** |**  loop
-    Loop to run items with a condition
+    Loop to run items with a condition.
+    Variables:
+      - `$lv`, `$loopValue`: Get loop value
+      - `$lk`, `$loopKey`: Get loop key
     @position top
     @tag It's a property in a tag
     @example
@@ -499,6 +504,31 @@ export class ElementProxy<T extends Element> {
   runs?: GroupItemProps[]
 
   #parentState?: Record<string, any>
+  /** |**  parentState
+    - Set/Get value to context variables. Used in tags support `runs` and support parentState
+    Variables:
+      - `$ps`, `$parentState`: Reference to context state
+    @position top
+    @tag It's used in js code
+    @example
+    ```yaml
+      - name: listen to handle an events
+        event'on:
+          name: test-event
+        runs:
+          - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+          - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+
+      - event'emit:
+          name: test-event
+          data:
+            name: Test event
+            data: Hello
+          opts:
+            - params 1
+            - params 2
+    ```
+  */
   get parentState() {
     return this.#parentState ?? this.parentProxy?.parentState
   }
@@ -651,7 +681,10 @@ export class ElementProxy<T extends Element> {
       Object.assign(others, {
         $loopKey: ctx.loopKey,
         $loopValue: ctx.loopValue,
-        $parentState: ctx.parentState
+        $parentState: ctx.parentState,
+        $lk: ctx.loopKey,
+        $lv: ctx.loopValue,
+        $ps: ctx.parentState
       })
     }
   }
@@ -662,6 +695,9 @@ export class ElementProxy<T extends Element> {
       $vars: this.scene.localVars,
       $utils: this.rootScene?.globalUtils,
       $const: Constants,
+      $v: this.scene.localVars,
+      $u: this.rootScene?.globalUtils,
+      $c: Constants,
       ...others
     })
     return rs
