@@ -1,5 +1,6 @@
 import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
+import { type ErrorStack } from 'src/libs/error-stack'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 import { LevelFactory } from 'src/libs/logger/level-factory'
@@ -7,21 +8,17 @@ import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
-import { type ErrorStack } from '../libs/error-stack'
 import { type Element } from './element.interface'
 import { type GroupItemProps } from './group/group.props'
 import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
-const DEFAULT_AUTO_EVAL_BASE_PROPS = [
-  'name', 'failure'
-]
-
 const ICON_MULTIPLE_STEP = '' // '▼'
 const ICON_SINGLE_STEP = '' // '▸'
 
-const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
+const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'failure'])
+const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set(['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack'])
 
 export class ElementProxy<T extends Element> {
   /** |**  id
@@ -350,7 +347,13 @@ export class ElementProxy<T extends Element> {
       - loop: ${$vars.arrs}
         name: group ${$loopValue}
         runs:
-          - echo: item value is ${this.parent.loopValue}
+          - echo: value is ${$loopValue}                                  # => item value is "1" then "2" then "3"
+
+          - loop: ${ [4,5,6] }
+            runs:
+              - echo: value is ${$loopValue}                              # => item value is "4" then "5" then "6"
+
+              - echo: parent is ${this.parentProxy.parentProxy.loopValue} # => item value is "1" then "2" then "3"
       # =>
       # group 1
       # item value is 1
@@ -497,8 +500,7 @@ export class ElementProxy<T extends Element> {
 
   #parentState?: Record<string, any>
   get parentState() {
-    if (this.#parentState !== undefined) return this.#parentState
-    return this.parentProxy?.parentState
+    return this.#parentState ?? this.parentProxy?.parentState
   }
 
   set parentState(parentState: Record<string, any> | undefined) {
@@ -506,8 +508,22 @@ export class ElementProxy<T extends Element> {
   }
 
   tag!: string
-  loopKey?: any
-  loopValue?: any
+  #loopObject?: {
+    loopKey?: any
+    loopValue: any
+  }
+
+  get loopObject(): any {
+    return this.#loopObject ?? this.parentProxy?.loopObject
+  }
+
+  get loopKey(): any {
+    return this.#loopObject?.loopKey
+  }
+
+  get loopValue(): any {
+    return this.#loopObject?.loopValue
+  }
 
   readonly parent?: Element
   errorStack?: ErrorStack
@@ -577,6 +593,13 @@ export class ElementProxy<T extends Element> {
     }
   }
 
+  setLoop(key: any | undefined, value: any) {
+    this.#loopObject = {
+      loopKey: key,
+      loopValue: value
+    }
+  }
+
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
     let parentElement: Element | undefined = this.parent
     while (parentElement) {
@@ -603,7 +626,7 @@ export class ElementProxy<T extends Element> {
     const elem = this.element
     const proms = Object.keys(elem)
       .filter(key => {
-        return !DEFAULT_IGNORE_EVAL_ELEMENT_PROPS.includes(key) && !elem.ignoreEvalProps?.includes(key) &&
+        return !DEFAULT_IGNORE_EVAL_ELEMENT_PROPS.has(key) && !elem.ignoreEvalProps?.includes(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(elem[key])
       }).map(async key => {
@@ -613,7 +636,7 @@ export class ElementProxy<T extends Element> {
     const baseProps = Object.keys(this)
     proms.push(...baseProps
       .filter(key => {
-        return DEFAULT_AUTO_EVAL_BASE_PROPS.includes(key) &&
+        return DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) &&
           // @ts-expect-error never mind
           isGetEvalExp(this[key])
       }).map(async key => {

@@ -46,6 +46,7 @@ Root scene file includes all of steps to run
 export class RootScene extends Scene {
   override readonly isRootScene = true
   override readonly isScene = true
+
   #workerManager?: WorkerManager
   get workerManager() {
     return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
