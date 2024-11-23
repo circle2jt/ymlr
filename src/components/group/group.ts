@@ -231,7 +231,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         continue
       }
 
-      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, id, context } = eProps
+      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
 
       if (elseCondition === null) {
         elseIfCondition = true
@@ -265,6 +265,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const baseProps: ElementBaseProps = {
         id,
         name,
+        icon,
         if: condition,
         elseif: elseIfCondition,
         failure,

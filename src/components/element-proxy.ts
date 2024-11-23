@@ -201,6 +201,26 @@ export class ElementProxy<T extends Element> {
   ```
 */
   context?: string
+  /** |**  icon
+    Icon which is prepended before the step name
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - ->: sleepID
+        icon: ⏳
+        template: 1000
+
+      - name: Sleep in 1s       # => ⏳ Sleep in 1s
+        <-: sleepID
+        sleep: 1s
+
+      - name: Sleep in 2s       # => ⏳ Sleep in 2s
+        <-: sleepID
+        sleep: 2s
+    ```
+  */
+  icon?: string
   /** |**  name
     Step name
     @position top
@@ -548,11 +568,11 @@ export class ElementProxy<T extends Element> {
   }
 
   get loopKey(): any {
-    return this.#loopObject?.loopKey
+    return this.loopObject?.loopKey
   }
 
   get loopValue(): any {
-    return this.#loopObject?.loopValue
+    return this.loopObject?.loopValue
   }
 
   readonly parent?: Element
@@ -597,6 +617,17 @@ export class ElementProxy<T extends Element> {
   // TODO: need to update others plugins before remove it
   set logger(logger: Logger) {
     this._logger = logger
+  }
+
+  get contextExpose() {
+    return {
+      $loopKey: this.loopKey,
+      $loopValue: this.loopValue,
+      $parentState: this.parentState,
+      $lk: this.loopKey,
+      $lv: this.loopValue,
+      $ps: this.parentState
+    }
   }
 
   result?: any
@@ -676,29 +707,18 @@ export class ElementProxy<T extends Element> {
     proms.length && await Promise.all(proms)
   }
 
-  injectOtherCxt(ctx: ElementProxy<Element> | any, others: Record<string, any> = {}) {
-    if (ctx instanceof ElementProxy) {
-      Object.assign(others, {
-        $loopKey: ctx.loopKey,
-        $loopValue: ctx.loopValue,
-        $parentState: ctx.parentState,
-        $lk: ctx.loopKey,
-        $lv: ctx.loopValue,
-        $ps: ctx.parentState
-      })
-    }
-  }
 
   async callFunctionScript(script: string, others: Record<string, any> = {}) {
-    this.injectOtherCxt(this, others)
     const rs = await callFunctionScript(script, this, {
+      ...others,
+      ...this.contextExpose,
       $vars: this.scene.localVars,
-      $utils: this.rootScene?.globalUtils,
+      $utils: this.rootScene.globalUtils,
       $const: Constants,
+
       $v: this.scene.localVars,
       $u: this.rootScene?.globalUtils,
-      $c: Constants,
-      ...others
+      $c: Constants
     })
     return rs
   }
@@ -719,7 +739,7 @@ export class ElementProxy<T extends Element> {
       try {
         await this.evalPropsBeforeExec()
         if (this.name && !this.element.hideName) {
-          if (this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.name}`)) {
+          if (this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.icon ? `${this.icon} ` : ''}${this.name}`)) {
             this.logger.meta = { printedName: true }
           }
         }
