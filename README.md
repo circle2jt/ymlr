@@ -132,7 +132,7 @@ After install the extension, please open a scenario file then press `shift+alt+r
                 }
             ]
         },
-        "[^#].*?(\\$v\\.)|(\\$vars\\.)": {
+        "(\\$v\\.)|(\\$vars\\.)": {
             "regexFlags": "g",
             "filterLanguageRegex": "yaml",
             "filterFileRegex": ".*\\.yaml",
@@ -546,6 +546,27 @@ Example:
       ignore: true                 # Ignore error then play the next
     js: |
       const a = 1/0
+```  
+
+
+## <a id="icon"></a>icon  
+`It's a property in a tag`  
+Icon which is prepended before the step name  
+
+Example:  
+
+```yaml
+  - ->: sleepID
+    icon: ⏳
+    template: 1000
+
+  - name: Sleep in 1s       # => ⏳ Sleep in 1s
+    <-: sleepID
+    sleep: 1s
+
+  - name: Sleep in 2s       # => ⏳ Sleep in 2s
+    <-: sleepID
+    sleep: 2s
 ```  
 
 

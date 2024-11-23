@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.9.md](#1732355155682)  -  _11/23/2024, 4:45:55 PM_
 - [1.3.1-alpha.8.md](#1732277266926)  -  _11/22/2024, 7:07:46 PM_
 - [1.3.1-alpha.7.md](#1732269960347)  -  _11/22/2024, 5:06:00 PM_
 - [1.3.1-alpha.6.md](#1732188676633)  -  _11/21/2024, 6:31:16 PM_
@@ -96,6 +97,15 @@
 
 ## Details
 
+<a id="1732355155682"></a>
+### 1.3.1-alpha.9
+
+* fix(fetch): download empty content (652c5f6)
+* fix(env): sync process.env (3fc1e08)
+* feat(icon): add icon property to step (58d21d2)
+* fix(fetch): app is exited when downloading file is error (9933b06)
+* doc: update doc for vscode extension (4ec9c53)
+  
 <a id="1732277266926"></a>
 ### 1.3.1-alpha.8
 
