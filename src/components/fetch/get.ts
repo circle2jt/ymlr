@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { createWriteStream } from 'fs'
+import { createWriteStream, type WriteStream } from 'fs'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
@@ -96,20 +96,29 @@ export class Get extends Head {
       }
     }
     if (!rs.body) return undefined
-    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false })
+    const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false }) as WriteStream & { asyncWrite: (chunk: any) => Promise<void> }
+    stream
+      .once('error', () => { })
+      .asyncWrite = async function (chunk: any) {
+        await new Promise((resolve, reject) => {
+          this.write(chunk, (err) => {
+            if (err) reject(err)
+            else resolve(undefined)
+          })
+        })
+      }
     let loaded = 0
     const wstream = new WritableStream({
-      write: (chunk: any) => {
+      write: async (chunk: any) => {
         const bytes = chunk.length
         loaded += bytes
-        stream.write(chunk)
+        await stream.asyncWrite(chunk)
         this.onDownloadProgress?.({
           bytes,
           loaded
         })
       }
     })
-    stream.once('error', () => { })
     await rs.body.pipeTo(wstream, { signal: this.abortController.signal })
     this.onDownloadProgress?.({
       bytes: 0,
