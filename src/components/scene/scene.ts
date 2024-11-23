@@ -2,7 +2,7 @@ import assert from 'assert'
 import { load } from 'js-yaml'
 import merge from 'lodash.merge'
 import { basename, dirname, isAbsolute, join, resolve } from 'path'
-import { SAND_SCENE_PASSWORD } from 'src/env'
+import ENVGlobal from 'src/env-global'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
@@ -362,7 +362,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   private async decryptContent(content: string, password?: string) {
     if (!password || !content) return content
     try {
-      return this.rootScene.globalUtils.aes.decrypt(content, `${SAND_SCENE_PASSWORD}${password}`)
+      return this.rootScene.globalUtils.aes.decrypt(content, `${ENVGlobal.SAND_SCENE_PASSWORD}${password}`)
     } catch (err: any) {
       if (err?.code === 'ERR_OSSL_BAD_DECRYPT') {
         throw new Error(`Password to decrypt the file "${this.path}" is not valid`)
@@ -375,7 +375,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     if (!password || !this.path || !contentObject) return
     const content = JSON.stringify(contentObject)
     this.logger.trace('Encrypted to\t%s', this.encryptedPath)
-    const econtent = this.rootScene.globalUtils.aes.encrypt(content, `${SAND_SCENE_PASSWORD}${password}`)
+    const econtent = this.rootScene.globalUtils.aes.encrypt(content, `${ENVGlobal.SAND_SCENE_PASSWORD}${password}`)
     const { writeFile } = await import('fs/promises')
     await writeFile(this.encryptedPath, econtent)
   }

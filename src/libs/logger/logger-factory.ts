@@ -1,3 +1,4 @@
+import ENVGlobal from 'src/env-global'
 import { type ErrorStack } from 'src/libs/error-stack'
 import { type Logger } from '.'
 import { ConsoleLogger } from './console'
@@ -11,17 +12,17 @@ export class LoggerFactory {
   static DEBUG_CONTEXT_FILTER?: RegExp
 
   static LoadFromEnv() {
-    if (process.env.DEBUG_SECRET === '1') {
+    if (ENVGlobal.DEBUG_SECRET === '1') {
       LoggerFactory.DEBUG_SECRET = true
     }
-    if (process.env.DEBUG) {
-      const defaultLoggerLevel = GetLoggerLevel(process.env.DEBUG || 'info')
+    if (ENVGlobal.DEBUG) {
+      const defaultLoggerLevel = GetLoggerLevel(ENVGlobal.DEBUG || 'info')
       if (!defaultLoggerLevel) {
-        throw new Error(`--debug "${process.env.DEBUG}", Log level is not valid`)
+        throw new Error(`--debug "${ENVGlobal.DEBUG}", Log level is not valid`)
       }
       LoggerFactory.DEBUG = LevelFactory.GetInstance(defaultLoggerLevel)
     }
-    LoggerFactory.DEBUG_CONTEXT_FILTER = process.env.DEBUG_CONTEXT_FILTER ? new RegExp(process.env.DEBUG_CONTEXT_FILTER) : undefined
+    LoggerFactory.DEBUG_CONTEXT_FILTER = ENVGlobal.DEBUG_CONTEXT_FILTER ? new RegExp(ENVGlobal.DEBUG_CONTEXT_FILTER) : undefined
   }
 
   static Dispose() { }

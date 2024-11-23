@@ -1,11 +1,10 @@
 import chalk from 'chalk'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
-import { DEBUG_GROUP_RESULT, MODE, SAND_SCENE_PASSWORD } from 'src/env'
+import ENVGlobal from 'src/env-global'
 import { GlobalEvent } from 'src/libs/global-event'
 import { StyleFactory } from 'src/libs/logger/console/styles/style-factory'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
-import { PackageManagerSupported } from 'src/managers/packages-manager-factory'
 import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
@@ -107,10 +106,10 @@ export class RootScene extends Scene {
       DEBUG_SECRET: LoggerFactory.DEBUG_SECRET,
       LOG_STYLE: StyleFactory.Instance.constructor.name,
       TTY: !!chalk.supportsColor,
-      MODE,
-      DEBUG_GROUP_RESULT,
-      SAND_SCENE_PASSWORD,
-      PACKAGE_MANAGERS: PackageManagerSupported
+      MODE: ENVGlobal.MODE,
+      DEBUG_GROUP_RESULT: ENVGlobal.DEBUG_GROUP_RESULT,
+      SAND_SCENE_PASSWORD: ENVGlobal.SAND_SCENE_PASSWORD,
+      PACKAGE_MANAGERS: ENVGlobal.PACKAGE_MANAGERS
     })
   }
 

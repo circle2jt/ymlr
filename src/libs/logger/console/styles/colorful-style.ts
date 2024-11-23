@@ -36,7 +36,7 @@ export default class ColorfulStyle implements LogStyle {
     const formater = LevelFactory.GetInstance(meta.level)
     const level = this.#getColorLevel(formater)
     const indentString = chalk.gray.dim(meta.indent.indentString)
-    const fullContextPath = chalk.gray.dim.italic(meta.fullContextPath)
+    const fullContextPath = meta.fullContextPath ? chalk.gray.dim.italic(meta.fullContextPath) : ''
     if (typeof msg === 'string') {
       printToConsole(`%s %s %s %s${formater.format(msg)} \t %s`,
         threadID,

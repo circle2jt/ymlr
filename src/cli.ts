@@ -4,6 +4,7 @@ import { program } from 'commander'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
+import ENVGlobal from './env-global'
 import { FileRemote } from './libs/file-remote'
 import { StyleFactory } from './libs/logger/console/styles/style-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
@@ -54,9 +55,9 @@ export async function RunCLI() {
               const vl = keyValue.substring(idx + 1)
               process.env[key] = vl
             })
-          if (debug) process.env.DEBUG = debug
-          if (flow) process.env.MODE = 'flow'
-          if (debugContextFilter) process.env.DEBUG_CONTEXT_FILTER = debugContextFilter
+          if (debug) ENVGlobal.DEBUG = debug
+          if (flow) ENVGlobal.MODE = 'flow'
+          if (debugContextFilter) ENVGlobal.DEBUG_CONTEXT_FILTER = debugContextFilter
 
           LoggerFactory.LoadFromEnv()
           StyleFactory.SetLogStyle(style)

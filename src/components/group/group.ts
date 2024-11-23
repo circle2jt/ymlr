@@ -1,10 +1,10 @@
 import { type AppEvent } from 'src/app-event'
-import { DEBUG_GROUP_RESULT, MODE } from 'src/env'
+import ENVGlobal from 'src/env-global'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
-import Include from '../include'
+import { INCLUDE_FLAG } from '../include/include'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
 const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
@@ -117,8 +117,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       }
     }
 
-    if (MODE) {
-      if (!(elem instanceof Include)) {
+    if (ENVGlobal.MODE) {
+      if ((elem as any).$flag !== INCLUDE_FLAG) {
         elemProxy.loop = undefined
         elemProxy.async = undefined
         elemProxy.detach = undefined
@@ -127,15 +127,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         elemProxy.evalPropsBeforeExec = async () => { }
         elemProxy.setVarsAfterExec = async () => { }
         elemProxy.dispose = async () => { }
-        const elem = elemProxy.element as any
+        elemProxy.context = ''
         if (elem.runEachOfElements) {
           // elemProxy.element.exec = async (parentState = {}) => {
           //   await elem.runEachOfElements(parentState)
           //   return true
           // }
         } else if (elem.innerRunsProxy) {
-          elemProxy.element.exec = async () => {
-            return elem.innerRunsProxy.exec()
+          elemProxy.element.exec = async function (parentState?: any) {
+            return await this.innerRunsProxy?.exec(parentState)
           }
         } else {
           elemProxy.element.exec = async () => { }
@@ -194,7 +194,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return
     }
     const asyncJobs = new Array<Promise<any>>()
-    const result = DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
+    const result = ENVGlobal.DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let isPassedCondition = false
 
     // Loop to execute each of tags
@@ -285,7 +285,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
       }
       // Execute
-      if (loop === undefined || MODE) {
+      if (loop === undefined || ENVGlobal.MODE) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           isPassedCondition = !!baseProps.if || !!baseProps.elseif

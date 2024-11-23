@@ -18,7 +18,7 @@ const ICON_MULTIPLE_STEP = '' // '▼'
 const ICON_SINGLE_STEP = '' // '▸'
 
 const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'failure'])
-const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set(['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack'])
+const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
 
 export class ElementProxy<T extends Element> {
   /** |**  id
@@ -634,6 +634,7 @@ export class ElementProxy<T extends Element> {
   error?: Error
 
   #elementAsyncProps?: any
+  #ignoreEvalElementProps = new Set<string>(DEFAULT_IGNORE_EVAL_ELEMENT_PROPS)
 
   constructor(public element: T, props: any = {}) {
     Object.assign(this, props)
@@ -644,6 +645,7 @@ export class ElementProxy<T extends Element> {
       writable: false,
       value: this
     })
+    this.element.ignoreEvalProps?.forEach(prop => this.#ignoreEvalElementProps.add(prop))
   }
 
   setDebug(debug?: string) {
@@ -684,29 +686,23 @@ export class ElementProxy<T extends Element> {
   }
 
   async evalPropsBeforeExec() {
-    const elem = this.element
-    const proms = Object.keys(elem)
-      .filter(key => {
-        return !DEFAULT_IGNORE_EVAL_ELEMENT_PROPS.has(key) && !elem.ignoreEvalProps?.includes(key) &&
-          // @ts-expect-error never mind
-          isGetEvalExp(elem[key])
-      }).map(async key => {
-        // @ts-expect-error never mind
-        elem[key] = await this.scene.getVars(elem[key], this)
+    const that = this as any
+    const { element } = that
+    const proms = Object.keys(element)
+      .filter(key => !this.#ignoreEvalElementProps.has(key) && isGetEvalExp(element[key]))
+      .map(async key => {
+        element[key] = await this.scene.getVars(element[key], this)
       })
     const baseProps = Object.keys(this)
     proms.push(...baseProps
-      .filter(key => {
-        return DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) &&
-          // @ts-expect-error never mind
-          isGetEvalExp(this[key])
-      }).map(async key => {
-        // @ts-expect-error never mind
-        this[key] = await this.scene.getVars(this[key], this)
+      .filter(key => DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) && isGetEvalExp(that[key]))
+      .map(async key => {
+        that[key] = await this.scene.getVars(that[key], this)
       }))
-    proms.length && await Promise.all(proms)
+    if (proms.length) {
+      await Promise.all(proms)
+    }
   }
-
 
   async callFunctionScript(script: string, others: Record<string, any> = {}) {
     const rs = await callFunctionScript(script, this, {
@@ -728,6 +724,7 @@ export class ElementProxy<T extends Element> {
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.#elementAsyncProps)
       this.#elementAsyncProps = undefined
+      // this.#ignoreEvalElementProps.clear()
       this.element.asyncConstructor = undefined
     }
 
@@ -743,17 +740,18 @@ export class ElementProxy<T extends Element> {
             this.logger.meta = { printedName: true }
           }
         }
-        while (true) {
+        do {
           try {
-            if (this.element.preExec) {
-              const isRunOnce = await this.element.preExec(parentState)
-              if (isRunOnce) {
-                this.element.preExec = undefined
-              }
+            const isRunOnce = await this.element.preExec?.(parentState)
+            if (isRunOnce) {
+              this.element.preExec = undefined
             }
             const result = await this.element.exec(parentState)
-            if (this.result instanceof Returns) this.result = this.result.result
-            else this.result = result
+            if (this.result instanceof Returns) {
+              this.result = this.result.result
+            } else {
+              this.result = result
+            }
             break
           } catch (_err: any) {
             let err: any
@@ -768,10 +766,14 @@ export class ElementProxy<T extends Element> {
             if (!this.failure?.restart || --this.failure.restart.max === 0) {
               throw err
             }
-            this.failure?.logDetails ? this.logger.error(err) : this.logger.error(err?.message)?.trace(err)
+            if (this.failure?.logDetails) {
+              this.logger.error(err)
+            } else {
+              this.logger.error(err?.message)?.trace(err)
+            }
             await sleep(this.failure.restart.sleep)
           }
-        }
+        } while (true)
       } catch (err: any) {
         if (this.name && !err.proxyName) {
           err.proxyName = this.name

@@ -13,6 +13,7 @@ export interface Element {
   exec: (input?: any) => any
   dispose: () => void | Promise<void>
 
+  runEachOfElements?: (parentState?: Record<string, any>) => any
 }
 
 export const ElementBaseKeys = ['->', '<-', 'id', 'runs', 'template', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack']
