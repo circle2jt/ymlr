@@ -713,7 +713,7 @@ export class ElementProxy<T extends Element> {
       $const: Constants,
 
       $v: this.scene.localVars,
-      $u: this.rootScene?.globalUtils,
+      $u: this.rootScene.globalUtils,
       $c: Constants
     })
     return rs

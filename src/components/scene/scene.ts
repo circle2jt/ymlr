@@ -220,11 +220,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     return await getVars(str, ctx, {
       ...others,
       ...ctx?.contextExpose,
+
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
-      $v: this.scene.localVars,
-      $u: this.rootScene?.globalUtils,
+
+      $v: this.localVars,
+      $u: this.rootScene.globalUtils,
       $c: Constants
     })
   }
@@ -232,11 +234,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   async setVars(varObj: any, vl: any, ctx?: any) {
     return await setVars(varObj, vl, ctx, {
       ...ctx?.contextExpose,
+
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
-      $v: this.scene.localVars,
-      $u: this.rootScene?.globalUtils,
+
+      $v: this.localVars,
+      $u: this.rootScene.globalUtils,
       $c: Constants
     })
   }
