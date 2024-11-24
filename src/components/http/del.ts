@@ -15,6 +15,7 @@ import { Post } from './post'
         headers:                        # !optional - Request headers
           authorization: Bearer TOKEN
         timeout: 5000                   # !optional - Request timeout. Default is no timeout
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars:                             # !optional - Global variable which store value after executed
         status: ${this.$.response.status}
   ```

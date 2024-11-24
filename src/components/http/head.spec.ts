@@ -16,10 +16,10 @@ afterEach(async () => {
   await request.dispose()
 })
 
-test('should send request ok', async () => {
+test('should send request ok with custom valid status', async () => {
   server.head('/')
     .mockImplementationOnce((ctx) => {
-      ctx.status = 204
+      ctx.status = 400
       ctx.message = 'OK MEN'
       expect(ctx.query.time).toBeDefined()
       expect(ctx.query.rd).toBeDefined()
@@ -28,11 +28,12 @@ test('should send request ok', async () => {
     url: server.getURL().toString() + '?time=' + Date.now().toString(),
     query: {
       rd: Math.random().toString()
-    }
+    },
+    validStatus: [400]
   })
   await request.exec()
   expect(request.error).toBeUndefined()
-  expect(request.element.response?.status).toBe(204)
+  expect(request.element.response?.status).toBe(400)
   expect(request.element.response?.statusText).toBe('OK MEN')
 })
 

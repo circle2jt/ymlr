@@ -22,6 +22,7 @@ import { type PutProps } from './put.props'
           "description": "My description"
         }
         responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars: newPost
   ```
   Upload file to server

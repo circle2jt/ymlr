@@ -31,6 +31,7 @@ axios.defaults.httpsAgent = new Agents()
           method: check_existed
         headers:
           authorization: Bearer TOKEN
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars:
         status: ${this.response?.status}
   ```
@@ -48,6 +49,7 @@ export class Head implements Element {
   headers: Record<string, any> = {}
   query?: any
   opts?: any
+  validStatus?: number[]
 
   response?: Response
   executionTime?: number
@@ -125,7 +127,10 @@ export class Head implements Element {
     return this.response?.data
   }
 
-  async send(moreOptions = {}) {
+  async send(moreOptions: any = {}) {
+    if (this.validStatus) {
+      moreOptions.validateStatus = (status: number) => this.validStatus?.includes(status)
+    }
     const rs = await axios({
       ...this.axiosOpts,
       ...moreOptions
