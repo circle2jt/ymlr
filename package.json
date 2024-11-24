@@ -60,7 +60,7 @@
     "ci:posttest": "yarn clean",
     "ci:tag": "yarn start ./scripts/create-tag.yaml",
     "ci:lint": "eslint --ext .ts ./src",
-    "ci:publish": "yarn ci:build && cd ./dist && yarn publish --no-git-checks --access public --tag <PUBLISH.TAG> && cd ../",
+    "ci:publish": "yarn publish --no-git-checks --access public --tag <PUBLISH.TAG> && cd ../",
     "ci:release": "yarn start ./scripts/create-release.yaml",
     "ci:trigger": "yarn start ./scripts/trigger-vscode.yaml"
   },

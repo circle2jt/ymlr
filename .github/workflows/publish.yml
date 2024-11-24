@@ -20,7 +20,10 @@ jobs:
           cache: yarn
       - run: yarn install --frozen-lockfile
       - name: Publish with prod config
-        run: yarn ci:publish
+        run: |
+          yarn ci:build
+          cd dist
+          yarn ci:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create a new release
