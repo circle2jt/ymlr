@@ -147,13 +147,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (env) {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
-          (env as string[]).forEach(e => {
-            const idx = e.indexOf('=')
-            process.env[e.substring(0, idx)] = e.substring(idx + 1)
+          (env as string[]).forEach(line => {
+            const [key, value] = Env.ParseEnvLine(line, false)
+            process.env[key] = value
           })
         } else if (typeof env === 'object') {
-          Object.keys(env).forEach((e: string) => {
-            process.env[e] = env[e]
+          Object.entries(env).forEach(([key, value]) => {
+            process.env[key] = value as string
           })
         }
       }
@@ -210,9 +210,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   getPath(p: string) {
     if (!p) return p
-    if (isAbsolute(p)) return p
     if (p.startsWith('~~/')) return join(this.rootScene.runDir, p.substring(3))
     if (p.startsWith('~/')) return join(this.rootScene.rootDir, p.substring(2))
+    if (isAbsolute(p)) return p
     return join(this.curDir || '', p)
   }
 

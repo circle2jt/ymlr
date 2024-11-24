@@ -2,7 +2,8 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { inspect } from 'util'
 
 const REGEX_FIRST_ALPHA = /(^_$)|(^[A-Za-z])/
-const PATTERN_JS_CODE_BLOCK = /^[\n\s\t]*\$\{([^}]+)\}[\n\s\t]*$/
+const PATTERN_JS_CODE_BLOCK = /^[\r\n\s\t]*\$\{([^}]+)\}[\r\n\s\t]*$/
+const REGEX_GET_EVAL_EXP_OBJECT = /^function (Object)|(Array)\(\)\s/
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
@@ -52,7 +53,7 @@ export function isGetEvalExp(vl: any) {
     if (vl.includes('${')) return String
   } else if (typeof vl === 'object') {
     const typeName = vl.constructor?.toString()
-    if (typeName?.startsWith('function Object() ') || typeName?.startsWith('function Array() ')) {
+    if (typeName && REGEX_GET_EVAL_EXP_OBJECT.test(typeName)) {
       if (isGetEvalExp(inspect(vl, false, Infinity, false))) return Object
     }
   }

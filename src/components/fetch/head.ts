@@ -39,11 +39,12 @@ export class Head implements Element {
   url = ''
   headers: Record<string, any> = {}
   query?: any
-  response?: any
-  executionTime?: number
   opts?: RequestInit
 
-  protected readonly abortController = new AbortController()
+  response?: any
+  executionTime?: number
+
+  protected readonly _abortController = new AbortController()
 
   protected get fullURL() {
     return `${this.baseURL || ''}${this.url}`
@@ -57,7 +58,7 @@ export class Head implements Element {
     const opts: RequestInit = {
       method: this.method,
       headers: this.headers,
-      signal: this.abortController.signal,
+      signal: this._abortController.signal,
       ...this.opts
     }
     return opts
@@ -68,7 +69,7 @@ export class Head implements Element {
   }
 
   abort() {
-    this.abortController.abort()
+    this._abortController.abort()
   }
 
   async exec() {

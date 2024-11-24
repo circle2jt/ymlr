@@ -34,7 +34,7 @@ export class Exec implements Element {
   opts?: SpawnOptions
   commands!: string[]
 
-  #abortController?: AbortController
+  private _abortController?: AbortController
 
   constructor(props: string[] | ExecProps) {
     if (Array.isArray(props)) {
@@ -46,60 +46,55 @@ export class Exec implements Element {
 
   async exec() {
     assert(this.commands?.length)
-    let rs: { code: number, signal: NodeJS.Signals, logs?: string }
-    try {
-      rs = await new Promise<{ code: number, signal: NodeJS.Signals, logs?: string }>((resolve, reject) => {
-        this.logger.debug('› %s', this.commands.join(' '))
-        let logs: string[] | undefined
-        this.#abortController = new AbortController()
-        let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
-        if (this.proxy.vars) {
-          stdio = 'pipe'
-          logs = []
-        } else if (this.logger.is(LoggerLevel.trace)) {
-          stdio = 'pipe'
-        } else if (this.logger.is(LoggerLevel.error)) {
-          stdio = ['pipe', 'ignore', 'pipe']
-        }
-        const [bin, ...args] = this.commands
-        const c = spawn(bin, args, {
-          stdio,
-          env: process.env,
-          cwd: this.proxy.scene?.curDir,
-          signal: this.#abortController.signal,
-          ...this.opts
-        })
-        if (logs || this.logger.is(LoggerLevel.trace)) {
-          c.stdout?.on('data', msg => {
-            msg = msg.toString().replace(/\n$/, '')
-            logs?.push(msg)
-            this.logger.trace(msg)
-          })
-        }
-        if (logs || this.logger.is(LoggerLevel.error)) {
-          c.stderr?.on('data', msg => {
-            msg = msg.toString().replace(/\n$/, '')
-            logs?.push(msg)
-            this.logger.error(msg)
-          })
-        }
-        c.on('close', (code: number, signal: NodeJS.Signals) => {
-          if (!this.exitCodes.includes(code)) {
-            const err = new Error(`Error code ${code}, signal: ${signal}`)
-            reject(err)
-            return
-          }
-          resolve({ code, signal, logs: logs?.join('\n') })
-        })
-        c.on('error', reject)
+    const rs = await new Promise<{ code: number, signal: NodeJS.Signals, logs?: string }>((resolve, reject) => {
+      this.logger.debug('› %s', this.commands.join(' '))
+      let logs: string[] | undefined
+      this._abortController = new AbortController()
+      let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
+      if (this.proxy.vars) {
+        stdio = 'pipe'
+        logs = []
+      } else if (this.logger.is(LoggerLevel.trace)) {
+        stdio = 'pipe'
+      } else if (this.logger.is(LoggerLevel.error)) {
+        stdio = ['pipe', 'ignore', 'pipe']
+      }
+      const [bin, ...args] = this.commands
+      const c = spawn(bin, args, {
+        stdio,
+        env: process.env,
+        cwd: this.proxy.scene?.curDir,
+        signal: this._abortController.signal,
+        ...this.opts
       })
-    } finally {
-      this.#abortController = undefined
-    }
+      if (logs || this.logger.is(LoggerLevel.trace)) {
+        c.stdout?.on('data', msg => {
+          msg = msg.toString().replace(/\n$/, '')
+          logs?.push(msg)
+          this.logger.trace(msg)
+        })
+      }
+      if (logs || this.logger.is(LoggerLevel.error)) {
+        c.stderr?.on('data', msg => {
+          msg = msg.toString().replace(/\n$/, '')
+          logs?.push(msg)
+          this.logger.error(msg)
+        })
+      }
+      c.on('close', (code: number, signal: NodeJS.Signals) => {
+        if (!this.exitCodes.includes(code)) {
+          const err = new Error(`Error code ${code}, signal: ${signal}`)
+          reject(err)
+          return
+        }
+        resolve({ code, signal, logs: logs?.join('\n') })
+      })
+      c.on('error', reject)
+    })
     return rs
   }
 
   dispose() {
-    this.#abortController?.abort()
+    this._abortController?.abort()
   }
 }

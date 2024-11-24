@@ -40,7 +40,7 @@ export class App {
       await this.#rootSceneProxy.exec()
     } catch (err: any) {
       this.logger.fatal(err)
-      process.exit(1)
+      setImmediate(process.exit, 1)
     } finally {
       await this.#rootSceneProxy.dispose()
       summary?.print()

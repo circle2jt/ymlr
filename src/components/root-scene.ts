@@ -81,7 +81,7 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'rootDir', 'onAppExit')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'rootDir', 'runDir', 'onAppExit')
   }
 
   override async asyncConstructor() {
@@ -149,22 +149,17 @@ export class RootScene extends Scene {
   }
 
   getTagName(props: any) {
-    const keys = Object.keys(props)
-    let tagName: string | undefined
-    for (let key of keys) {
-      if (key.startsWith('~')) {
-        const oldKey = key
-        key = key.substring(1)
-        props[key] = props[oldKey]
-        props[oldKey] = undefined
-        props.async = true
-      }
-      if (!ElementBaseKeys.includes(key) && props[key] !== undefined) {
-        tagName = key
-        break
-      }
-    }
-    return tagName
+    return Object.keys(props)
+      .find(key => {
+        if (key[0] === '~') {
+          const oldKey = key
+          key = key.substring(1)
+          props[key] = props[oldKey]
+          props[oldKey] = undefined
+          props.async = true
+        }
+        return !ElementBaseKeys.has(key) && props[key] !== undefined
+      })
   }
 
   // protected async getRemoteFileProps() {

@@ -80,7 +80,7 @@ export class HttpServer implements Element {
     } else if (this.auth?.custom) {
       const { 'verify()': verify, ...props } = this.auth.custom
       this.#authVerifier = new CustomAuth(props)
-      this.#authVerifier.verify = bindFunctionScript(verify, this.#authVerifier, '$parentState')
+      this.#authVerifier.verify = bindFunctionScript<IVerify['verify']>(verify, this.#authVerifier, '$parentState')
     }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')

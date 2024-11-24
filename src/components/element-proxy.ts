@@ -17,8 +17,19 @@ import { type VarsProps } from './vars.props'
 const ICON_MULTIPLE_STEP = '' // '▼'
 const ICON_SINGLE_STEP = '' // '▸'
 
+const REGEX_VALIDATE_VARS_NAME = /^[a-zA-Z0-9]/
 const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'failure'])
-const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = ['proxy', 'hideName', 'ignoreEvalProps', 'innerRunsProxy', 'runs', 'errorStack']
+const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
+  // Injected enumerable: false by system
+  // 'proxy',
+  // 'innerRunsProxy',
+
+  // Injected by user so neec to ignore handle them
+  'hideName',
+  'ignoreEvalProps',
+  'runs',
+  'errorStack'
+])
 
 export class ElementProxy<T extends Element> {
   /** |**  id
@@ -634,7 +645,6 @@ export class ElementProxy<T extends Element> {
   error?: Error
 
   #elementAsyncProps?: any
-  #ignoreEvalElementProps = new Set<string>(DEFAULT_IGNORE_EVAL_ELEMENT_PROPS)
 
   constructor(public element: T, props: any = {}) {
     Object.assign(this, props)
@@ -645,7 +655,6 @@ export class ElementProxy<T extends Element> {
       writable: false,
       value: this
     })
-    this.element.ignoreEvalProps?.forEach(prop => this.#ignoreEvalElementProps.add(prop))
   }
 
   setDebug(debug?: string) {
@@ -689,13 +698,21 @@ export class ElementProxy<T extends Element> {
     const that = this as any
     const { element } = that
     const proms = Object.keys(element)
-      .filter(key => !this.#ignoreEvalElementProps.has(key) && isGetEvalExp(element[key]))
+      .filter(key =>
+        REGEX_VALIDATE_VARS_NAME.test(key) &&
+        !DEFAULT_IGNORE_EVAL_ELEMENT_PROPS.has(key) &&
+        !this.element.ignoreEvalProps?.includes(key) &&
+        isGetEvalExp(element[key])
+      )
       .map(async key => {
         element[key] = await this.scene.getVars(element[key], this)
       })
     const baseProps = Object.keys(this)
     proms.push(...baseProps
-      .filter(key => DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) && isGetEvalExp(that[key]))
+      .filter(key =>
+        DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) &&
+        isGetEvalExp(that[key])
+      )
       .map(async key => {
         that[key] = await this.scene.getVars(that[key], this)
       }))
@@ -796,6 +813,7 @@ export class ElementProxy<T extends Element> {
   async dispose() {
     GlobalEvent.emit('@app/proxy/before:exec:dispose', this)
     try {
+      await this.element.innerRunsProxy?.dispose()
       await this.element.dispose?.()
       this.parentState = undefined
       this._logger?.dispose()

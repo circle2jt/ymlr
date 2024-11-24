@@ -49,7 +49,7 @@ export class Sh implements Element {
   opts?: SpawnOptionsWithoutStdio | ExecFileOptions
   exitCodes = [0]
 
-  #abortController?: AbortController
+  private _abortController?: AbortController
 
   constructor(props: ShProps) {
     if (typeof props === 'string') {
@@ -73,7 +73,7 @@ export class Sh implements Element {
       const rs = await (this.process === true ? this.execLongScript(tmpFile, timeout) : this.ShortScript(tmpFile, timeout))
       return rs
     } finally {
-      this.#abortController = undefined
+      this._abortController = undefined
       tmpFile.remove()
     }
   }
@@ -81,7 +81,7 @@ export class Sh implements Element {
   private async execLongScript(tmpFile: FileTemp, timeout: number | undefined) {
     return await new Promise((resolve, reject) => {
       let logs: string[] | undefined
-      this.#abortController = new AbortController()
+      this._abortController = new AbortController()
       let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
       if (this.proxy.vars) {
         stdio = 'pipe'
@@ -96,7 +96,7 @@ export class Sh implements Element {
         env: process.env,
         cwd: this.proxy.scene.curDir,
         timeout,
-        signal: this.#abortController.signal,
+        signal: this._abortController.signal,
         ...this.opts
       })
       if (logs || this.logger.is(LoggerLevel.trace)) {
@@ -131,12 +131,12 @@ export class Sh implements Element {
     let log: string | undefined
     try {
       log = await new Promise((resolve, reject) => {
-        this.#abortController = new AbortController()
+        this._abortController = new AbortController()
         proc = execFile(this.bin, [tmpFile.file], {
           env: process.env,
           cwd: this.proxy.scene.curDir,
           timeout,
-          signal: this.#abortController.signal,
+          signal: this._abortController.signal,
           ...this.opts
         }, (err, stdout, stderr) => {
           if (err) {
@@ -161,6 +161,6 @@ export class Sh implements Element {
   }
 
   dispose() {
-    this.#abortController?.abort()
+    this._abortController?.abort()
   }
 }

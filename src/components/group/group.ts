@@ -7,7 +7,7 @@ import { type Element, type ElementBaseProps, type ElementClass } from '../eleme
 import { INCLUDE_FLAG } from '../include/include'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
-const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
+export const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
 
 /** |**  runs
   Group elements
@@ -25,7 +25,7 @@ const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
   readonly isRootScene?: boolean
   readonly isScene?: boolean
-  readonly ignoreEvalProps: string[] = ['isRootScene']
+  readonly ignoreEvalProps = ['isRootScene', 'isScene']
   readonly proxy!: ElementProxy<this>
 
   hideName?: boolean
@@ -102,19 +102,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const { name, ...innerRunProxyProps } = baseProps
       const innerRunsProxy = await this.newElementProxy(Group, { ...props, [INNERRUN_PROXY_PARENT]: elem }, innerRunProxyProps)
-      const innerRuns = innerRunsProxy.$
-      const disposeInnerRunsProxy = innerRunsProxy.dispose.bind(innerRunsProxy)
-      innerRunsProxy.dispose = async () => {
-        await disposeInnerRunsProxy()
-        await elemProxy.dispose()
-      }
-      // @ts-expect-error auto be injected by system
-      elem.innerRunsProxy = innerRunsProxy
-      // @ts-expect-error auto init by system
-      if (!elem.ignoreEvalProps) elem.ignoreEvalProps = []
-      if (innerRuns.ignoreEvalProps?.length) {
-        elem.ignoreEvalProps.push('innerRunsProxy', ...innerRuns.ignoreEvalProps)
-      }
+      Object.defineProperty(elem, 'innerRunsProxy', {
+        value: innerRunsProxy,
+        enumerable: false,
+        configurable: false,
+        writable: false
+      })
     }
 
     if (ENVGlobal.MODE) {
@@ -345,8 +338,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   private resolveShortcutAsync(props?: any) {
     if (props?.['~runs']) {
       props.runs = props['~runs']
-      props.async = true
       props['~runs'] = undefined
+      props.async = true
     }
   }
 

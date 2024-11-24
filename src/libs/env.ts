@@ -3,7 +3,18 @@ import { type Scene } from 'src/components/scene/scene'
 import { FileRemote } from './file-remote'
 import { type Logger } from './logger'
 
+const ENV_LINE_PATTERN = /^\s*([^#][^=]+)\s*=\s*([^#]+)?/
+
 export class Env {
+  static ParseEnvLine(urlStr: string, toUpperKey: boolean) {
+    const m = urlStr.match(ENV_LINE_PATTERN)
+    if (!m) {
+      return [urlStr, '']
+    }
+    const [, key, value = ''] = m
+    return [toUpperKey ? key.toUpperCase() : key, value.trim()]
+  }
+
   constructor(private readonly logger: Logger) { }
 
   async loadEnvToBase(scene: Scene | null, baseConfig: any, ...envFiles: Array<string | Record<string, any>>) {
@@ -17,10 +28,10 @@ export class Env {
             const content = await fileRemote.getTextContent()
             content.split('\n')
               .map(e => e.trim())
-              .filter(e => e && !e.startsWith('#'))
+              .filter(e => e.length > 0)
               .forEach(e => {
-                const [key, vl] = this.parseEnvLine(e)
-                env[key.trim().toUpperCase()] = vl.trim()
+                const [key, vl] = Env.ParseEnvLine(e, true)
+                env[key] = vl
               })
           }
         } catch (err) {
@@ -86,13 +97,5 @@ export class Env {
       }
     }
     return obj
-  }
-
-  private parseEnvLine(urlStr: string) {
-    const idx = urlStr.indexOf('=')
-    if (idx === -1) return [urlStr, '']
-    const first = urlStr.substring(0, idx)
-    const second = urlStr.substring(idx + 1)
-    return [first, second]
   }
 }

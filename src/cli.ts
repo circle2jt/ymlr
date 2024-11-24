@@ -5,6 +5,7 @@ import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { bin, description, homepage, name, version } from '../package.json'
 import { App } from './app'
 import ENVGlobal from './env-global'
+import { Env } from './libs/env'
 import { FileRemote } from './libs/file-remote'
 import { StyleFactory } from './libs/logger/console/styles/style-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
@@ -48,13 +49,10 @@ export async function RunCLI() {
               )
             }
           }
-          env.filter((keyValue: string) => keyValue.includes('='))
-            .forEach((keyValue: string) => {
-              const idx = keyValue.indexOf('=')
-              const key = keyValue.substring(0, idx)
-              const vl = keyValue.substring(idx + 1)
-              process.env[key] = vl
-            })
+          env.forEach((line: string) => {
+            const [key, value] = Env.ParseEnvLine(line, false)
+            process.env[key] = value
+          })
           if (debug) ENVGlobal.DEBUG = debug
           if (flow) ENVGlobal.MODE = 'flow'
           if (debugContextFilter) ENVGlobal.DEBUG_CONTEXT_FILTER = debugContextFilter

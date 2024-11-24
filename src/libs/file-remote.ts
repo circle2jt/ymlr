@@ -4,9 +4,11 @@ import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 import { type Scene } from 'src/components/scene/scene'
 
+const REGEX_REMOTE_URI = /^https?:\/\//
+
 export class FileRemote {
   get isRemote() {
-    return !!((this.uri.startsWith('http://') || this.uri.startsWith('https://')))
+    return REGEX_REMOTE_URI.test(this.uri)
   }
 
   get isDirectory() {
