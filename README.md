@@ -122,26 +122,18 @@ After install the extension, please open a scenario file then press `shift+alt+r
   ```json
   {
     "highlight.regexes": {
-        "^\\s*#(.+)": {
-            "regexFlags": "g",
-            "filterLanguageRegex": "yaml",
-            "filterFileRegex": ".*\\.yaml",
-            "decorations": [
-                {
-                    "color": "#333333"
-                }
-            ]
-        },
         "(\\$v\\.)|(\\$vars\\.)": {
-            "regexFlags": "g",
+            "regexFlags": "gm",
             "filterLanguageRegex": "yaml",
             "filterFileRegex": ".*\\.yaml",
             "decorations": [
                 {
-                    "color": "#98ffa0"
+                    "color": "#98ffa0",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#98ffa0"
+                    "color": "#98ffa0",
+                    "fontWeight": "bold"
                 }
             ]
         },
@@ -151,10 +143,12 @@ After install the extension, please open a scenario file then press `shift+alt+r
             "filterFileRegex": ".*\\.yaml",
             "decorations": [
                 {
-                    "color": "#55b85d"
+                    "color": "#55b85d",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#55b85d"
+                    "color": "#55b85d",
+                    "fontWeight": "bold"
                 }
             ]
         },
@@ -164,16 +158,20 @@ After install the extension, please open a scenario file then press `shift+alt+r
             "filterFileRegex": ".*\\.yaml",
             "decorations": [
                 {
-                    "color": "#40723a"
+                    "color": "#40723a",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#40723a"
+                    "color": "#40723a",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#509549"
+                    "color": "#509549",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#509549"
+                    "color": "#509549",
+                    "fontWeight": "bold"
                 }
             ]
         },
@@ -183,20 +181,23 @@ After install the extension, please open a scenario file then press `shift+alt+r
             "filterFileRegex": ".*\\.yaml",
             "decorations": [
                 {
-                    "color": "#70aeff"
+                    "color": "#70aeff",
+                    "fontWeight": "bold"
                 },
                 {
-                    "color": "#70aeff"
+                    "color": "#70aeff",
+                    "fontWeight": "bold"
                 }
             ]
         },
-        "(\\$\\{[^}]+\\})": {
-            "regexFlags": "g",
+        "(\\$\\{[^}]+\\})": { // A regex will be created from this string, don't forget to double escape it
+            "regexFlags": "g", // Flags used when building this regex
             "filterLanguageRegex": "yaml",
             "filterFileRegex": ".*\\.yaml",
             "decorations": [
                 {
-                    "color": "#cf36bb"
+                    "color": "#6267f8",
+                    "fontStyle": "italic"
                 }
             ]
         }
@@ -1376,6 +1377,7 @@ Example:
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars:                             # !optional - Global variable which store value after executed
       status: ${this.$.response.status}
 ```  
@@ -1400,6 +1402,7 @@ Get data from API then store value in `vars.posts`
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: posts                       # !optional - Global variable which store value after executed
 ```
 
@@ -1437,6 +1440,7 @@ Example:
         method: check_existed
       headers:
         authorization: Bearer TOKEN
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars:
       status: ${this.response?.status}
 ```  
@@ -1466,6 +1470,7 @@ Update apart of data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: newPost
 ```
 Upload file to server
@@ -1532,6 +1537,7 @@ Upload file to server
           "name": "thanh_avatar"
         }
       }
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars:
       status: ${this.$.response.status}
 ```  
@@ -1561,6 +1567,7 @@ Update data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: newPost
 ```
 Upload file to server
@@ -1693,6 +1700,7 @@ Example:
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       timeout: 5000                   # !optional - Request timeout. Default is no timeout
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars:                             # !optional - Global variable which store value after executed
       status: ${this.$.response.status}
 ```  
@@ -1717,6 +1725,7 @@ Get data from API then store value in `vars.posts`
       headers:                        # !optional - Request headers
         authorization: Bearer TOKEN
       responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: posts                       # !optional - Global variable which store value after executed
 ```
 
@@ -1754,6 +1763,7 @@ Example:
         method: check_existed
       headers:
         authorization: Bearer TOKEN
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars:
       status: ${this.response?.status}
 ```  
@@ -1783,6 +1793,7 @@ Update apart of data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: newPost
 ```
 Upload file to server
@@ -1830,6 +1841,7 @@ Post data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: newPost
 ```
 Upload file to server
@@ -1878,6 +1890,7 @@ Update data to API then store value in `vars.posts`
         "description": "My description"
       }
       responseType: json              # 'json' | 'blob' | 'text' | 'buffer' | 'none'
+      validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
     vars: newPost
 ```
 Upload file to server

@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.10.md](#1732435887999)  -  _11/24/2024, 3:11:27 PM_
 - [1.3.1-alpha.9.md](#1732355155682)  -  _11/23/2024, 4:45:55 PM_
 - [1.3.1-alpha.8.md](#1732277266926)  -  _11/22/2024, 7:07:46 PM_
 - [1.3.1-alpha.7.md](#1732269960347)  -  _11/22/2024, 5:06:00 PM_
@@ -97,6 +98,15 @@
 
 ## Details
 
+<a id="1732435887999"></a>
+### 1.3.1-alpha.10
+
+* feat(http): support validStatus to ignore custom error (2ca7969)
+* feat(fetch): support validStatus to ignore custom error (bfb4609)
+* refactor: optimize code structure (7af9445)
+* hotfix: $v not return value in scene'returns (dac10dc)
+* build: yarn not using tag in package.json (7c868a8)
+  
 <a id="1732355155682"></a>
 ### 1.3.1-alpha.9
 
