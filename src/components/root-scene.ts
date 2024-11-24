@@ -149,17 +149,18 @@ export class RootScene extends Scene {
   }
 
   getTagName(props: any) {
-    return Object.keys(props)
-      .find(key => {
-        if (key[0] === '~') {
-          const oldKey = key
-          key = key.substring(1)
-          props[key] = props[oldKey]
-          props[oldKey] = undefined
-          props.async = true
-        }
-        return !ElementBaseKeys.has(key) && props[key] !== undefined
-      })
+    for (let key of Object.keys(props)) {
+      if (key[0] === '~') {
+        const oldKey = key
+        key = key.substring(1)
+        props[key] = props[oldKey]
+        props[oldKey] = undefined
+        props.async = true
+      }
+      if (!ElementBaseKeys.has(key) && props[key] !== undefined) {
+        return key
+      }
+    }
   }
 
   // protected async getRemoteFileProps() {
