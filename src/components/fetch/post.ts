@@ -46,6 +46,7 @@ import { type RequestType, type UploadFile } from './types'
             "name": "thanh_avatar"
           }
         }
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars:
         status: ${this.$.response.status}
   ```

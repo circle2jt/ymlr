@@ -23,6 +23,7 @@ import { type ResponseType } from './types'
         headers:                        # !optional - Request headers
           authorization: Bearer TOKEN
         responseType: json              # !optional - Default is json ['json' | 'blob' | 'text' | 'buffer' | 'none']
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars: posts                       # !optional - Global variable which store value after executed
   ```
 

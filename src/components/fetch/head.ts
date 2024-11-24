@@ -23,6 +23,7 @@ import { HttpError } from './http-error'
           method: check_existed
         headers:
           authorization: Bearer TOKEN
+        validStatus: [200, 204, 400]    # !optional - Expect these response status codes is success and not throw error
       vars:
         status: ${this.response?.status}
   ```
@@ -40,6 +41,7 @@ export class Head implements Element {
   headers: Record<string, any> = {}
   query?: any
   opts?: RequestInit
+  validStatus?: number[]
 
   response?: any
   executionTime?: number
@@ -93,7 +95,10 @@ export class Head implements Element {
           await this.send()
         }
         if (this.response?.ok === false) {
-          throw new HttpError(this.response.status, this.response.statusText)
+          if (!this.validStatus?.includes(this.response.status)) {
+            throw new HttpError(this.response.status, this.response.statusText)
+          }
+          this.response.ok = true
         }
       } else {
         const isGotData = this.response.data !== null && this.response.data !== undefined

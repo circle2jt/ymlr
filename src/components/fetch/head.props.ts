@@ -5,4 +5,5 @@ export interface HeadProps {
   headers?: any
   query?: any
   opts?: any
+  validStatus?: number[]
 }
