@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.12.md](#1732529405382)  -  _11/25/2024, 5:10:05 PM_
 - [1.3.1-alpha.11.md](#1732439742821)  -  _11/24/2024, 4:15:42 PM_
 - [1.3.1-alpha.10.md](#1732435887999)  -  _11/24/2024, 3:11:27 PM_
 - [1.3.1-alpha.9.md](#1732355155682)  -  _11/23/2024, 4:45:55 PM_
@@ -99,6 +100,14 @@
 
 ## Details
 
+<a id="1732529405382"></a>
+### 1.3.1-alpha.12
+
+* refactor(group): optimize prehandle tag props (e36e3ad)
+* fix: merge InnerGroup into Group to prevent importing loop (72648ea)
+* ci: dynamic pass publishConfig via package.json (d15a95e)
+* fix: parent is not working in ext-modules (23bd0be)
+  
 <a id="1732439742821"></a>
 ### 1.3.1-alpha.11
 
