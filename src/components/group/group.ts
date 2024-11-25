@@ -154,29 +154,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (!this.proxy.runs.length) {
       return true
     }
-    // Preload includes tag
-    const includes = this.proxy.runs
-      .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
-      .filter(e => e)
-    if (includes.length) {
-      const runs = await Promise.all(includes
-        .map(async (e: any) => {
-          const elemProxy = await this.createAndExecuteElement([], 'include', parentState, {}, e.include)
-          return { idx: e.idx, runs: elemProxy?.result || [] }
-        })
-      ) as Array<{ idx: number, runs: any[] }>
-      for (let i = runs.length - 1; i >= 0; i--) {
-        this.proxy.runs.splice(runs[i].idx, 1, ...runs[i].runs)
-      }
-    }
 
-    // Check tags which are picked to run then ignore others
-    const hasRunOnly = this.proxy.runs.some(r => r.only === true)
-    if (hasRunOnly) {
-      this.proxy.runs = this.proxy.runs.filter(r => (r.only === true) || (r.template))
-    } else {
-      // Ignore skip tags
-      this.proxy.runs = this.proxy.runs.filter(r => !r.skip)
+    // Preload includes tag
+    await this.preHandleFilesInclude(this.proxy.runs, parentState)
+    if (!this.preHandleOnlyRuns(this.proxy.runs)) {
+      this.preHandleSkipRuns(this.proxy.runs)
     }
 
     return true
@@ -195,8 +177,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     let isPassedCondition = false
 
     // Loop to execute each of tags
-    for (const run of this.proxy.runs) {
-      const props = cloneDeep(run)
+    for (const props of this.proxy.runs) {
+      // const props = cloneDeep(run)
 
       // when the previous step was passed valid condition
       if (isPassedCondition) {
@@ -204,83 +186,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         isPassedCondition = false
       }
 
-      // Init props
-      let { '<-': inheritKeys, skip, only, ...eProps } = props
-      let tagName = this.rootScene.getTagName(eProps)
-      const isTemplate = !!eProps.template
+      const { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
 
-      // Only support template or tag name. Prefer tag name
-      if (tagName && eProps.template) {
-        eProps.template = undefined
-      }
+      if (isTemplate) continue
 
-      if (inheritKeys) {
-        eProps = this.rootScene.inherit(tagName, eProps, inheritKeys)
-      }
-      const { '->': exposeKey, ..._eProps } = eProps
-      eProps = _eProps
-      if (exposeKey) {
-        this.rootScene.export(tagName, eProps, exposeKey)
-      }
+      if (!tagName) throw new Error('Could not found tag name')
 
-      // Skip this if it's a template
-      if (isTemplate) {
-        continue
-      }
+      const { loop } = baseProps
 
-      let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
-
-      if (elseCondition === null) {
-        elseIfCondition = true
-      }
-
-      // Retry to get tagName which is override by keys
-      if (!tagName) {
-        tagName = this.rootScene.getTagName(eProps)
-      }
-
-      let elemProps: any
-      if (tagName) {
-        // This is a tag
-        elemProps = (eProps as any)[tagName]
-      } else if (runs) {
-        // This is a empty tag
-        tagName = 'group'
-        elemProps = {}
-      } else {
-        // This is a empty tag
-        tagName = 'base'
-        elemProps = {}
-      }
-      if (debug === true) {
-        debug = GetLoggerLevel('debug')
-      } else if (debug === false) {
-        debug = GetLoggerLevel('silent')
-      } else if (debug) {
-        debug = GetLoggerLevel(debug)
-      }
-      const baseProps: ElementBaseProps = {
-        id,
-        name,
-        icon,
-        if: condition,
-        elseif: elseIfCondition,
-        failure,
-        debug,
-        vars,
-        runs,
-        detach,
-        async,
-        loop,
-        context,
-        skipNext,
-        errorStack: {
-          ...this.proxy.errorStack,
-          ...errorStack,
-          name,
-          tag: tagName
-        }
-      }
       // Execute
       if (loop === undefined || ENVGlobal.MODE) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
@@ -294,7 +207,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (loopCondition) {
           if (Array.isArray(loopCondition)) {
             for (let i = 0; i < loopCondition.length; ++i) {
-              const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
+              const newProps = cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: i,
                 loopValue: loopCondition[i]
@@ -307,7 +220,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             const keys = Object.keys(loopCondition)
             for (let i = 0; i < keys.length; ++i) {
               const key = keys[i]
-              const newProps = (i === loopCondition.length - 1) ? elemProps : cloneDeep(elemProps)
+              const newProps = cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopKey: key,
                 loopValue: loopCondition[key]
@@ -318,15 +231,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             }
           } else if (loopCondition === true) {
             do {
-              const newProps = elemProps && cloneDeep(elemProps)
+              const newProps = cloneDeep(elemProps)
               const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
                 loopValue: loopCondition
               })
               if (elemProxy) {
                 result?.push(elemProxy)
               }
-              loopCondition = await this.innerScene.getVars(loop, this.proxy)
-            } while (loopCondition)
+            } while ((loopCondition = await this.innerScene.getVars(loop, this.proxy)))
           }
         }
       }
@@ -345,6 +257,88 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       props['~runs'] = undefined
       props.async = true
     }
+  }
+
+  private preHandlerProps(props: GroupItemProps): { isTemplate?: boolean, tagName?: string, elemProps?: any, baseProps?: ElementBaseProps } {
+    // Init props
+    let { '<-': inheritKeys, skip, only, ...eProps } = props
+    let tagName = this.rootScene.getTagName(eProps)
+    const isTemplate = !!eProps.template
+
+    // Only support template or tag name. Prefer tag name
+    if (tagName && eProps.template) {
+      eProps.template = undefined
+    }
+
+    if (inheritKeys) {
+      eProps = this.rootScene.inherit(tagName, eProps, inheritKeys)
+    }
+    const { '->': exposeKey, ..._eProps } = eProps
+    eProps = _eProps
+    if (exposeKey) {
+      this.rootScene.export(tagName, eProps, exposeKey)
+    }
+
+    // Skip this if it's a template
+    if (isTemplate) {
+      return { isTemplate: true }
+    }
+
+    let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
+
+    if (elseCondition === null) {
+      elseIfCondition = true
+    }
+
+    // Retry to get tagName which is override by keys
+    if (!tagName) {
+      tagName = this.rootScene.getTagName(eProps)
+    }
+
+    let elemProps: any
+    if (tagName) {
+      // This is a tag
+      elemProps = (eProps as any)[tagName]
+    } else if (runs) {
+      // This is a empty tag
+      tagName = 'group'
+      elemProps = undefined
+    } else {
+      // This is a empty tag
+      tagName = 'base'
+      elemProps = undefined
+    }
+    if (debug === true) {
+      debug = GetLoggerLevel('debug')
+    } else if (debug === false) {
+      debug = GetLoggerLevel('silent')
+    } else if (debug) {
+      debug = GetLoggerLevel(debug)
+    }
+    const baseProps: ElementBaseProps = {
+      id,
+      name,
+      icon,
+      if: condition,
+      elseif: elseIfCondition,
+      failure,
+      debug,
+      vars,
+      runs,
+      detach,
+      async,
+      loop,
+      context,
+      skipNext,
+      errorStack: {
+        ...this.proxy.errorStack,
+        ...errorStack,
+        name,
+        tag: tagName
+      }
+    }
+
+    return { elemProps, baseProps, tagName }
   }
 
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
@@ -403,6 +397,38 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
     const elem = new ElemClass(props)
     return elem
+  }
+
+  private async preHandleFilesInclude(runs: GroupItemProps[], parentState?: any) {
+    const includes = runs
+      .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
+      .filter(e => e)
+    if (includes.length) {
+      const allRuns: Array<{ idx: number, runs: any[] }> = await Promise.all(includes
+        .map(async (e: any) => {
+          const elemProxy = await this.createAndExecuteElement([], 'include', parentState, {}, e.include)
+          return { idx: e.idx, runs: elemProxy?.result || [] }
+        })
+      )
+      allRuns
+        .reverse()
+        .forEach((allRunItem) => {
+          runs.splice(allRunItem.idx, 1, ...allRunItem.runs)
+        })
+    }
+  }
+
+  private preHandleOnlyRuns(runs: GroupItemProps[]) {
+    const hasRunOnly = runs.some(r => r.only === true)
+    if (hasRunOnly) {
+      this.proxy.runs = runs.filter(r => (r.only === true) || (r.template))
+      return true
+    }
+    return false
+  }
+
+  private preHandleSkipRuns(runs: GroupItemProps[]) {
+    this.proxy.runs = runs.filter(r => !r.skip)
   }
 }
 
