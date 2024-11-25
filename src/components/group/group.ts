@@ -4,10 +4,9 @@ import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
-import { INCLUDE_FLAG } from '../include/include'
+import { Include } from '../include/include'
 import { type GroupItemProps, type GroupProps } from './group.props'
-
-export const INNERRUN_PROXY_PARENT = Symbol('inner-runs-proxy')
+import { InnerGroup } from './inner-group'
 
 /** |**  runs
   Group elements
@@ -26,6 +25,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   readonly isRootScene?: boolean
   readonly isScene?: boolean
   readonly ignoreEvalProps = ['isRootScene', 'isScene']
+  readonly parent?: Group<GP, GIP>
   readonly proxy!: ElementProxy<this>
 
   hideName?: boolean
@@ -69,13 +69,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (loopObj) {
       elemProxy.setLoop(loopObj.loopKey, loopObj.loopValue)
     }
-    const innerRunProxyParent = props?.[INNERRUN_PROXY_PARENT]
+    const isInnerGroup = elem instanceof InnerGroup
+    let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
+    if (isInnerGroup) {
+      tagName += '-inner-group'
+    }
     Object.defineProperties(elemProxy, {
       tag: {
         enumerable: false,
         configurable: false,
         writable: true,
-        value: innerRunProxyParent ? INNERRUN_PROXY_PARENT.description : (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
+        value: tagName
       },
       scene: {
         enumerable: false,
@@ -83,17 +87,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         writable: false,
         value: this.innerScene
       },
-      parent: {
-        enumerable: false,
-        configurable: false,
-        writable: false,
-        value: innerRunProxyParent ?? this
-      },
       rootScene: {
         enumerable: false,
         configurable: false,
         writable: false,
         value: this.innerScene.isRootScene ? this.innerScene : this.rootScene
+      },
+      parent: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this instanceof InnerGroup ? this._parent : (elem instanceof InnerGroup ? elem._parent : this)
       }
     })
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
@@ -101,9 +105,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const { name, ...innerRunProxyProps } = baseProps
-      const innerRunsProxy = await this.newElementProxy(Group, { ...props, [INNERRUN_PROXY_PARENT]: elem }, innerRunProxyProps)
+      const innerGroupProxy = await this.newElementProxy(InnerGroup, { _parent: elem, ...props }, innerRunProxyProps)
       Object.defineProperty(elem, 'innerRunsProxy', {
-        value: innerRunsProxy,
+        value: innerGroupProxy,
         enumerable: false,
         configurable: false,
         writable: false
@@ -111,7 +115,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
 
     if (ENVGlobal.MODE) {
-      if ((elem as any).$flag !== INCLUDE_FLAG) {
+      if (!(elemProxy.element instanceof Include)) {
         elemProxy.loop = undefined
         elemProxy.async = undefined
         elemProxy.detach = undefined
@@ -121,12 +125,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         elemProxy.setVarsAfterExec = async () => { }
         elemProxy.dispose = async () => { }
         elemProxy.context = ''
-        if (elem.runEachOfElements) {
+        if (elemProxy.element.runEachOfElements) {
           // elemProxy.element.exec = async (parentState = {}) => {
           //   await elem.runEachOfElements(parentState)
           //   return true
           // }
-        } else if (elem.innerRunsProxy) {
+        } else if (elemProxy.element.innerRunsProxy) {
           elemProxy.element.exec = async function (parentState?: any) {
             return await this.innerRunsProxy?.exec(parentState)
           }

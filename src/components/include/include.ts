@@ -19,9 +19,7 @@ import { type IncludeProps } from './include.props'
         cached: true                    # Load file for the first time, the next will get from caches
   ```
 */
-export const INCLUDE_FLAG = Symbol('INCLUDE_FLAG')
 export class Include implements Element {
-  readonly $flag = INCLUDE_FLAG
   readonly proxy!: ElementProxy<this>
 
   file!: string
