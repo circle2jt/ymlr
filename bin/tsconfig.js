@@ -73,7 +73,9 @@ function autoReplaceTagInThePublishing() {
   // replace publish config with tag
   writeFileSync(
     join(dist, 'package.json'),
-    readFileSync(join(curDir, 'package.json')).toString().replace(`<PUBLISH.TAG>`, tag)
+    readFileSync(join(curDir, 'package.json')).toString()
+      .replaceAll(`<PUBLISH.TAG>`, tag)
+      .replaceAll(`<PUBLISH.ACCESS>`, packageJson.publishConfig?.access || 'public')
   )
 }
 
