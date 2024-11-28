@@ -3,3 +3,5 @@ export const Constants = {
   TO_GLOBAL_EVENT: '>globalEvent',
   LOG_EVENT: '>logsEvent<'
 }
+
+export function noop(): any { }

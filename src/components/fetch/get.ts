@@ -3,6 +3,7 @@ import { createWriteStream, type WriteStream } from 'fs'
 import { File } from 'src/libs/file'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
+import { noop } from 'src/managers/constants'
 import { type GetProps } from './get.props'
 import { Head } from './head'
 import { type ResponseType } from './types'
@@ -99,7 +100,7 @@ export class Get extends Head {
     if (!rs.body) return undefined
     const stream = createWriteStream(this.saveTo, { autoClose: true, emitClose: false }) as WriteStream & { asyncWrite: (chunk: any) => Promise<void> }
     stream
-      .once('error', () => { })
+      .once('error', noop)
       .asyncWrite = async function (chunk: any) {
         await new Promise((resolve, reject) => {
           this.write(chunk, (err) => {
