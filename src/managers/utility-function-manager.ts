@@ -7,7 +7,7 @@ import { AES } from 'src/libs/encrypt/aes'
 import { MD5 } from 'src/libs/encrypt/md5'
 import { formatDate, formatDuration, formatFileName, formatFixLengthNumber, formatNumber, formatTextToMs } from 'src/libs/format'
 import { GlobalEvent } from 'src/libs/global-event'
-import { sleep } from 'src/libs/time'
+import { sleep, toDate } from 'src/libs/time'
 import { DebounceManager } from './debounce-manager'
 import { ThrottleManager } from './throttle-manager'
 
@@ -152,12 +152,20 @@ export class UtilityFunctionManager {
     @tag Utility function
     @example
     ```yaml
-    - echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }
+    - name: parse string to yaml content text
+      echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }
+
+    - name: parse string to Date object
+      echo: ${ $utils.parse.date('2024/11/06 23:11:00.000', 'YYYY/MM/DD hh:mm:ss.ms') }
   */
   parse = {
     yaml(content?: string) {
       if (!content) return undefined
       return load(content)
+    },
+    date(dateString: string, format: string) {
+      if (!dateString) return undefined
+      return toDate(dateString, format)
     }
   }
 
