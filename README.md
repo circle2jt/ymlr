@@ -2632,7 +2632,11 @@ Parser
 Example:  
 
 ```yaml
-- echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }  
+- name: parse string to yaml content text
+  echo: ${ $utils.parse.yaml('title: "yaml title"') }       # => { "title": "yaml title" }
+
+- name: parse string to Date object
+  echo: ${ $utils.parse.date('2024/11/06 23:11:00.000', 'YYYY/MM/DD hh:mm:ss.ms') }  
 
 
 ## <a id="$utils.sleep"></a>$utils.sleep  

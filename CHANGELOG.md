@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1-alpha.13.md](#1732796222900)  -  _11/28/2024, 7:17:02 PM_
 - [1.3.1-alpha.12.md](#1732529405382)  -  _11/25/2024, 5:10:05 PM_
 - [1.3.1-alpha.11.md](#1732439742821)  -  _11/24/2024, 4:15:42 PM_
 - [1.3.1-alpha.10.md](#1732435887999)  -  _11/24/2024, 3:11:27 PM_
@@ -100,6 +101,14 @@
 
 ## Details
 
+<a id="1732796222900"></a>
+### 1.3.1-alpha.13
+
+* feat(sleep): allow sleep forever with input value is null (1f0aa6f)
+* refactor($ps): use WeakRef for parentState (9ecc5c9)
+* fix!: check condition before loop (f3ce4bf)
+* feat(utils): add parse.date to convert a string to Date object (b509856)
+  
 <a id="1732529405382"></a>
 ### 1.3.1-alpha.12
 
