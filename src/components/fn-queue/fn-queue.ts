@@ -62,7 +62,6 @@ export class FNQueue implements Element {
     password?: string
   }
 
-  #parentState?: any
   #taskCount = 0
   #data = new Array<any>()
   #store!: StorageInterface
@@ -79,10 +78,9 @@ export class FNQueue implements Element {
     Object.assign(this, props)
   }
 
-  async exec(parentState?: Record<string, any>) {
+  async exec() {
     assert(this.name)
 
-    this.#parentState = parentState
     this.load()
     this.run()
     this.#t = new Promise((resolve, reject) => {
@@ -104,17 +102,13 @@ export class FNQueue implements Element {
     while (!this.#isStoped && this.#taskCount < this.concurrent && (task = this.#data.shift())) {
       ++this.#taskCount
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async (task, that) => {
+      setTimeout(async (queueData, queueCount) => {
         this.logger.debug('Run a job in queue "%s"\t%j', this.name, task)
         try {
-          const parentState = {
-            ...this.#parentState,
-            queueData: task,
-            get queueCount() {
-              return that.data.length
-            }
-          }
-          await this.innerRunsProxy.exec(parentState)
+          await this.innerRunsProxy.exec({
+            queueData,
+            queueCount
+          })
           --this.#taskCount
           this.run()
         } catch (err: any) {
@@ -129,7 +123,7 @@ export class FNQueue implements Element {
             this.run()
           }
         }
-      }, 0, task, this)
+      }, 0, task, this.data.length)
       this.save()
     }
   }

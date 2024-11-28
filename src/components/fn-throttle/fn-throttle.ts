@@ -56,7 +56,8 @@ export class FNThrottle implements Element {
     assert(this.name)
 
     if (ThrottleManager.Instance.has(this.name)) {
-      ThrottleManager.Instance.touch(this.name, parentState)
+      ThrottleManager.Instance.touch(this.name)
+      // ThrottleManager.Instance.touch(this.name, parentState)
     } else if (this.wait !== undefined && this.proxy.runs?.length) {
       if (!this.#fn) {
         if (typeof this.wait === 'string') {

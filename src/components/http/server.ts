@@ -109,13 +109,11 @@ export class HttpServer implements Element {
       query: parse(qstr),
       body: undefined,
       response: undefined,
-      get data() {
-        return {
-          ...parentState.headers,
-          ...parentState.query,
-          ...parentState.body
-        }
-      },
+      // data: {
+      //   ...parentState?.headers,
+      //   ...parentState?.query,
+      //   ...parentState?.body
+      // },
       req,
       res
     } as any

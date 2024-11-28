@@ -3,9 +3,9 @@ import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
+import { noop } from 'src/managers/constants'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
-import { Include } from '../include/include'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
 /** |**  runs
@@ -25,7 +25,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   readonly isRootScene?: boolean
   readonly isScene?: boolean
   readonly ignoreEvalProps = ['isRootScene', 'isScene']
-  readonly parent?: Group<GP, GIP>
   readonly proxy!: ElementProxy<this>
 
   hideName?: boolean
@@ -69,10 +68,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (loopObj) {
       elemProxy.setLoop(loopObj.loopKey, loopObj.loopValue)
     }
-    const isInnerGroup = elem instanceof InnerGroup
     let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
-    if (isInnerGroup) {
-      tagName += '-inner-group'
+    if (elem instanceof InnerGroup) {
+      tagName = `${elem._parent?.proxy.tag}/inner-group`
     }
     Object.defineProperties(elemProxy, {
       tag: {
@@ -98,6 +96,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         configurable: false,
         writable: false,
         value: this instanceof InnerGroup ? this._parent : (elem instanceof InnerGroup ? elem._parent : this)
+      },
+      _parent: {
+        enumerable: false,
+        configurable: false,
+        writable: false,
+        value: this
       }
     })
     const elemImplementedAppEvent = elemProxy.$ as any as AppEvent
@@ -115,30 +119,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
 
     if (ENVGlobal.MODE) {
-      if (!(elemProxy.element instanceof Include)) {
-        elemProxy.loop = undefined
-        elemProxy.async = undefined
-        elemProxy.detach = undefined
-        elemProxy.skipNext = undefined
-        elemProxy.if = elemProxy.elseif = undefined
-        elemProxy.evalPropsBeforeExec = async () => { }
-        elemProxy.setVarsAfterExec = async () => { }
-        elemProxy.dispose = async () => { }
-        elemProxy.context = ''
-        if (elemProxy.element.runEachOfElements) {
-          // elemProxy.element.exec = async (parentState = {}) => {
-          //   await elem.runEachOfElements(parentState)
-          //   return true
-          // }
-        } else if (elemProxy.element.innerRunsProxy) {
-          elemProxy.element.exec = async function (parentState?: any) {
-            return await this.innerRunsProxy?.exec(parentState)
-          }
-        } else {
-          elemProxy.element.exec = async () => { }
-        }
+      elemProxy.evalPropsBeforeExec = noop
+      elemProxy.setVarsAfterExec = noop
+      elemProxy.dispose = noop
+      if (!(elem instanceof Group) && !elem.innerRunsProxy) {
+        elemProxy.element.exec = noop
       }
     }
+
     return elemProxy
   }
 
@@ -176,9 +164,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const result = ENVGlobal.DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let isPassedCondition = false
 
+    const parentProxy = this instanceof InnerGroup ? this._parent?.proxy : this.proxy
+
     // Loop to execute each of tags
     for (const props of this.proxy.runs) {
       // const props = cloneDeep(run)
+      if (parentProxy._forceStop) {
+        break
+      }
 
       // when the previous step was passed valid condition
       if (isPassedCondition) {
@@ -195,51 +188,51 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const { loop } = baseProps
 
       // Execute
-      if (loop === undefined || ENVGlobal.MODE) {
+      if (loop === undefined) {
         const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
         if (elemProxy) {
           isPassedCondition = !!baseProps.if || !!baseProps.elseif
           result?.push(elemProxy)
           if (elemProxy.isSkipNext) break
         }
-      } else {
-        let loopCondition = await this.innerScene.getVars(loop, this.proxy)
-        if (loopCondition) {
-          if (Array.isArray(loopCondition)) {
-            for (let i = 0; i < loopCondition.length; ++i) {
-              const newProps = cloneDeep(elemProps)
-              const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
-                loopKey: i,
-                loopValue: loopCondition[i]
-              })
-              if (elemProxy) {
-                result?.push(elemProxy)
-              }
+        continue
+      }
+      let loopCondition = await this.innerScene.getVars(loop, this.proxy)
+      if (loopCondition) {
+        if (Array.isArray(loopCondition)) {
+          for (let i = 0; i < loopCondition.length; ++i) {
+            const newProps = cloneDeep(elemProps)
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              loopKey: i,
+              loopValue: loopCondition[i]
+            })
+            if (elemProxy) {
+              result?.push(elemProxy)
             }
-          } else if (typeof loopCondition === 'object') {
-            const keys = Object.keys(loopCondition)
-            for (let i = 0; i < keys.length; ++i) {
-              const key = keys[i]
-              const newProps = cloneDeep(elemProps)
-              const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
-                loopKey: key,
-                loopValue: loopCondition[key]
-              })
-              if (elemProxy) {
-                result?.push(elemProxy)
-              }
-            }
-          } else if (loopCondition === true) {
-            do {
-              const newProps = cloneDeep(elemProps)
-              const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
-                loopValue: loopCondition
-              })
-              if (elemProxy) {
-                result?.push(elemProxy)
-              }
-            } while ((loopCondition = await this.innerScene.getVars(loop, this.proxy)))
           }
+        } else if (typeof loopCondition === 'object') {
+          const keys = Object.keys(loopCondition)
+          for (let i = 0; i < keys.length; ++i) {
+            const key = keys[i]
+            const newProps = cloneDeep(elemProps)
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              loopKey: key,
+              loopValue: loopCondition[key]
+            })
+            if (elemProxy) {
+              result?.push(elemProxy)
+            }
+          }
+        } else if (loopCondition === true) {
+          do {
+            const newProps = cloneDeep(elemProps)
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+              loopValue: loopCondition
+            })
+            if (elemProxy) {
+              result?.push(elemProxy)
+            }
+          } while ((loopCondition = await this.innerScene.getVars(loop, this.proxy)))
         }
       }
     }
@@ -338,12 +331,24 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       }
     }
 
+    if (ENVGlobal.MODE) {
+      baseProps.loop = undefined
+      baseProps.async = undefined
+      baseProps.detach = undefined
+      baseProps.skipNext = undefined
+      baseProps.if = baseProps.elseif = undefined
+    }
+
     return { elemProps, baseProps, tagName }
   }
 
   private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
-    elemProxy.parentState = parentState
+    // elemProxy.parentState = parentState
+
+    const condition = baseProps.elseif ?? baseProps.if
+    const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
+    if (!isContinue) return undefined
 
     const [detach, async] = await Promise.all([
       elemProxy.detach ?? this.innerScene.getVars(elemProxy.detach, elemProxy),
@@ -354,35 +359,20 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       asyncJobs = []
     }
 
-    const condition = elemProxy.elseif ?? elemProxy.if
-    const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
-    if (!isContinue) return undefined
-
     if (elemProxy.id) {
       await elemProxy.scene.setVars(elemProxy.id, elemProxy)
     }
 
+    const t = elemProxy
+      .exec(parentState)
+      .finally(elemProxy.dispose.bind(elemProxy) as () => void)
+
     if (detach) {
-      this.rootScene.pushToBackgroundJob(elemProxy, parentState)
-      return elemProxy
-    }
-
-    if (async) {
-      asyncJobs.push((async (elemProxy: ElementProxy<any>) => {
-        try {
-          const rs = await elemProxy.exec(parentState)
-          return rs
-        } finally {
-          await elemProxy.dispose()
-        }
-      })(elemProxy))
-      return elemProxy
-    }
-
-    try {
-      await elemProxy.exec(parentState)
-    } finally {
-      await elemProxy.dispose()
+      this.rootScene.pushToBackgroundJob(t)
+    } else if (async) {
+      asyncJobs.push(t)
+    } else {
+      await t
     }
     return elemProxy
   }
@@ -432,7 +422,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   }
 }
 
-class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> extends Group<GP, GIP> {
+export class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> extends Group<GP, GIP> {
   _parent!: Element
 
   constructor(props?: GP & { _parent: Element }) {

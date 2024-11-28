@@ -32,4 +32,8 @@ export class Testing {
     const proxy = await this.rootScene.newElementProxy(ElementClazz, props, baseProps)
     return proxy as ElementProxy<T>
   }
+
+  static gc() {
+    (global as any).gc()
+  }
 }

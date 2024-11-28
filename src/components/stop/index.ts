@@ -1,12 +1,16 @@
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 
-export default class implements Element {
+export default class Stop implements Element {
   readonly proxy!: ElementProxy<this>
 
   async exec() {
-    await this.proxy.parentProxy?.dispose()
+    if (this.proxy.parentProxy) {
+      this.proxy.parentProxy._forceStop = true
+    }
   }
 
-  dispose() { }
+  async dispose() {
+    await this.proxy.parentProxy?.dispose()
+  }
 }

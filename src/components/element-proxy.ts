@@ -9,6 +9,7 @@ import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
+import { type InnerGroup } from './group/group'
 import { type GroupItemProps } from './group/group.props'
 import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
@@ -534,7 +535,8 @@ export class ElementProxy<T extends Element> {
   */
   runs?: GroupItemProps[]
 
-  #parentState?: Record<string, any>
+  _forceStop?: true
+  _parentState?: WeakRef<Record<string, any>> | null
   /** |**  parentState
     - Set/Get value to context variables. Used in tags support `runs` and support parentState
     Variables:
@@ -561,11 +563,29 @@ export class ElementProxy<T extends Element> {
     ```
   */
   get parentState() {
-    return this.#parentState ?? this.parentProxy?.parentState
+    if (this._parentState) {
+      return this._parentState.deref()
+    }
+    if (this.element.constructor.name === 'InnerGroup') {
+      const innerGroup = this.element as any as InnerGroup<any, any>
+      return innerGroup._parent?.proxy.parentState
+    }
+    return this.parentProxy?.parentState
   }
 
   set parentState(parentState: Record<string, any> | undefined) {
-    this.#parentState = parentState
+    let thisProxy: ElementProxy<Element> = this as any
+    if (this.element.constructor.name === 'InnerGroup') {
+      const innerGroup = this.element as any as InnerGroup<any, any>
+      if (innerGroup._parent) {
+        thisProxy = innerGroup._parent.proxy
+      }
+    }
+    if (thisProxy.parentState) {
+      Object.assign(thisProxy.parentState, parentState)
+    } else {
+      thisProxy._parentState = parentState ? new WeakRef(parentState) : undefined
+    }
   }
 
   tag!: string
@@ -617,7 +637,7 @@ export class ElementProxy<T extends Element> {
     return this.skipNext === null || !!this.skipNext
   }
 
-  private _logger?: Logger
+  private _logger?: Logger | null
   get logger(): Logger {
     if (!this._logger) {
       this._logger = (this.parentProxy || this.rootSceneProxy).logger.clone(this.contextName, this.debug, this.errorStack)
@@ -737,7 +757,9 @@ export class ElementProxy<T extends Element> {
   }
 
   async exec(parentState?: Record<string, any>) {
-    if (parentState !== undefined) this.parentState = parentState
+    if (parentState !== undefined && parentState !== this.parentState) {
+      this.parentState = parentState
+    }
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.#elementAsyncProps)
       this.#elementAsyncProps = undefined
@@ -811,13 +833,17 @@ export class ElementProxy<T extends Element> {
   }
 
   async dispose() {
+    if (this._logger === null) return
     GlobalEvent.emit('@app/proxy/before:exec:dispose', this)
     try {
       await this.element.innerRunsProxy?.dispose()
       await this.element.dispose?.()
-      this.parentState = undefined
       this._logger?.dispose()
-      this._logger = undefined
+      this._logger = null
+      // Only release parentState if it's owner
+      if (this._parentState) {
+        this._parentState = null
+      }
     } finally {
       GlobalEvent.emit('@app/proxy/after:dispose', this)
     }

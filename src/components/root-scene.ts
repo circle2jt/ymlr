@@ -8,8 +8,7 @@ import { LoggerFactory } from 'src/libs/logger/logger-factory'
 import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
-import { type ElementProxy } from './element-proxy'
-import { ElementBaseKeys, type Element } from './element.interface'
+import { ElementBaseKeys } from './element.interface'
 import { type RootSceneProps } from './root-scene.props'
 import { Scene } from './scene/scene'
 
@@ -51,7 +50,7 @@ export class RootScene extends Scene {
     return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
-  readonly #backgroundJobs = new Array<{ p: Promise<any>, ctx: ElementProxy<Element> }>()
+  readonly #backgroundJobs = new Array<Promise<any>>()
   readonly tagsManager = new TagsManager(this)
   readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
@@ -113,24 +112,15 @@ export class RootScene extends Scene {
     })
   }
 
-  pushToBackgroundJob(task: ElementProxy<Element>, parentState?: Record<string, any>) {
-    this.#backgroundJobs.push({
-      p: task.exec(parentState),
-      ctx: task
-    })
+  pushToBackgroundJob(task: Promise<any>) {
+    this.#backgroundJobs.push(task)
   }
 
   override async exec(parentState?: Record<string, any>) {
     const rs = await super.exec(parentState)
     await this.#workerManager?.exec()
     if (this.#backgroundJobs.length) {
-      await Promise.all(this.#backgroundJobs.map(async ({ p, ctx }) => {
-        try {
-          await p
-        } finally {
-          await ctx.dispose()
-        }
-      }))
+      await Promise.all(this.#backgroundJobs)
     }
     return rs
   }
@@ -162,20 +152,6 @@ export class RootScene extends Scene {
       }
     }
   }
-
-  // protected async getRemoteFileProps() {
-  //   const props = await super.getRemoteFileProps()
-  //   if (props?.path) {
-  //     const { env, ...sceneProps } = props
-  //     return {
-  //       env,
-  //       runs: [{
-  //         scene: sceneProps
-  //       }]
-  //     }
-  //   }
-  //   return props
-  // }
 
   // private handleShutdown() {
   //   new Array('SIGINT', 'SIGTERM', 'SIGQUIT')
