@@ -175,7 +175,7 @@ export class HttpServer implements Element {
             res.write(JSON.stringify(resData))
             return
           }
-          res.write(resData.toString())
+          res.write(`${resData}`)
         }
       }
     } catch (err: any) {

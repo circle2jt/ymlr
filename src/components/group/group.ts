@@ -4,7 +4,7 @@ import ENVGlobal from 'src/env-global'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { cloneDeep } from 'src/libs/variable'
 import { noop } from 'src/managers/constants'
-import { ElementProxy } from '../element-proxy'
+import { BaseElementProxy, ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
@@ -70,7 +70,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
     let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
     if (elem instanceof InnerGroup) {
-      tagName = `${elem._parent?.proxy.tag}/inner-group`
+      tagName = `${elem.owner.proxy.tag}/inner-group`
     }
     Object.defineProperties(elemProxy, {
       tag: {
@@ -95,9 +95,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         enumerable: false,
         configurable: false,
         writable: false,
-        value: this instanceof InnerGroup ? this._parent : (elem instanceof InnerGroup ? elem._parent : this)
+        value: this instanceof InnerGroup ? this.owner : (elem instanceof InnerGroup ? elem.owner : this)
       },
-      _parent: {
+      _creator: {
         enumerable: false,
         configurable: false,
         writable: false,
@@ -108,10 +108,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (typeof elemImplementedAppEvent.onAppExit === 'function') this.rootScene.onAppExit.push(elemImplementedAppEvent)
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
-      const { name, ...innerRunProxyProps } = baseProps
-      const innerGroupProxy = await this.newElementProxy(InnerGroup, { _parent: elem, ...props }, innerRunProxyProps)
+      const { name, ...groupProxyProps } = baseProps
+      const innerGroupWrapper = new InnerGroupWrapper({ creator: this, owner: elem, groupProps: props, groupProxyProps })
+      const innerGroupWrapperProxy = new BaseElementProxy(innerGroupWrapper)
+      innerGroupWrapperProxy.exec = async function (parentState: any) {
+        return await this.element.exec(parentState)
+      }
+      innerGroupWrapperProxy.dispose = async function () {
+        await this.element.dispose()
+      }
       Object.defineProperty(elem, 'innerRunsProxy', {
-        value: innerGroupProxy,
+        value: innerGroupWrapperProxy,
         enumerable: false,
         configurable: false,
         writable: false
@@ -130,7 +137,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return elemProxy
   }
 
-  async preExec(parentState?: Record<string, any>) {
+  async preExec(_parentState?: Record<string, any>) {
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.#runs || []
@@ -144,7 +151,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
 
     // Preload includes tag
-    await this.preHandleFilesInclude(this.proxy.runs, parentState)
+    await this.preHandleFilesInclude(this.proxy.runs)
     if (!this.preHandleOnlyRuns(this.proxy.runs)) {
       this.preHandleSkipRuns(this.proxy.runs)
     }
@@ -152,11 +159,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return true
   }
 
-  async exec(parentState?: Record<string, any>) {
-    return await this.runEachOfElements(parentState)
-  }
-
-  async runEachOfElements(parentState?: Record<string, any>) {
+  async exec(_?: Record<string, any>) {
     if (!this.proxy.runs) {
       return
     }
@@ -164,7 +167,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const result = ENVGlobal.DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
     let isPassedCondition = false
 
-    const parentProxy = this instanceof InnerGroup ? this._parent?.proxy : this.proxy
+    const parentProxy = this instanceof InnerGroup ? this.owner?.proxy : this.proxy
 
     // Loop to execute each of tags
     for (const props of this.proxy.runs) {
@@ -189,7 +192,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
       // Execute
       if (loop === undefined) {
-        const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, elemProps)
+        const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps)
         if (elemProxy) {
           isPassedCondition = !!baseProps.if || !!baseProps.elseif
           result?.push(elemProxy)
@@ -202,7 +205,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (Array.isArray(loopCondition)) {
           for (let i = 0; i < loopCondition.length; ++i) {
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
               loopKey: i,
               loopValue: loopCondition[i]
             })
@@ -215,7 +218,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           for (let i = 0; i < keys.length; ++i) {
             const key = keys[i]
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
               loopKey: key,
               loopValue: loopCondition[key]
             })
@@ -226,7 +229,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         } else if (loopCondition === true) {
           do {
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, parentState, baseProps, newProps, {
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
               loopValue: loopCondition
             })
             if (elemProxy) {
@@ -342,7 +345,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, parentState: any, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
+  private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     // elemProxy.parentState = parentState
 
@@ -364,7 +367,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
 
     const t = elemProxy
-      .exec(parentState)
+      .exec()
       .finally(elemProxy.dispose.bind(elemProxy) as () => void)
 
     if (detach) {
@@ -389,14 +392,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return elem
   }
 
-  private async preHandleFilesInclude(runs: GroupItemProps[], parentState?: any) {
+  private async preHandleFilesInclude(runs: GroupItemProps[]) {
     const includes = runs
       .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
       .filter(e => e)
     if (includes.length) {
       const allRuns: Array<{ idx: number, runs: any[] }> = await Promise.all(includes
         .map(async (e: any) => {
-          const elemProxy = await this.createAndExecuteElement([], 'include', parentState, {}, e.include)
+          const elemProxy = await this.createAndExecuteElement([], 'include', {}, e.include)
           return { idx: e.idx, runs: elemProxy?.result || [] }
         })
       )
@@ -422,12 +425,80 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   }
 }
 
-export class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> extends Group<GP, GIP> {
-  _parent!: Element
+export class InnerGroupWrapper implements Element {
+  readonly proxy!: ElementProxy<this>
 
-  constructor(props?: GP & { _parent: Element }) {
-    assert(props?._parent)
-    super(props)
-    this._parent = props._parent
+  #owner!: Element
+  #creator!: Group<any, any>
+  #groupProps: any
+  #groupProxyProps: any
+
+  get owner() {
+    return this.#owner
+  }
+
+  get creator() {
+    return this.#creator
+  }
+
+  get groupProps() {
+    return this.#groupProps
+  }
+
+  get groupProxyProps() {
+    return this.#groupProxyProps
+  }
+
+  constructor(props: { creator: Group<any, any>, owner: Element, groupProps: any, groupProxyProps: any }) {
+    this.#owner = props.owner
+    this.#creator = props.creator
+    this.#groupProps = props.groupProps
+    this.#groupProxyProps = props.groupProxyProps
+  }
+
+  async exec(parentState: Record<string, any> = {}) {
+    const innerGroupProxy = await this.#creator.newElementProxy(InnerGroup, { owner: this.#owner, ...this.#groupProps }, this.#groupProxyProps)
+    try {
+      if (parentState) {
+        if (this.#owner.proxy.parentState) {
+          Object.defineProperties(parentState, {
+            $parentState: {
+              enumerable: true,
+              configurable: true,
+              writable: true,
+              value: this.#owner.proxy.parentState
+            },
+            $ps: {
+              enumerable: true,
+              configurable: true,
+              writable: true,
+              value: this.#owner.proxy.parentState
+            }
+          })
+        }
+        innerGroupProxy.parentState = parentState
+      }
+      const rs = await innerGroupProxy.exec()
+      return rs
+    } finally {
+      await innerGroupProxy.dispose()
+    }
+  }
+
+  async dispose() { }
+}
+
+export class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> extends Group<GP, GIP> {
+  #owner!: Element
+
+  get owner() {
+    return this.#owner
+  }
+
+  constructor(baseProps?: GP & { owner: Element }) {
+    assert(baseProps?.owner)
+    const { owner, ...props } = baseProps
+    super(props as unknown as GP)
+    this.#owner = owner
   }
 }

@@ -9,7 +9,6 @@ import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
-import { type InnerGroup } from './group/group'
 import { type GroupItemProps } from './group/group.props'
 import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
@@ -536,7 +535,7 @@ export class ElementProxy<T extends Element> {
   runs?: GroupItemProps[]
 
   _forceStop?: true
-  _parentState?: WeakRef<Record<string, any>> | null
+  #parentState?: WeakRef<Record<string, any>> | null
   /** |**  parentState
     - Set/Get value to context variables. Used in tags support `runs` and support parentState
     Variables:
@@ -561,31 +560,46 @@ export class ElementProxy<T extends Element> {
             - params 1
             - params 2
     ```
+    Acess $parentState incursive
+    ```yaml
+      - name: Connect to redis
+        ymlr-redis:
+          uri: redis://localhost:6379
+        runs:
+          - name: access redis
+            js: |
+              await $ps.redis.client.publish('test-event/ping', 'level 1')
+
+          - name: after redis is connected, start listening to handle an events
+            event'on:
+              name: test-event
+            runs:
+              - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+              - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+
+              - name: access redis
+                js: |
+                  await $ps.$ps.redis.client.publish('test-event/ping', 'level 2')
+
+      - event'emit:
+          name: test-event
+          data:
+            name: Test event
+            data: Hello
+          opts:
+            - params 1
+            - params 2
+    ```
   */
-  get parentState() {
-    if (this._parentState) {
-      return this._parentState.deref()
+  get parentState(): Record<string, any> | undefined {
+    if (this.#parentState) {
+      return this.#parentState.deref()
     }
-    if (this.element.constructor.name === 'InnerGroup') {
-      const innerGroup = this.element as any as InnerGroup<any, any>
-      return innerGroup._parent?.proxy.parentState
-    }
-    return this.parentProxy?.parentState
+    return this._creator?.proxy.parentState
   }
 
   set parentState(parentState: Record<string, any> | undefined) {
-    let thisProxy: ElementProxy<Element> = this as any
-    if (this.element.constructor.name === 'InnerGroup') {
-      const innerGroup = this.element as any as InnerGroup<any, any>
-      if (innerGroup._parent) {
-        thisProxy = innerGroup._parent.proxy
-      }
-    }
-    if (thisProxy.parentState) {
-      Object.assign(thisProxy.parentState, parentState)
-    } else {
-      thisProxy._parentState = parentState ? new WeakRef(parentState) : undefined
-    }
+    this.#parentState = parentState ? new WeakRef(parentState) : null
   }
 
   tag!: string
@@ -609,6 +623,7 @@ export class ElementProxy<T extends Element> {
   readonly parent?: Element
   errorStack?: ErrorStack
 
+  readonly _creator?: Element
   get parentProxy() {
     return this.parent?.proxy
   }
@@ -668,13 +683,13 @@ export class ElementProxy<T extends Element> {
 
   constructor(public element: T, props: any = {}) {
     Object.assign(this, props)
-    if (element.asyncConstructor) this.#elementAsyncProps = props
     Object.defineProperty(element, 'proxy', {
       enumerable: false,
       configurable: false,
       writable: false,
       value: this
     })
+    if (element.asyncConstructor) this.#elementAsyncProps = props
   }
 
   setDebug(debug?: string) {
@@ -756,10 +771,7 @@ export class ElementProxy<T extends Element> {
     return rs
   }
 
-  async exec(parentState?: Record<string, any>) {
-    if (parentState !== undefined && parentState !== this.parentState) {
-      this.parentState = parentState
-    }
+  async exec(_parentState?: Record<string, any>) {
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.#elementAsyncProps)
       this.#elementAsyncProps = undefined
@@ -781,11 +793,11 @@ export class ElementProxy<T extends Element> {
         }
         do {
           try {
-            const isRunOnce = await this.element.preExec?.(parentState)
+            const isRunOnce = await this.element.preExec?.(this.parentState)
             if (isRunOnce) {
               this.element.preExec = undefined
             }
-            const result = await this.element.exec(parentState)
+            const result = await this.element.exec(this.parentState)
             if (this.result instanceof Returns) {
               this.result = this.result.result
             } else {
@@ -841,11 +853,26 @@ export class ElementProxy<T extends Element> {
       this._logger?.dispose()
       this._logger = null
       // Only release parentState if it's owner
-      if (this._parentState) {
-        this._parentState = null
+      if (this.#parentState) {
+        this.#parentState = null
       }
     } finally {
       GlobalEvent.emit('@app/proxy/after:dispose', this)
     }
+  }
+}
+
+export class BaseElementProxy<T extends Element> extends ElementProxy<T> {
+  constructor(public element: T, props: any = {}) {
+    super(element, props)
+  }
+
+  override async exec(parentState?: Record<string, any>) {
+    const rs = await this.element.exec(parentState)
+    return rs
+  }
+
+  override async dispose() {
+    await this.element.dispose()
   }
 }
