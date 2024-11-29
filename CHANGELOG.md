@@ -2,6 +2,9 @@
 
 ## History
 
+- [1.3.1-alpha.15.md](#1732876018494)  -  _11/29/2024, 5:26:58 PM_
+- [1.3.1-alpha.15.md](#1732872282204)  -  _11/29/2024, 4:24:42 PM_
+- [1.3.1-alpha.15.md](#1732866573332)  -  _11/29/2024, 2:49:33 PM_
 - [1.3.1-alpha.14.md](#1732860467571)  -  _11/29/2024, 1:07:47 PM_
 - [1.3.1-alpha.13.md](#1732796222900)  -  _11/28/2024, 7:17:02 PM_
 - [1.3.1-alpha.12.md](#1732529405382)  -  _11/25/2024, 5:10:05 PM_
@@ -102,6 +105,23 @@
 
 ## Details
 
+<a id="1732876018494"></a>
+### 1.3.1-alpha.15
+
+* refactor(debounce, throttle): cached and handle log (5c80939)
+* fix: not separate context for each of innerRunProxy (70be1c0)
+  
+<a id="1732872282204"></a>
+### 1.3.1-alpha.15
+
+* refactor(debounce, throttle): cached and handle log (a995486)
+* fix: not separate context for each of innerRunProxy (70be1c0)
+  
+<a id="1732866573332"></a>
+### 1.3.1-alpha.15
+
+
+  
 <a id="1732860467571"></a>
 ### 1.3.1-alpha.14
 
