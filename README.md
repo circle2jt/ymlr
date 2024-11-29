@@ -733,6 +733,36 @@ Example:
       opts:
         - params 1
         - params 2
+```
+Acess $parentState incursive
+```yaml
+  - name: Connect to redis
+    ymlr-redis:
+      uri: redis://localhost:6379
+    runs:
+      - name: access redis
+        js: |
+          await $ps.redis.client.publish('test-event/ping', 'level 1')
+
+      - name: after redis is connected, start listening to handle an events
+        event'on:
+          name: test-event
+        runs:
+          - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
+          - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+
+          - name: access redis
+            js: |
+              await $ps.$ps.redis.client.publish('test-event/ping', 'level 2')
+
+  - event'emit:
+      name: test-event
+      data:
+        name: Test event
+        data: Hello
+      opts:
+        - params 1
+        - params 2
 ```  
 
 
