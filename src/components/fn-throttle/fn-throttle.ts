@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { type DebouncedFunc } from 'lodash'
+import { type DebouncedFunc, type ThrottleSettings } from 'lodash'
 import throttle from 'lodash.throttle'
 import { formatTextToMs } from 'src/libs/format'
 import { ThrottleManager } from 'src/managers/throttle-manager'
@@ -34,12 +34,16 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 export class FNThrottle implements Element {
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
 
   name!: string
   wait?: number
   leading = true
   trailing = true
-  autoRemove = false
+  autoRemove?: true | string | number
+  #tmAutoRemove?: NodeJS.Timeout
   #fn?: DebouncedFunc<any>
   #parentState?: Record<string, any>
 
@@ -56,22 +60,47 @@ export class FNThrottle implements Element {
     assert(this.name)
 
     if (ThrottleManager.Instance.has(this.name)) {
+      this.logger.trace('%s: reused', this.name)
       ThrottleManager.Instance.touch(this.name)
       // ThrottleManager.Instance.touch(this.name, parentState)
-    } else if (this.wait !== undefined && this.proxy.runs?.length) {
+    } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
+        this.logger.trace('%s: create a new one', this.name)
+
+        this.wait ?? assert.fail('wait is required')
+        let wait = 0
+        let autoRemove: number | undefined
+        if (typeof this.wait === 'string') {
+          wait = formatTextToMs(this.wait)
+        } else if (typeof this.wait === 'number') {
+          wait = this.wait
+        }
+        this.wait = wait
+
+        if (this.autoRemove === true) {
+          autoRemove = wait
+        } else if (typeof this.autoRemove === 'string') {
+          autoRemove = formatTextToMs(this.autoRemove)
+        } else if (typeof this.autoRemove === 'number') {
+          autoRemove = this.autoRemove
+        }
+        if (autoRemove !== undefined) {
+          if (autoRemove <= wait) {
+            autoRemove = wait + 500
+          }
+          this.autoRemove = autoRemove
+        }
+
+        const opts: ThrottleSettings = {
+          trailing: this.trailing,
+          leading: this.leading
+        }
         if (typeof this.wait === 'string') {
           this.wait = formatTextToMs(this.wait)
         }
         this.#fn = throttle(async (parentState?: Record<string, any>) => {
-          if (this.autoRemove) {
-            ThrottleManager.Instance.delete(this.name)
-          }
           await this.innerRunsProxy.exec(parentState)
-        }, this.wait, {
-          trailing: this.trailing,
-          leading: this.leading
-        })
+        }, this.wait, opts)
         ThrottleManager.Instance.set(this.name, this)
       }
       this.touch(parentState)
@@ -79,19 +108,40 @@ export class FNThrottle implements Element {
   }
 
   touch(parentState?: Record<string, any>) {
+    this.logger.trace('%s: touch', this.name)
     if (parentState !== undefined) {
       this.#parentState = parentState
     }
+    this.#scheduleAutoRemove(false)
     this.#fn?.(this.#parentState)
   }
 
   cancel() {
+    this.logger.trace('%s: cancel', this.name)
+    this.#scheduleAutoRemove(true)
     this.#fn?.cancel()
   }
 
   flush() {
+    this.logger.trace('%s: flush', this.name)
     this.#fn?.flush()
   }
 
-  dispose() { }
+  dispose() {
+    this.logger.trace('%s: dispose', this.name)
+  }
+
+  #scheduleAutoRemove(stop: boolean) {
+    if (!this.autoRemove) return
+    this.logger.trace(`%s: auto remove after ${this.autoRemove}ms`, this.name)
+    if (this.#tmAutoRemove) clearTimeout(this.#tmAutoRemove)
+    if (stop) {
+      this.#tmAutoRemove = undefined
+    } else {
+      this.#tmAutoRemove = setTimeout(() => {
+        this.#tmAutoRemove = undefined
+        ThrottleManager.Instance.delete(this.name)
+      }, this.autoRemove as number)
+    }
+  }
 }

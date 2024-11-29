@@ -69,7 +69,7 @@ test('fn-throttle recall', async () => {
   } finally {
     await fnThrottle.dispose()
   }
-  await sleep(500)
-  expect(Testing.vars.i).toBe(1) // Removed then no found ttask2 to reset
+  await sleep(1000)
+  expect(Testing.vars.i).toBe(2) // Removed then no found ttask2 to reset
   expect(ThrottleManager.Instance.has('ttask2')).toBe(false)
 })

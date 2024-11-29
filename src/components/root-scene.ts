@@ -116,8 +116,8 @@ export class RootScene extends Scene {
     this.#backgroundJobs.push(task)
   }
 
-  override async exec(parentState?: Record<string, any>) {
-    const rs = await super.exec(parentState)
+  override async exec() {
+    const rs = await super.exec()
     await this.#workerManager?.exec()
     if (this.#backgroundJobs.length) {
       await Promise.all(this.#backgroundJobs)

@@ -33,7 +33,7 @@ test('fn-debounce should be run correctly', async () => {
       await fnDebounce.dispose()
     }
     if (i > 1) {
-      await sleep(550)
+      await sleep(600)
     } else {
       await sleep(10)
     }

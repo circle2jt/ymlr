@@ -110,7 +110,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const { name, ...groupProxyProps } = baseProps
       const innerGroupWrapper = new InnerGroupWrapper({ creator: this, owner: elem, groupProps: props, groupProxyProps })
-      const innerGroupWrapperProxy = new BaseElementProxy(innerGroupWrapper)
+      const innerGroupWrapperProxy = new BaseElementProxy(innerGroupWrapper, { runs: groupProxyProps.runs })
       innerGroupWrapperProxy.exec = async function (parentState: any) {
         return await this.element.exec(parentState)
       }

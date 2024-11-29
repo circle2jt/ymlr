@@ -35,13 +35,17 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 export class FNDebounce implements Element {
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
 
   name!: string
-  wait?: number
-  maxWait?: number
+  wait?: number | string
+  maxWait?: number | string
   trailing = true
   leading = false
-  autoRemove = false
+  autoRemove?: true | string | number
+  #tmAutoRemove?: NodeJS.Timeout
   #fn?: DebouncedFunc<any>
   #parentState?: Record<string, any>
 
@@ -58,25 +62,47 @@ export class FNDebounce implements Element {
     assert(this.name)
 
     if (DebounceManager.Instance.has(this.name)) {
+      this.logger.trace('%s: reused', this.name)
       DebounceManager.Instance.touch(this.name)
       // DebounceManager.Instance.touch(this.name, parentState)
-    } else if (this.wait !== undefined && this.proxy.runs?.length) {
+    } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
+        this.logger.trace('%s: create a new one', this.name)
+
+        this.wait ?? assert.fail('wait is required')
+        let wait = 0
+        let autoRemove: number | undefined
+        if (typeof this.wait === 'string') {
+          wait = formatTextToMs(this.wait)
+        } else if (typeof this.wait === 'number') {
+          wait = this.wait
+        }
+        this.wait = wait
+
+        if (this.autoRemove === true) {
+          autoRemove = wait
+        } else if (typeof this.autoRemove === 'string') {
+          autoRemove = formatTextToMs(this.autoRemove)
+        } else if (typeof this.autoRemove === 'number') {
+          autoRemove = this.autoRemove
+        }
+        if (autoRemove !== undefined) {
+          if (autoRemove <= wait) {
+            autoRemove = wait + 500
+          }
+          this.autoRemove = autoRemove
+        }
+
         const opts: DebounceSettings = {
           trailing: this.trailing,
           leading: this.leading
         }
-        if (typeof this.wait === 'string') {
-          this.wait = formatTextToMs(this.wait)
-        }
+
         if (this.maxWait && typeof this.maxWait === 'string') {
           this.maxWait = formatTextToMs(this.maxWait)
           opts.maxWait = this.maxWait
         }
         this.#fn = debounce(async (parentState?: Record<string, any>) => {
-          if (this.autoRemove) {
-            DebounceManager.Instance.delete(this.name)
-          }
           await this.innerRunsProxy.exec(parentState)
         }, this.wait, opts)
         DebounceManager.Instance.set(this.name, this)
@@ -86,19 +112,40 @@ export class FNDebounce implements Element {
   }
 
   touch(parentState?: Record<string, any>) {
+    this.logger.trace('%s: touch', this.name)
     if (parentState !== undefined) {
       this.#parentState = parentState
     }
+    this.#scheduleAutoRemove(false)
     this.#fn?.(this.#parentState)
   }
 
   cancel() {
+    this.logger.trace('%s: cancel', this.name)
+    this.#scheduleAutoRemove(true)
     this.#fn?.cancel()
   }
 
   flush() {
+    this.logger.trace('%s: flush', this.name)
     this.#fn?.flush()
   }
 
-  dispose() { }
+  dispose() {
+    this.logger.trace('%s: dispose', this.name)
+  }
+
+  #scheduleAutoRemove(stop: boolean) {
+    if (!this.autoRemove) return
+    this.logger.trace(`%s: auto remove after ${this.autoRemove}ms`, this.name)
+    if (this.#tmAutoRemove) clearTimeout(this.#tmAutoRemove)
+    if (stop) {
+      this.#tmAutoRemove = undefined
+    } else {
+      this.#tmAutoRemove = setTimeout(() => {
+        this.#tmAutoRemove = undefined
+        DebounceManager.Instance.delete(this.name)
+      }, this.autoRemove as number)
+    }
+  }
 }
