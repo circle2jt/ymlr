@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.1.md](#1733307813384)  -  _12/4/2024, 5:23:33 PM_
 - [1.3.1-alpha.15.md](#1732876018494)  -  _11/29/2024, 5:26:58 PM_
 - [1.3.1-alpha.15.md](#1732872282204)  -  _11/29/2024, 4:24:42 PM_
 - [1.3.1-alpha.15.md](#1732866573332)  -  _11/29/2024, 2:49:33 PM_
@@ -105,6 +106,68 @@
 
 ## Details
 
+<a id="1733307813384"></a>
+### 1.3.1
+
+* chore: prerelease 1.3.1-alpha.15 (7c58e80)
+* refactor(debounce, throttle): cached and handle log (5c80939)
+* fix: not separate context for each of innerRunProxy (70be1c0)
+* chore: prerelease 1.3.1-alpha.14 (11ded31)
+* chore: prerelease 1.3.1-alpha.13 (78e05dc)
+* feat(sleep): allow sleep forever with input value is null (1f0aa6f)
+* refactor($ps): use WeakRef for parentState (9ecc5c9)
+* fix!: check condition before loop (f3ce4bf)
+* feat(utils): add parse.date to convert a string to Date object (b509856)
+* chore: prerelease 1.3.1-alpha.12 (11315d8)
+* refactor(group): optimize prehandle tag props (e36e3ad)
+* fix: merge InnerGroup into Group to prevent importing loop (72648ea)
+* ci: dynamic pass publishConfig via package.json (d15a95e)
+* fix: parent is not working in ext-modules (23bd0be)
+* chore: prerelease 1.3.1-alpha.11 (11517c3)
+* hotfix: could not install external module (422169a)
+* ci: fix not publish to npm with alpha tag (997f8d1)
+* chore: prerelease 1.3.1-alpha.10 (66e3d6b)
+* feat(http): support validStatus to ignore custom error (2ca7969)
+* feat(fetch): support validStatus to ignore custom error (bfb4609)
+* refactor: optimize code structure (7af9445)
+* hotfix: $v not return value in scene'returns (dac10dc)
+* build: yarn not using tag in package.json (7c868a8)
+* chore: prerelease 1.3.1-alpha.9 (5494d63)
+* fix(fetch): download empty content (652c5f6)
+* fix(env): sync process.env (3fc1e08)
+* feat(icon): add icon property to step (58d21d2)
+* fix(fetch): app is exited when downloading file is error (9933b06)
+* doc: update doc for vscode extension (4ec9c53)
+* chore: prerelease 1.3.1-alpha.8 (01cb61c)
+* hotfix: $v, $u, $c is not working (013ac96)
+* chore: prerelease 1.3.1-alpha.7 (aa2fd1e)
+* fix(template): not override tagName (e18b8f5)
+* feat: add shortcut to references to variables (a2d8817)
+* fix: always reference $loopValue, $loopKey to nearest loop (8dbadfa)
+* feat: support debug is boolean (5407635)
+* chore: prerelease 1.3.1-alpha.6 (20887c2)
+* refactor(logger): optimize it to extends later (330cd6d)
+* chore: prerelease 1.3.1-alpha.5 (7cb90d6)
+* fix(logger): debug not inherited when level is trace or all (653514e)
+* chore: prerelease 1.3.1-alpha.4 (d9a4e7b)
+* fix(fetch,http): handle error when download files (d80840c)
+* feat(cli): support output json, colorful log format (b7c7d99)
+* chore: update package modules name (e5ca72c)
+* perf: cache external module (a688882)
+* fix(fetch, http): handle error when download file (cdb3176)
+* refactor(exec): Support opts as SpawnOptions (163712b)
+* chore: prerelease 1.3.1-alpha.3 (0d789a1)
+* feat(log): Support secret log to log config, secret information... (0559cbe)
+* chore: prerelease 1.3.1-alpha.2 (dae2b40)
+* fix(logger): silent mode still print trace logs (85ac7d5)
+* chore: prerelease 1.3.1-alpha.1 (eadd613)
+* refactor: replace require to import module (ee1efe6)
+* refactor(logger): change format and optimize performance (e0cefa5)
+* chore: prerelease 1.3.1-alpha.0 (2767cbc)
+* feat(event): support emit or listen on multiple event name (f7178c8)
+* refactor(log): update log format (708c9c7)
+* feat(exec,sh): support exitCodes in the process (869e31c)
+  
 <a id="1732876018494"></a>
 ### 1.3.1-alpha.15
 
