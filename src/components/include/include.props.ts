@@ -1,4 +1,5 @@
 export type IncludeProps = {
-  file: string
+  file?: string
+  files?: string
   cached?: boolean
-} | string
+} | string | string[]

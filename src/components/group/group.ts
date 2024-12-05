@@ -345,7 +345,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  private async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
+  public async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
     const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
     // elemProxy.parentState = parentState
 
