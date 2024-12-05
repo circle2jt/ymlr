@@ -1994,8 +1994,20 @@ Example:
   - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
 
   - include:
-      file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
       cached: true                    # Load file for the first time, the next will get from caches
+      file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+
+  - include:
+      - file1.yaml
+      - file2.yaml
+      - file3.yaml
+
+  - include:
+      cached: true
+      files:
+        - file1.yaml
+        - file2.yaml
+        - file3.yaml
 ```  
 
 
