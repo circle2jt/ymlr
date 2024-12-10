@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { readdir } from 'fs/promises'
 import { load } from 'js-yaml'
-import merge from 'lodash.merge'
+import mergeWith from 'lodash.mergewith'
 import { join } from 'path'
 import { FileRemote } from 'src/libs/file-remote'
 import { type ElementProxy } from '../element-proxy'
@@ -16,8 +16,9 @@ import { type IncludeProps } from './include.props'
     - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
 
     - include:
-        cached: true                    # Load file for the first time, the next will get from caches
-        file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+        cached: true                                      # Load file for the first time, the next will get from caches
+        file: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+        validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
 
     - include:
         - file1.yaml
@@ -39,6 +40,8 @@ export class Include implements Element {
   cached?: boolean
   _errorStack = true
   _isDir?: boolean
+  validFilePattern = '^[a-zA-Z0-9].*?\\.ya?ml$'
+  returnType = Array
 
   private get logger() { return this.proxy.logger }
 
@@ -53,13 +56,24 @@ export class Include implements Element {
   }
 
   async exec() {
+    const inputFiles = this.files as string | string[]
+    if (typeof inputFiles === 'string') {
+      this.files = [inputFiles]
+    } else if (Array.isArray(inputFiles)) {
+      this.files = inputFiles
+    } else {
+      this.files = []
+    }
+
     assert(this.files?.length)
+    this.files = this.files.flat(1)
     const uri = this.files.join('\n')
     const cached = this.proxy.scene.localCaches.get(uri)
     if (cached) {
       this.logger.trace('Get include data from cached')
       return cached
     }
+    const validFilePattern = new RegExp(this.validFilePattern)
     const files: FileRemote[] = []
     for (const file of this.files) {
       const f = new FileRemote(file, this.proxy.scene)
@@ -69,7 +83,7 @@ export class Include implements Element {
         listFiles
           .sort((a, b) => a.localeCompare(b))
           .forEach(file => {
-            if (file.endsWith('.yaml') || file.endsWith('.yml')) {
+            if (validFilePattern.test(file)) {
               files.push(new FileRemote(join(f.uri, file), this.proxy.scene))
             }
           })
@@ -109,17 +123,27 @@ export class Include implements Element {
   dispose() { }
 
   private getData(childs: any[]): any {
-    let isArray = false
-    for (const c of childs) {
-      if (Array.isArray(c)) {
-        isArray = true
-        break
-      }
+    if (this.returnType === Array) return childs.flat(1)
+    return childs
+      .flat(1)
+      .reduce((sum, item) => {
+        Include.mergeFiles(sum, item)
+        sum = mergeWith(sum, item, (objValue: any, srcValue: any) => {
+          if (Array.isArray(objValue) && Array.isArray(srcValue)) {
+            return objValue.concat(srcValue)
+          }
+          Include.mergeFiles(objValue, srcValue)
+        })
+        return sum
+      }, {})
+  }
+
+  private static mergeFiles(objValue: any, srcValue: any) {
+    if (objValue?.include?.files && typeof objValue?.include?.files === 'string') {
+      objValue.include.files = [objValue.include.files]
     }
-    if (isArray) return childs.flat(1)
-    return childs.flat(1).reduce((sum, item) => {
-      merge(sum, item)
-      return sum
-    }, {})
+    if (srcValue?.include?.files && typeof srcValue?.include?.files === 'string') {
+      srcValue.include.files = [srcValue.include.files]
+    }
   }
 }
