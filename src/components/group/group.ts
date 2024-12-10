@@ -62,12 +62,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
   }
 
-  async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}, loopObj?: { loopKey?: any, loopValue: any }) {
+  async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
-    if (loopObj) {
-      elemProxy.setLoop(loopObj.loopKey, loopObj.loopValue)
-    }
     let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
     if (elem instanceof InnerGroup) {
       tagName = `${elem.owner.proxy.tag}/inner-group`
@@ -170,12 +167,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const parentProxy = this instanceof InnerGroup ? this.owner?.proxy : this.proxy
 
     // Loop to execute each of tags
-    for (const props of this.proxy.runs) {
-      // const props = cloneDeep(run)
+    for (const run of this.proxy.runs) {
       if (parentProxy._forceStop) {
         break
       }
 
+      const props = cloneDeep(run)
       // when the previous step was passed valid condition
       if (isPassedCondition) {
         if (props.elseif || props.else === null) continue
@@ -205,10 +202,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (Array.isArray(loopCondition)) {
           for (let i = 0; i < loopCondition.length; ++i) {
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
-              loopKey: i,
-              loopValue: loopCondition[i]
-            })
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+              ...baseProps,
+              _loopObject: {
+                loopKey: i,
+                loopValue: loopCondition[i]
+              }
+            }, newProps)
             if (elemProxy) {
               result?.push(elemProxy)
             }
@@ -218,10 +218,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           for (let i = 0; i < keys.length; ++i) {
             const key = keys[i]
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
-              loopKey: key,
-              loopValue: loopCondition[key]
-            })
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+              ...baseProps,
+              _loopObject: {
+                loopKey: key,
+                loopValue: loopCondition[key]
+              }
+            }, newProps)
             if (elemProxy) {
               result?.push(elemProxy)
             }
@@ -229,9 +232,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         } else if (loopCondition === true) {
           do {
             const newProps = cloneDeep(elemProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, newProps, {
-              loopValue: loopCondition
-            })
+            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+              ...baseProps,
+              _loopObject: {
+                loopValue: loopCondition
+              }
+            }, newProps)
             if (elemProxy) {
               result?.push(elemProxy)
             }
@@ -345,8 +351,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  public async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps, props: any, loopObj?: { loopKey?: any, loopValue: any }) {
-    const elemProxy = await this.newElementProxy(name, props, baseProps, loopObj)
+  public async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
+    const elemProxy = await this.newElementProxy(name, props, baseProps)
     // elemProxy.parentState = parentState
 
     const condition = baseProps.elseif ?? baseProps.if

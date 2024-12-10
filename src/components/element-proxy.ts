@@ -603,13 +603,13 @@ export class ElementProxy<T extends Element> {
   }
 
   tag!: string
-  #loopObject?: {
+  _loopObject?: {
     loopKey?: any
     loopValue: any
   }
 
   get loopObject(): any {
-    return this.#loopObject ?? this.parentProxy?.loopObject
+    return this._loopObject ?? this.parentProxy?.loopObject
   }
 
   get loopKey(): any {
@@ -700,13 +700,6 @@ export class ElementProxy<T extends Element> {
     }
   }
 
-  setLoop(key: any | undefined, value: any) {
-    this.#loopObject = {
-      loopKey: key,
-      loopValue: value
-    }
-  }
-
   getParentByClassName<T extends Element>(...ClazzTypes: Array<new (...args: any[]) => T>): ElementProxy<T> | undefined {
     let parentElement: Element | undefined = this.parent
     while (parentElement) {
@@ -763,10 +756,12 @@ export class ElementProxy<T extends Element> {
       $vars: this.scene.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
+      $env: process.env,
 
       $v: this.scene.localVars,
       $u: this.rootScene.globalUtils,
-      $c: Constants
+      $c: Constants,
+      $e: process.env
     })
     return rs
   }
