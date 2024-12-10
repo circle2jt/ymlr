@@ -50,7 +50,7 @@ export async function RunCLI() {
             }
           }
           env.forEach((line: string) => {
-            const [key, value] = Env.ParseEnvLine(line, false)
+            const [key, value] = Env.ParseEnvLine(line, true)
             process.env[key] = value
           })
           if (debug) ENVGlobal.DEBUG = debug

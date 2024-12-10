@@ -148,7 +148,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
           (env as string[]).forEach(line => {
-            const [key, value] = Env.ParseEnvLine(line, false)
+            const [key, value] = Env.ParseEnvLine(line, true)
             process.env[key] = value
           })
         } else if (typeof env === 'object') {
@@ -157,6 +157,21 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
           })
         }
       }
+
+      if (envFiles?.length) {
+        let envArrFiles = []
+        if (Array.isArray(envFiles)) {
+          envArrFiles = envFiles
+        } else if (typeof envFiles === 'string') {
+          envArrFiles.push(envFiles)
+        }
+        for (const envFile of envArrFiles) {
+          const fm = new FileRemote(envFile, this)
+          const content = await fm.getTextContent()
+          Object.assign(process.env, Env.ParseEnvContent(content, true))
+        }
+      }
+
       LoggerFactory.LoadFromEnv()
       if (password) {
         await this.generateEncryptedFile(remoteFileProps, password)
@@ -167,15 +182,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (this.name === undefined && name) this.name = name
       this.lazyInitRuns(groupProps)
 
-      let envArrFiles = []
-      if (envFiles?.length) {
-        if (Array.isArray(envFiles)) {
-          envArrFiles = envFiles
-        } else if (typeof envFiles === 'string') {
-          envArrFiles.push(envFiles)
-        }
-      }
-
       let varArrFiles = []
       if (varsFiles?.length) {
         if (Array.isArray(varsFiles)) {
@@ -185,7 +191,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         }
       }
 
-      await this.loadVars(vars, varArrFiles, envArrFiles)
+      await this.loadVars(vars, varArrFiles, [])
     }
     if (!this.proxy.errorStack) {
       this.proxy.errorStack = {}
@@ -224,10 +230,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
+      $env: process.env,
 
       $v: this.localVars,
       $u: this.rootScene.globalUtils,
-      $c: Constants
+      $c: Constants,
+      $e: process.env
     })
   }
 
@@ -238,10 +246,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       $vars: this.localVars,
       $utils: this.rootScene.globalUtils,
       $const: Constants,
+      $env: process.env,
 
       $v: this.localVars,
       $u: this.rootScene.globalUtils,
-      $c: Constants
+      $c: Constants,
+      $e: process.env
     })
   }
 
@@ -407,8 +417,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async loadEnv(...envFiles: string[]) {
-    const env = new Env(this.logger)
-    await env.loadEnvToBase(this.scene, this.localVars,
+    await Env.LoadEnvToBase(this.scene, this.localVars,
       ...envFiles.filter(f => f),
       process.env)
   }
