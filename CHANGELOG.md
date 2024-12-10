@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.2-alpha.1.md](#1733845550075)  -  _12/10/2024, 10:45:50 PM_
 - [1.3.2-alpha.0.md](#1733399694070)  -  _12/5/2024, 6:54:54 PM_
 - [1.3.1.md](#1733307813384)  -  _12/4/2024, 5:23:33 PM_
 - [1.3.1-alpha.15.md](#1732876018494)  -  _11/29/2024, 5:26:58 PM_
@@ -107,6 +108,17 @@
 
 ## Details
 
+<a id="1733845550075"></a>
+### 1.3.2-alpha.1
+
+* test: replace LoadEnvToBase to static (4e3b07e)
+* chore: update settings in vscode and ignore test folders (0947736)
+* fix(ymlr'load): add "validFilePattern" to filter files to handle (a84b340)
+* feat(include): add "validFilePattern" to filter files before includes (1908a32)
+* fix(env): always convert env to upperCase before replace vars in scenes (d09ccbb)
+* fix: variable not apply when loop or $ps is updated (932d7dc)
+* fix(fetch): not throw error when status >= 400 (a91b618)
+  
 <a id="1733399694070"></a>
 ### 1.3.2-alpha.0
 
