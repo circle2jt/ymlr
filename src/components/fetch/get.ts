@@ -68,16 +68,12 @@ export class Get extends Head {
         }
       }
     }
-    const rs = await fetch(this.fullURLQuery, {
+    await super.send({
       ...this.fetchOpts,
       ...moreOptions
+    }, async (rs) => {
+      this.response.data = await this.getResponseData(rs)
     })
-    this.response = {
-      status: rs.status,
-      statusText: rs.statusText,
-      headers: this.getResponseHeader(rs),
-      data: await this.getResponseData(rs)
-    }
     return this.response
   }
 

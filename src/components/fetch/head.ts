@@ -81,13 +81,14 @@ export class Head implements Element {
       this.prehandleQuery()
       this.prehandleHeaders()
       const before = Date.now()
+      let error: Error | undefined
       if (!this.response) {
         if (this.timeout) {
-          const [resp] = await Promise.race([
+          await Promise.race([
             this.send(),
             setTimeout(formatTextToMs(this.timeout))
           ])
-          if (!resp) {
+          if (!this.response) {
             this.abort()
             throw new HttpError(408, 'Request is timeout')
           }
@@ -96,9 +97,15 @@ export class Head implements Element {
         }
         if (this.response?.ok === false) {
           if (!this.validStatus?.includes(this.response.status)) {
-            throw new HttpError(this.response.status, this.response.statusText)
+            error = new HttpError(this.response.status, this.response.statusText, {
+              method: this.method,
+              url: this.fullURLQuery,
+              headers: this.headers,
+              ...this.response
+            })
+          } else {
+            this.response.ok = true
           }
-          this.response.ok = true
         }
       } else {
         const isGotData = this.response.data !== null && this.response.data !== undefined
@@ -109,7 +116,11 @@ export class Head implements Element {
       this.executionTime = Date.now() - before
       this.prehandleResponseHeaders()
       this.prehandleResponseData()
+      if (error) {
+        throw error
+      }
     } catch (err: any) {
+      if (err instanceof HttpError) throw err
       if (err.response?.status !== undefined) {
         if (!this.response) this.response = {}
         this.response.status = err.response?.status
@@ -118,33 +129,31 @@ export class Head implements Element {
         this.response.data = err.response?.data
         this.response.ok = false
       }
-      const error = err instanceof HttpError
-        ? err
-        : new HttpError(this.response?.status || 0, err?.message, {
-          method: this.method,
-          url: this.fullURLQuery,
-          headers: this.headers,
-          ...err.more,
-          ...this.response
-        })
-      throw error
+      throw new HttpError(this.response?.status || 0, err?.message, {
+        method: this.method,
+        url: this.fullURLQuery,
+        headers: this.headers,
+        ...err.more,
+        ...this.response
+      })
     } finally {
       this.proxy.vars && this.applyVar()
     }
     return this.response?.data
   }
 
-  async send(moreOptions = {}) {
+  async send(moreOptions = {}, injectHanlder?: (rs: Response) => any) {
     const rs = await fetch(this.fullURLQuery, {
       ...this.fetchOpts,
       ...moreOptions
     })
     this.response = {
-      ok: rs.ok,
+      ok: rs.status && rs.status < 400,
       headers: this.getResponseHeader(rs),
       status: rs.status,
       statusText: rs.statusText
     }
+    await injectHanlder?.(rs)
     return this.response
   }
 
@@ -185,7 +194,7 @@ export class Head implements Element {
 
   protected prehandleResponseHeaders() {
     if (!this.response) return
-    const color = this.response.status ? chalk.green : chalk.red
+    const color = this.response.ok ? chalk.green : chalk.red
     const icon = this.response.status ? '☑' : '☒'
     this.logger.debug(`${color(`${icon} %d %s`)} \t%s`, this.response.status, this.response.statusText || '', chalk.gray(`${this.executionTime}ms`))
     if (this.response.headers) {
