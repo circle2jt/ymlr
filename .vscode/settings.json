@@ -1,20 +1,120 @@
 {
-    "workbench.iconTheme": "vs-seti",
-    "files.autoSave": "off",
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "npm.packageManager": "auto",
-    "files.exclude": {
-        "**/.git": true,
-        "**/.svn": true,
-        "**/.hg": true,
-        "**/.DS_Store": true
+  "workbench.iconTheme": "vs-seti",
+  "files.autoSave": "off",
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "npm.packageManager": "auto",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "typescript.tsc.autoDetect": "off",
+  "npm.autoDetect": "off",
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[yaml]": {
+    "editor.autoIndent": "advanced",
+    "editor.colorDecorators": true
+  },
+  "highlight.regexes": {
+    "(\\$v[\\.\\[ ])|(\\$vars[\\.\\[ ])": {
+      "regexFlags": "gm",
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#98ffa0",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#98ffa0",
+          "fontWeight": "bold"
+        }
+      ]
     },
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit"
+    "(\\$e[\\.\\[ ])|(\\$env[\\.\\[ ])": {
+      "regexFlags": "gm",
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#98ffa0",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#98ffa0",
+          "fontWeight": "bold"
+        }
+      ]
     },
-    "typescript.tsc.autoDetect": "off",
-    "npm.autoDetect": "off",
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "(\\$ps[\\.\\[ ])|(\\$parentState[\\.\\[ ])|(this[\\.\\[ ])": {
+      "regexFlags": "g",
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#55b85d",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#55b85d",
+          "fontWeight": "bold"
+        }
+      ]
+    },
+    "(\\$loopValue[\\.\\[ ])|(\\$lv[\\.\\[ ])|(\\.loopValue)|(\\$loopKey[\\.\\[ ])|(\\$lk[\\.\\[ ]|(\\.loopKey))": {
+      "regexFlags": "g",
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#40723a",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#40723a",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#509549",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#509549",
+          "fontWeight": "bold"
+        }
+      ]
+    },
+    "(\\$u[\\.\\[ ])|(\\$utils[\\.\\[ ])": {
+      "regexFlags": "g",
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#70aeff",
+          "fontWeight": "bold"
+        },
+        {
+          "color": "#70aeff",
+          "fontWeight": "bold"
+        }
+      ]
+    },
+    "(\\$\\{[^}]+\\})": { // A regex will be created from this string, don't forget to double escape it
+      "regexFlags": "g", // Flags used when building this regex
+      "filterLanguageRegex": "yaml",
+      "filterFileRegex": ".*\\.yaml",
+      "decorations": [
+        {
+          "color": "#6267f8",
+          "fontStyle": "italic"
+        }
+      ]
+    }
+  }
 }

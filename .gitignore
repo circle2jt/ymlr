@@ -115,3 +115,4 @@ src/yarn.lock
 *.rm
 *.rm.*
 ignore-it/
+test/
