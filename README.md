@@ -273,6 +273,7 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
 | [view'flow](#view'flow) | View flows in a scene |
+| [ymlr'load](#ymlr'load) | Merge, replace env variable in yaml files to a yaml file |
 
 
 ## <a id="Root scene"></a>Root scene  
@@ -1994,8 +1995,9 @@ Example:
   - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
 
   - include:
-      cached: true                    # Load file for the first time, the next will get from caches
-      file: ./my-scenes               # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+      cached: true                                      # Load file for the first time, the next will get from caches
+      file: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+      validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
 
   - include:
       - file1.yaml
@@ -2567,6 +2569,70 @@ Quick test
   - view'flow:
       file: ~/index.yaml        # Path of a scene file
       saveTo: /tmp/index.txt    # Save the result to file or console. Default is console (Optional)
+```  
+
+
+## <a id="ymlr'load"></a>ymlr'load  
+  
+Merge, replace env variable in yaml files to a yaml file  
+
+Example:  
+
+```yaml
+  vars:
+    myRegistry: registry.docker.lan:5000
+    rootEnv:
+      serverDir: /home/myapp
+  runs:
+    - ymlr'load:
+        path: /test/test.stack.yaml                         # Path of dir or file which is need to eval variable or auto includes
+        saveTo: /test/test.done.stack.yaml                  # Path of the target file which is merged and replaced variables
+        validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$    # Only handle files which is ends with .stack.yaml
+```
+
+file `test.stack.yaml`
+```yaml
+  include:                                # Support "include" tag to include files or folders
+    files:
+      - /app/nfs.stack.yaml
+
+  services:
+    smb:
+      user: "0:0"
+      image: ${ $v.myRegistry }/smb
+      container_name: smb
+      restart: always
+      network_mode: host
+      volumes:
+        - /mnt:/mnt:z,shared
+        - /home/orangepi:/home/orangepi:z,shared
+        - ${ $v.rootEnv.serverDir }/stacks/smb/config/smb.conf:/etc/samba/smb.conf:ro
+        - ${ $v.rootEnv.serverDir }/stacks/smb/config/usermap.txt:/etc/samba/usermap.txt:ro
+```
+
+file `nfs.stack.yaml`
+```yaml
+  services:
+    nfs:
+      image: ${ $v.myRegistry }/nfs
+```
+
+file `test.done.stack.yaml`
+```yaml
+  services:
+    nfs:
+      image: registry.docker.lan:5000/nfs
+    smb:
+      user: "0:0"
+      image: registry.docker.lan:5000/smb
+      container_name: smb
+      restart: always
+      network_mode: host
+      volumes:
+        - /mnt:/mnt:z,shared
+        - /home/orangepi:/home/orangepi:z,shared
+        - /home/myapp/stacks/smb/config/smb.conf:/etc/samba/smb.conf:ro
+        - /home/myapp/stacks/smb/config/usermap.txt:/etc/samba/usermap.txt:ro
 ```  
 
 
