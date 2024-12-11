@@ -100,7 +100,7 @@ export class YmlrLoad implements Element {
     const rawResult = await this.handle(data)
     const result = await this.proxy.scene.getVars(rawResult)
 
-    if (this.saveTo) {
+    if (this.saveTo && (result?.length || Object.keys(result ?? {}).length)) {
       await this.proxy.scene.createAndExecuteElement([], "file'write", {}, {
         path: this.saveTo,
         content: result,
