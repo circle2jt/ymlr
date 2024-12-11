@@ -1,8 +1,8 @@
 import assert from 'assert'
-import { readdir } from 'fs/promises'
+import { lstat, readdir } from 'fs/promises'
 import { load } from 'js-yaml'
 import mergeWith from 'lodash.mergewith'
-import { join } from 'path'
+import { basename, join } from 'path'
 import { FileRemote } from 'src/libs/file-remote'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -17,8 +17,10 @@ import { type IncludeProps } from './include.props'
 
     - include:
         cached: true                                      # Load file for the first time, the next will get from caches
-        file: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+        files: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
         validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
+        validDirPattern: ^[a-zA-Z0-9]                     # Only scan files in these valid directories
+        maxDeepLevel: 0                                   # Max deep child directories to scan files
 
     - include:
         - file1.yaml
@@ -37,10 +39,12 @@ export class Include implements Element {
   readonly proxy!: ElementProxy<this>
 
   files!: string[]
+  maxDeepLevel = 0
   cached?: boolean
   _errorStack = true
   _isDir?: boolean
-  validFilePattern = '^[a-zA-Z0-9].*?\\.ya?ml$'
+  validFilePattern: string | RegExp = /^[a-zA-Z0-9].*?\.ya?ml$/
+  validDirPattern: string | RegExp = /^[a-zA-Z0-9]/
   returnType = Array
 
   private get logger() { return this.proxy.logger }
@@ -66,30 +70,63 @@ export class Include implements Element {
     }
 
     assert(this.files?.length)
-    this.files = this.files.flat(1)
+    this.files = this.files.flat(1).filter(f => !!f)
+    if (!this.files.length) {
+      this.logger.warn('"include.files" is empty')
+      return []
+    }
     const uri = this.files.join('\n')
     const cached = this.proxy.scene.localCaches.get(uri)
     if (cached) {
       this.logger.trace('Get include data from cached')
       return cached
     }
-    const validFilePattern = new RegExp(this.validFilePattern)
+    const validFilePattern = this.validFilePattern instanceof RegExp ? this.validFilePattern : new RegExp(this.validFilePattern)
+    const validDirPattern = this.validDirPattern instanceof RegExp ? this.validDirPattern : new RegExp(this.validFilePattern)
     const files: FileRemote[] = []
     for (const file of this.files) {
       const f = new FileRemote(file, this.proxy.scene)
       this._isDir = f.isDirectory
+
       if (this._isDir) {
-        const listFiles = await readdir(f.uri)
-        listFiles
-          .sort((a, b) => a.localeCompare(b))
-          .forEach(file => {
-            if (validFilePattern.test(file)) {
-              files.push(new FileRemote(join(f.uri, file), this.proxy.scene))
-            }
-          })
-      } else {
-        files.push(f)
+        const scanDir = async (path: string, level: number, maxDeepLevel: number) => {
+          if (level > maxDeepLevel) {
+            this.logger.trace('ignore deep level directory %s', path)
+            return
+          }
+          const baseName = basename(path)
+          if (!validDirPattern.test(baseName)) {
+            this.logger.trace('ignore invalid directory %s', path)
+            return
+          }
+          this.logger.trace('scan directory %s', path)
+          const listFiles = await readdir(path)
+          const proms: any[] = listFiles
+            .sort((a, b) => a.localeCompare(b))
+            .map(async (file) => {
+              const newPath = join(path, file)
+              const fileStats = await lstat(newPath)
+              if (fileStats.isDirectory()) {
+                const rs = await scanDir(newPath, level + 1, maxDeepLevel)
+                return rs?.flat(1).filter(f => !!f)
+              }
+              if (fileStats.isFile()) {
+                if (validFilePattern.test(file)) {
+                  this.logger.trace('valid file %s', newPath)
+                  return new FileRemote(newPath, this.proxy.scene)
+                }
+              }
+              return null
+            })
+          return proms.length ? await Promise.all(proms) : proms
+        }
+        const allFiles = await scanDir(f.uri, 0, this.maxDeepLevel)
+        if (allFiles) {
+          files.push(...allFiles.flat(1).filter(f => !!f))
+        }
+        continue
       }
+      files.push(f)
     }
     if (files.length) {
       const elementProxies = await Promise.all(files.map(async f => {
