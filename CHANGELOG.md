@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.2-alpha.2.md](#1733899057176)  -  _12/11/2024, 1:37:37 PM_
 - [1.3.2-alpha.1.md](#1733845550075)  -  _12/10/2024, 10:45:50 PM_
 - [1.3.2-alpha.0.md](#1733399694070)  -  _12/5/2024, 6:54:54 PM_
 - [1.3.1.md](#1733307813384)  -  _12/4/2024, 5:23:33 PM_
@@ -108,6 +109,13 @@
 
 ## Details
 
+<a id="1733899057176"></a>
+### 1.3.2-alpha.2
+
+* fix(ymlr'load): support "validFilePattern", "validDirPattern" (8d5bff0)
+* fix(include): support validate dir name and support maxDeepLevel to include child directories (81c635e)
+* fix(file'write): support pass opts to set file mode... (d74e747)
+  
 <a id="1733845550075"></a>
 ### 1.3.2-alpha.1
 

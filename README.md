@@ -1698,6 +1698,9 @@ Write a json file
       }
       format: json  # !optional
       pretty: true  # !optional
+      opts:             # ref: https://nodejs.org/api/fs.html#fswritefilefile-data-options-callback
+        mode: 775
+        flag: r         # ref: https://nodejs.org/api/fs.html#file-system-flags
 ```
 Write a yaml file
 ```yaml
@@ -1996,8 +1999,10 @@ Example:
 
   - include:
       cached: true                                      # Load file for the first time, the next will get from caches
-      file: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+      files: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
       validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
+      validDirPattern: ^[a-zA-Z0-9]                     # Only scan files in these valid directories
+      maxDeepLevel: 0                                   # Max deep child directories to scan files
 
   - include:
       - file1.yaml
@@ -2588,6 +2593,7 @@ Example:
         path: /test/test.stack.yaml                         # Path of dir or file which is need to eval variable or auto includes
         saveTo: /test/test.done.stack.yaml                  # Path of the target file which is merged and replaced variables
         validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$    # Only handle files which is ends with .stack.yaml
+        validDirPattern: ^[A-Za-z0-9]                       # Only scan directories which start with by a-zA-Z or a digit
 ```
 
 file `test.stack.yaml`
