@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { writeFile } from 'fs'
+import { writeFile, type WriteFileOptions } from 'fs'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type FileWriteProps } from './file-write.props'
@@ -18,6 +18,9 @@ import { YAMLFormater } from './write/yaml.formater'
         }
         format: json  # !optional
         pretty: true  # !optional
+        opts:             # ref: https://nodejs.org/api/fs.html#fswritefilefile-data-options-callback
+          mode: 775
+          flag: r         # ref: https://nodejs.org/api/fs.html#file-system-flags
   ```
   Write a yaml file
   ```yaml
@@ -42,6 +45,7 @@ export class FileWrite implements Element {
   content: any
   format?: 'json' | 'yaml'
   pretty?: boolean
+  opts: WriteFileOptions = {}
 
   constructor(props: FileWriteProps) {
     Object.assign(this, props)
@@ -57,7 +61,7 @@ export class FileWrite implements Element {
         if (formater) {
           this.content = formater.format(this.content)
         }
-        writeFile(this.path, this.content, (err: any) => { err ? reject(err) : resolve(this.path) })
+        writeFile(this.path, this.content, this.opts, (err: any) => { err ? reject(err) : resolve(this.path) })
       } catch (err) {
         reject(err)
       }
