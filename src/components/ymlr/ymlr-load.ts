@@ -1,10 +1,6 @@
 import assert from 'assert'
-import { lstatSync } from 'fs'
-import { readdir } from 'fs/promises'
 import { load } from 'js-yaml'
 import merge from 'lodash.merge'
-import { join } from 'path'
-import { FileRemote } from 'src/libs/file-remote'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Include } from '../include/include'
@@ -23,6 +19,7 @@ import { type YmlrLoadProps } from './ymlr-load.props'
           path: /test/test.stack.yaml                         # Path of dir or file which is need to eval variable or auto includes
           saveTo: /test/test.done.stack.yaml                  # Path of the target file which is merged and replaced variables
           validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$    # Only handle files which is ends with .stack.yaml
+          validDirPattern: ^[A-Za-z0-9]                       # Only scan directories which start with by a-zA-Z or a digit
   ```
 
   file `test.stack.yaml`
@@ -79,7 +76,8 @@ export class YmlrLoad implements Element {
   path?: string
   content?: string
   saveTo?: string
-  validFilePattern = '^[a-zA-Z0-9].*?\\.ya?ml$'
+  validFilePattern: string | RegExp = /^[a-zA-Z0-9].*?\.ya?ml$/
+  validDirPattern: string | RegExp = /^[a-zA-Z0-9]/
 
   constructor(readonly opts?: YmlrLoadProps) {
     if (typeof opts === 'string') {
@@ -90,42 +88,17 @@ export class YmlrLoad implements Element {
   }
 
   async exec() {
-    let content = this.content
-    if (!content) {
-      assert(this.path)
-      const validFilePattern = new RegExp(this.validFilePattern)
-      const file = new FileRemote(this.path, this.proxy.scene)
-      if (file.isDirectory) {
-        const dirs = await readdir(file.uri)
-        const childFiles = dirs
-          .filter(name => validFilePattern.test(name) && !lstatSync(join(file.uri, name)).isDirectory())
-          .map(name => {
-            return {
-              name,
-              path: join(file.uri, name)
-            }
-          })
-        if (!childFiles.length) {
-          throw new Error(`Could not found to load the file "${file.uri}"`)
-        }
-        content = `
-include:
-  files: [${childFiles.map(file => `"${file.path}"`).join(',')}]
-`
-        this.logger.trace('Auto includes files in the dir')
-        this.logger.trace('☐ %s', file.uri)
-        this.logger.emit('addIndent')
-        childFiles.forEach(file => this.logger.trace(file.name))
-        this.logger.emit('removeIndent')
-      } else {
-        content = await file.getTextContent()
+    assert(this.path || this.content, '"path" or "content" is required')
+    let data: any
+    if (this.path) {
+      data = {
+        include: this.path
       }
+    } else if (this.content) {
+      data = load(this.content)
     }
-    assert(content)
-
-    const data = load(content)
-    let result = await this.handle(data)
-    result = await this.proxy.scene.getVars(result)
+    const rawResult = await this.handle(data)
+    const result = await this.proxy.scene.getVars(rawResult)
 
     if (this.saveTo) {
       await this.proxy.scene.createAndExecuteElement([], "file'write", {}, {
@@ -161,9 +134,13 @@ include:
         } else {
           props = opts
         }
-        props._errorStack = false
-        props.returnType = Object
-        const elemProxy = await this.proxy.rootScene.createAndExecuteElement([], 'include', {}, props) as ElementProxy<Include>
+        const elemProxy = await this.proxy.rootScene.createAndExecuteElement([], 'include', {}, {
+          validDirPattern: this.validDirPattern,
+          validFilePattern: this.validFilePattern,
+          ...props,
+          _errorStack: false,
+          returnType: Object
+        }) as ElementProxy<Include>
         const newData: any = await this.handle(elemProxy?.result)
         data = merge(newData, others)
         const rs = await this.handle(data)
