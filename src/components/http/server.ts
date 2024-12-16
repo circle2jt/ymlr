@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { type CorsOptions } from 'cors'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { parse } from 'querystring'
 import { bindFunctionScript } from 'src/libs/async-function'
@@ -26,6 +27,24 @@ import { type IVerify } from './auth/IVerify'
             secretKey: SECRET_HEADER_KEY
             verify(): |
               return $parentState.headers[this.secretKey] === this.secret
+        // cors: {}                           # enable all cors requests
+        cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
+          origin: '*'
+          methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE']
+          allowedHeaders: ['Content-Type', 'Authorization']
+          exposedHeaders: ['Content-Range', 'X-Content-Range']
+          credentials?: boolean | undefined;
+          maxAge?: number | undefined;
+          preflightContinue: false
+          optionsSuccessStatus: 204
+        opts:
+          timeout: 0                          # The number of milliseconds of inactivity before a socket is presumed to have timed out.
+          keepAliveTimeout: 0                 # The number of milliseconds of inactivity a server needs to wait for additional incoming data, after it has finished writing the last response, before a socket will be destroyed
+          headersTimeout: 0                   # Limit the amount of time the parser will wait to receive the complete HTTP headers.
+          maxConnections: 0                   # Set this property to reject connections when the server's connection count gets high.
+          maxHeadersCount: 0                  # Limits maximum incoming headers count. If set to 0, no limit will be applied.
+          maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
+          requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
       runs:                                   # Execute when a request comes
         - echo: ${ $parentState.path }        # Get request path
         - echo: ${ $parentState.method }      # Get request method
@@ -50,6 +69,16 @@ export class HttpServer implements Element {
   readonly proxy!: ElementProxy<this>
 
   address: string = '0.0.0.0:8811'
+  opts?: {
+    timeout?: number
+    keepAliveTimeout?: number
+    headersTimeout?: number
+    maxConnections?: number
+    maxHeadersCount?: number
+    maxRequestsPerSocket?: number
+    requestTimeout?: number
+  }
+
   auth?: {
     basic?: {
       username: string
@@ -60,6 +89,8 @@ export class HttpServer implements Element {
       verify: string
     }
   }
+
+  cors?: CorsOptions
 
   #authVerifier?: IVerify
   #server?: Server
@@ -84,10 +115,20 @@ export class HttpServer implements Element {
     }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
+      let handler: any
+      if (this.cors) {
+        const corsHandler = require('cors')
+        handler = async (req: IncomingMessage, res: ServerResponse) => {
+          corsHandler(this.cors)(req, res, async () => {
+            await this.handleRequest(req, res)
+          })
+        }
+      } else {
+        handler = this.handleRequest.bind(this)
+      }
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.#server = createServer(async (req, res) => {
-        await this.handleRequest(req, res)
-      }).on('error', reject)
+      this.#server = createServer(handler)
+        .on('error', reject)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         .on('close', async () => {
           await this.stop()
@@ -96,6 +137,11 @@ export class HttpServer implements Element {
         .listen(+port, host, () => {
           this.logger.debug('http\'#server is listened at %s', this.address)
         })
+      if (this.opts) {
+        for (const [key, value] of Object.entries(this.opts)) {
+          (this.#server as any)[key] = value
+        }
+      }
     })
     return []
   }
