@@ -1967,6 +1967,24 @@ Example:
           secretKey: SECRET_HEADER_KEY
           verify(): |
             return $parentState.headers[this.secretKey] === this.secret
+      // cors: {}                           # enable all cors requests
+      cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
+        origin: '*'
+        methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE']
+        allowedHeaders: ['Content-Type', 'Authorization']
+        exposedHeaders: ['Content-Range', 'X-Content-Range']
+        credentials?: boolean | undefined;
+        maxAge?: number | undefined;
+        preflightContinue: false
+        optionsSuccessStatus: 204
+      opts:
+        timeout: 0                          # The number of milliseconds of inactivity before a socket is presumed to have timed out.
+        keepAliveTimeout: 0                 # The number of milliseconds of inactivity a server needs to wait for additional incoming data, after it has finished writing the last response, before a socket will be destroyed
+        headersTimeout: 0                   # Limit the amount of time the parser will wait to receive the complete HTTP headers.
+        maxConnections: 0                   # Set this property to reject connections when the server's connection count gets high.
+        maxHeadersCount: 0                  # Limits maximum incoming headers count. If set to 0, no limit will be applied.
+        maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
+        requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
     runs:                                   # Execute when a request comes
       - echo: ${ $parentState.path }        # Get request path
       - echo: ${ $parentState.method }      # Get request method

@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.3.2-alpha.3.md](#1734321935794)  -  _12/16/2024, 11:05:35 AM_
 - [1.3.2-alpha.2.md](#1733899057176)  -  _12/11/2024, 1:37:37 PM_
 - [1.3.2-alpha.1.md](#1733845550075)  -  _12/10/2024, 10:45:50 PM_
 - [1.3.2-alpha.0.md](#1733399694070)  -  _12/5/2024, 6:54:54 PM_
@@ -109,6 +110,12 @@
 
 ## Details
 
+<a id="1734321935794"></a>
+### 1.3.2-alpha.3
+
+* feat(http'server): support cors config (46431da)
+* fix(ymlr'load): Dont generate empty file when not detect invalid content (88995da)
+  
 <a id="1733899057176"></a>
 ### 1.3.2-alpha.2
 
