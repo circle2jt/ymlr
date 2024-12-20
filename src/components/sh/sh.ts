@@ -30,6 +30,7 @@ import { type ShProps } from './sh.props'
         bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
         timeout: 10m                    # Time to run before force quit
         process: true                   # Create a new child process to execute it. Default is false
+        plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
         opts:                           # Ref: "SpawnOptionsWithoutStdio", "ExecFileOptions" in nodeJS
           detached: true
           ...
@@ -48,6 +49,7 @@ export class Sh implements Element {
   bin = '/bin/sh'
   opts?: SpawnOptionsWithoutStdio | ExecFileOptions
   exitCodes = [0]
+  plainExecuteLog?: boolean
 
   private _abortController?: AbortController
 
@@ -79,6 +81,7 @@ export class Sh implements Element {
   }
 
   private async execLongScript(tmpFile: FileTemp, timeout: number | undefined) {
+    const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
     return await new Promise((resolve, reject) => {
       let logs: string[] | undefined
       this._abortController = new AbortController()
@@ -86,9 +89,9 @@ export class Sh implements Element {
       if (this.proxy.vars) {
         stdio = 'pipe'
         logs = []
-      } else if (this.logger.is(LoggerLevel.trace)) {
+      } else if (logger.is(LoggerLevel.trace)) {
         stdio = 'pipe'
-      } else if (this.logger.is(LoggerLevel.error)) {
+      } else if (logger.is(LoggerLevel.error)) {
         stdio = ['pipe', 'ignore', 'pipe']
       }
       const c = spawn(this.bin, [tmpFile.file], {
@@ -99,18 +102,18 @@ export class Sh implements Element {
         signal: this._abortController.signal,
         ...this.opts
       })
-      if (logs || this.logger.is(LoggerLevel.trace)) {
+      if (logs || logger.is(LoggerLevel.trace)) {
         c.stdout?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
-          this.logger.trace(msg)
+          logger.trace(msg)
         })
       }
-      if (logs || this.logger.is(LoggerLevel.error)) {
+      if (logs || logger.is(LoggerLevel.error)) {
         c.stderr?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
-          this.logger.error(msg)
+          logger.error(msg)
         })
       }
       c.on('close', (code: number) => {
@@ -130,6 +133,7 @@ export class Sh implements Element {
     let proc: ChildProcess | undefined
     let log: string | undefined
     try {
+      const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
       log = await new Promise((resolve, reject) => {
         this._abortController = new AbortController()
         proc = execFile(this.bin, [tmpFile.file], {
@@ -143,11 +147,11 @@ export class Sh implements Element {
             reject(err)
             return
           }
-          if (stdout && this.logger.is(LoggerLevel.trace)) {
-            this.logger.trace(stdout)
+          if (stdout && logger.is(LoggerLevel.trace)) {
+            logger.trace(stdout)
           }
-          if (stderr && this.logger.is(LoggerLevel.error)) {
-            this.logger.error(stderr)
+          if (stderr && logger.is(LoggerLevel.error)) {
+            logger.error(stderr)
           }
           resolve(this.proxy.vars ? (stdout + '\r\n' + stderr).trim() : undefined)
         })

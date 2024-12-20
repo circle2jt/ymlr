@@ -75,7 +75,10 @@ export abstract class PM {
     if (!packages.length) return
     const cmd = [...cmds, ...packages]
     const msg = `tags ${packages.map(e => `"${e}"`).join(', ')}`
-    const exec = new ElementProxy(new Exec(cmd), { _logger: this.logger })
+    const exec = new ElementProxy(new Exec({
+      commands: cmd,
+      plainExecuteLog: true
+    }), { _logger: this.logger })
     try {
       this.logger.info(`${des} ${msg}`)
       await exec.exec()

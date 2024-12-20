@@ -31,29 +31,37 @@ export default class ColorfulStyle implements LogStyle {
   }
 
   print(printToConsole: (...args: any[]) => any, meta: LogMetaData, msg: string | any, ...prms: any) {
-    const threadID = chalk.gray.dim(meta.threadID)
-    const timestamp = chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))
     const formater = LevelFactory.GetInstance(meta.level)
     const level = this.#getColorLevel(formater)
-    const indentString = chalk.gray.dim(meta.indent.indentString)
-    const fullContextPath = meta.fullContextPath ? chalk.gray.dim.italic(meta.fullContextPath) : ''
-    if (typeof msg === 'string') {
-      printToConsole(`%s %s %s %s${formater.format(msg)} \t %s`,
+    if (!meta.plainLog) {
+      const threadID = chalk.gray.dim(meta.threadID)
+      const timestamp = chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))
+      const indentString = chalk.gray.dim(meta.indent.indentString)
+      const fullContextPath = meta.fullContextPath ? chalk.gray.dim.italic(meta.fullContextPath) : ''
+      if (typeof msg === 'string') {
+        printToConsole(`%s %s %s %s${formater.format(msg)} \t %s`,
+          threadID,
+          timestamp,
+          level,
+          indentString,
+          ...prms,
+          fullContextPath)
+        return
+      }
+      printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
         threadID,
         timestamp,
         level,
         indentString,
-        ...prms,
-        fullContextPath)
+        fullContextPath,
+        msg,
+        ...prms)
       return
     }
-    printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
-      threadID,
-      timestamp,
-      level,
-      indentString,
-      fullContextPath,
-      msg,
-      ...prms)
+    if (typeof msg === 'string') {
+      printToConsole(formater.format(msg), ...prms)
+      return
+    }
+    printToConsole(formater.format('%o'), msg, ...prms)
   }
 }

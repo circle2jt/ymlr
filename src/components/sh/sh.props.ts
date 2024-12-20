@@ -7,4 +7,5 @@ export type ShProps = {
   vars?: VarsProps
   timeout?: string | number
   process?: boolean
+  plainExecuteLog?: boolean
 } | string

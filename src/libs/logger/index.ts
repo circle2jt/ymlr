@@ -7,6 +7,7 @@ import { LoggerFactory } from './logger-factory'
 import { LoggerCoreLevel, LoggerLevel } from './logger-level'
 
 export abstract class Logger extends EventEmitter {
+  protected _plainLog?: true
   #level!: Level
   get level() {
     return this.#level
@@ -82,6 +83,11 @@ export abstract class Logger extends EventEmitter {
 
   public get levelName() {
     return this.level.name
+  }
+
+  public plainLog() {
+    this._plainLog = true
+    return this
   }
 
   #context = ''

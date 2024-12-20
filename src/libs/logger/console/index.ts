@@ -30,7 +30,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.trace,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -41,7 +42,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.debug,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -52,7 +54,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.info,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -63,7 +66,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.pass,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -74,7 +78,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.warn,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -85,7 +90,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.fail,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -96,7 +102,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.error,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -107,7 +114,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.secret,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     return this
   }
@@ -118,7 +126,8 @@ export class ConsoleLogger extends Logger {
       timestamp: new Date(),
       level: LoggerLevel.fatal,
       indent: this.indent,
-      fullContextPath: this.fullContextPath
+      fullContextPath: this.fullContextPath,
+      plainLog: this._plainLog
     }, msg, ...prms)
     if (this.errorStack) {
       this.trace(this.errorStack)

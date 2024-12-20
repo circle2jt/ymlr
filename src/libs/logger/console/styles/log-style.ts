@@ -7,6 +7,7 @@ export interface LogMetaData {
   level: LoggerLevel
   indent: Indent
   fullContextPath: string
+  plainLog?: true
 }
 
 export interface LogStyle {

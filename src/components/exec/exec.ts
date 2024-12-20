@@ -16,6 +16,7 @@ import { type ExecProps } from './exec.props'
         commands:
           - /bin/sh
           - /startup.sh
+        plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
         opts:
           cwd: /home/user/app
   ```
@@ -33,6 +34,7 @@ export class Exec implements Element {
   exitCodes = [0]
   opts?: SpawnOptions
   commands!: string[]
+  plainExecuteLog?: boolean
 
   private _abortController?: AbortController
 
@@ -59,6 +61,7 @@ export class Exec implements Element {
       } else if (this.logger.is(LoggerLevel.error)) {
         stdio = ['pipe', 'ignore', 'pipe']
       }
+      const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
       const [bin, ...args] = this.commands
       const c = spawn(bin, args, {
         stdio,
@@ -67,18 +70,18 @@ export class Exec implements Element {
         signal: this._abortController.signal,
         ...this.opts
       })
-      if (logs || this.logger.is(LoggerLevel.trace)) {
+      if (logs || logger.is(LoggerLevel.trace)) {
         c.stdout?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
-          this.logger.trace(msg)
+          logger.trace(msg)
         })
       }
-      if (logs || this.logger.is(LoggerLevel.error)) {
+      if (logs || logger.is(LoggerLevel.error)) {
         c.stderr?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
-          this.logger.error(msg)
+          logger.error(msg)
         })
       }
       c.on('close', (code: number, signal: NodeJS.Signals) => {
