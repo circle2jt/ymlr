@@ -55,7 +55,6 @@ export class RootScene extends Scene {
   readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
-  rootDir = ''
 
   #localVars!: Record<string, any>
   override set localVars(vars: Record<string, any>) {
@@ -80,7 +79,7 @@ export class RootScene extends Scene {
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) merge(this.localVars, globalVars)
-    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'rootDir', 'runDir', 'onAppExit')
+    this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'runDir', 'onAppExit')
   }
 
   override async asyncConstructor() {

@@ -14,7 +14,7 @@ test('auto install external tags', async () => {
   const tagsManager = Testing.rootScene.tagsManager
   const packagesManager = PackagesManagerFactory.GetInstance(Testing.logger)
   try {
-    const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene)
+    const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene.proxy)
     expect(newClass).toBeDefined()
   } catch {
     const [isInstalled] = packagesManager.getInstalledPackages('lodash') || []
@@ -41,7 +41,7 @@ test('load a new tag from a class in a external file', async () => {
     const data = { say: 'hello test' }
     Testing.rootScene.tagsManager.register('test1', tmpFile.file)
 
-    const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene)
+    const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene.proxy)
     const test = await Testing.createElementProxy(TestClass, data)
     const rs = await test.exec()
     expect(rs).toEqual(data)
@@ -66,7 +66,7 @@ test('load a new tag from a object in a external file', async () => {
     const data = { say: 'hello test' }
     Testing.rootScene.tagsManager.register('test1', tmpFile.file)
 
-    const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene)
+    const TestClass = await Testing.rootScene.tagsManager.loadElementClass('test1', Testing.rootScene.proxy)
     const test = await Testing.createElementProxy(TestClass, data)
     const rs = await test.exec()
     expect(rs).toEqual(data)

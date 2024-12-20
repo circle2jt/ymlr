@@ -63,7 +63,7 @@ export class Exec implements Element {
       const c = spawn(bin, args, {
         stdio,
         env: process.env,
-        cwd: this.proxy.scene?.curDir,
+        cwd: this.proxy.curDir,
         signal: this._abortController.signal,
         ...this.opts
       })

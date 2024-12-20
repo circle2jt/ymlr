@@ -2,7 +2,8 @@ import assert from 'assert'
 import { existsSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
-import { type Scene } from 'src/components/scene/scene'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type Element } from 'src/components/element.interface'
 
 const REGEX_REMOTE_URI = /^https?:\/\//
 
@@ -16,10 +17,10 @@ export class FileRemote {
     return statSync(this.uri).isDirectory()
   }
 
-  constructor(public uri: string, scene: Scene | null) {
+  constructor(public uri: string, proxy: ElementProxy<Element> | null) {
     if (!this.isRemote) {
-      if (scene) {
-        this.uri = scene.getPath(this.uri)
+      if (proxy) {
+        this.uri = proxy.getPath(this.uri)
       } else {
         this.uri = resolve(this.uri)
       }

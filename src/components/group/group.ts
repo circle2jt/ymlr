@@ -286,7 +286,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return { isTemplate: true }
     }
 
-    let { if: condition, runs, errorStack, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
+    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
 
     if (elseCondition === null) {
       elseIfCondition = true
@@ -332,6 +332,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       loop,
       context,
       skipNext,
+      _curDir,
       errorStack: {
         ...this.proxy.errorStack,
         ...errorStack,
@@ -390,7 +391,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     let ElemClass: ElementClass
     if (typeof nameOrClass === 'string') {
       const name = nameOrClass
-      ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.innerScene)
+      ElemClass = await this.rootScene.tagsManager.loadElementClass(name, this.proxy)
     } else {
       ElemClass = nameOrClass
     }
@@ -403,9 +404,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       .map((e: any, i: number) => e.include ? { idx: i, include: e.include } : undefined)
       .filter(e => e)
     if (includes.length) {
-      const allRuns: Array<{ idx: number, runs: any[] }> = await Promise.all(includes
+      const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
         .map(async (e: any) => {
-          const elemProxy = await this.createAndExecuteElement([], 'include', {}, e.include)
+          const elemProxy = await this.createAndExecuteElement([], 'include', {
+            _curDir: this.proxy._curDir
+          }, e.include)
           return { idx: e.idx, runs: elemProxy?.result || [] }
         })
       )

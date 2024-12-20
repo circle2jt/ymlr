@@ -53,7 +53,7 @@ export class FileWrite implements Element {
 
   async exec() {
     return await new Promise((resolve, reject) => {
-      this.path = this.proxy.scene.getPath(this.path || '')
+      this.path = this.proxy.getPath(this.path || '')
       try {
         assert(this.path)
         this.logger.debug(`Write ${this.format || ''}/${this.pretty ? '(pretty)' : ''} file to "${this.path}"`)?.trace('%s', this.content)

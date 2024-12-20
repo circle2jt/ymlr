@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { load } from 'js-yaml'
 import merge from 'lodash.merge'
-import { basename, dirname, isAbsolute, join, resolve } from 'path'
+import { basename, dirname, join, resolve } from 'path'
 import ENVGlobal from 'src/env-global'
 import { Env } from 'src/libs/env'
 import { FileRemote } from 'src/libs/file-remote'
@@ -51,7 +51,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   path?: string
   vars?: Record<string, any>
   cached?: boolean
-  curDir = ''
 
   templatesManager: Record<string, any> = {}
 
@@ -117,7 +116,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   get encryptedPath() {
     const name = basename(this.path as string)
-    return join(this.curDir, name.substring(0, name.lastIndexOf('.')))
+    return join(this.proxy.curDir, name.substring(0, name.lastIndexOf('.')))
   }
 
   constructor(eProps: SceneProps | string) {
@@ -144,6 +143,21 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.lazyInitRuns(remoteFileRawProps)
     } else {
       const { password, env, envFiles, ...remoteFileProps } = remoteFileRawProps
+
+      if (envFiles?.length) {
+        let envArrFiles = []
+        if (Array.isArray(envFiles)) {
+          envArrFiles = envFiles
+        } else if (typeof envFiles === 'string') {
+          envArrFiles.push(envFiles)
+        }
+        for (const envFile of envArrFiles) {
+          const fm = new FileRemote(envFile, this.proxy)
+          const content = await fm.getTextContent()
+          Object.assign(process.env, Env.ParseEnvContent(content, true))
+        }
+      }
+
       if (env) {
         this.logger.debug('Loading env')
         if (Array.isArray(env)) {
@@ -155,20 +169,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
           Object.entries(env).forEach(([key, value]) => {
             process.env[key] = value as string
           })
-        }
-      }
-
-      if (envFiles?.length) {
-        let envArrFiles = []
-        if (Array.isArray(envFiles)) {
-          envArrFiles = envFiles
-        } else if (typeof envFiles === 'string') {
-          envArrFiles.push(envFiles)
-        }
-        for (const envFile of envArrFiles) {
-          const fm = new FileRemote(envFile, this)
-          const content = await fm.getTextContent()
-          Object.assign(process.env, Env.ParseEnvContent(content, true))
         }
       }
 
@@ -214,14 +214,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     await super.dispose()
   }
 
-  getPath(p: string) {
-    if (!p) return p
-    if (p.startsWith('~~/')) return join(this.rootScene.runDir, p.substring(3))
-    if (p.startsWith('~/')) return join(this.rootScene.rootDir, p.substring(2))
-    if (isAbsolute(p)) return p
-    return join(this.curDir || '', p)
-  }
-
   async getVars(str: any, ctx?: ElementProxy<Element> | any, others: any = {}) {
     return await getVars(str, ctx, {
       ...others,
@@ -265,12 +257,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     let fileRemote: FileRemote | undefined
     let content = this.#content
     if (!content && this.path) {
-      fileRemote = new FileRemote(this.path, this.scene || this)
+      if (this.isRootScene) this.proxy.curDir = resolve('.')
+      fileRemote = new FileRemote(this.path, this.proxy.parentProxy || this.proxy || null)
       if (!fileRemote.isRemote) {
-        this.path = resolve(fileRemote.uri)
+        this.path = fileRemote.uri
         const dirPath = dirname(this.path)
-        if (this.isRootScene) this.rootScene.rootDir = dirPath
-        this.curDir = dirPath
+        this.proxy.curDir = dirPath
       }
       if (this.cached) {
         props = this.rootScene.localCaches.get(fileRemote.uri)
@@ -361,7 +353,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       .map(async (cnt: string) => {
         const m = cnt.match(/^([\s\t]*)#\s*@include\s*(.+)/)
         if (m) {
-          const f = new FileRemote(m[2].trim(), this.scene || this)
+          const f = new FileRemote(m[2].trim(), this.proxy.parentProxy || null)
           const cnt = await f.getTextContent()
           return cnt
             .split('\n')
@@ -396,7 +388,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   private async loadVars(vars: Record<string, any> = {}, varsFiles: string[], envFiles: string[]) {
     for (const varsFile of varsFiles) {
-      const file = new FileRemote(varsFile, this)
+      const file = new FileRemote(varsFile, this.proxy)
       const content = await file.getTextContent()
       let newVars: any = {}
       try {
@@ -417,7 +409,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private async loadEnv(...envFiles: string[]) {
-    await Env.LoadEnvToBase(this.scene, this.localVars,
+    await Env.LoadEnvToBase(this.proxy, this.localVars,
       ...envFiles.filter(f => f),
       process.env)
   }

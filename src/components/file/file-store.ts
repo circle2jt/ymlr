@@ -51,7 +51,7 @@ export class FileStore implements Element {
   }
 
   async exec() {
-    this.path = this.proxy.scene.getPath(this.path || '')
+    this.path = this.proxy.getPath(this.path || '')
     assert(this.path)
     this.#storage = new FileStorage(this.logger, this.path, this.password)
     this.data = this.load()

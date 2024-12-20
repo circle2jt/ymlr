@@ -104,7 +104,7 @@ export class Get extends Head {
   //   }
   //   if (this.responseType === 'pipe') {
   //     if (this.response.data?.path) {
-  //       const path = this.scene.getPath(this.response.data.path)
+  //       const path = this.proxy.getPath(this.response.data.path)
   //       rs.body = new ReadableStream({
   //         start(controller) {
   //           return new Promise((resolve, reject) => {
@@ -136,6 +136,6 @@ export class Get extends Head {
     const stream = createWriteStream(this.saveTo, { autoClose: false, emitClose: false })
     const body: IncomingMessage = rs.data
     await finished(body.pipe(stream))
-    return new File(this.saveTo, this.proxy.scene)
+    return new File(this.saveTo, this.proxy)
   }
 }

@@ -2,7 +2,7 @@ import assert from 'assert'
 import { lstat, readdir } from 'fs/promises'
 import { load } from 'js-yaml'
 import mergeWith from 'lodash.mergewith'
-import { basename, join } from 'path'
+import { basename, dirname, join } from 'path'
 import { FileRemote } from 'src/libs/file-remote'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -13,11 +13,11 @@ import { type IncludeProps } from './include.props'
   Include a scene file or list scene files in a folder
   @example
   ```yaml
-    - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
+    - include: ./my-scenes/scene1.yaml                    # Includes a only file "scene1.yaml"
 
     - include:
         cached: true                                      # Load file for the first time, the next will get from caches
-        files: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+        files: ./my-scenes                                # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
         validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
         validDirPattern: ^[a-zA-Z0-9]                     # Only scan files in these valid directories
         maxDeepLevel: 0                                   # Max deep child directories to scan files
@@ -59,7 +59,7 @@ export class Include implements Element {
     }
   }
 
-  async exec() {
+  async exec(): Promise<Array<ElementProxy<Element>>> {
     const inputFiles = this.files as string | string[]
     if (typeof inputFiles === 'string') {
       this.files = [inputFiles]
@@ -85,7 +85,7 @@ export class Include implements Element {
     const validDirPattern = this.validDirPattern instanceof RegExp ? this.validDirPattern : new RegExp(this.validFilePattern)
     const files: FileRemote[] = []
     for (const file of this.files) {
-      const f = new FileRemote(file, this.proxy.scene)
+      const f = new FileRemote(file, this.proxy)
       this._isDir = f.isDirectory
 
       if (this._isDir) {
@@ -101,29 +101,31 @@ export class Include implements Element {
           }
           this.logger.trace('scan directory %s', path)
           const listFiles = await readdir(path)
-          const proms: any[] = listFiles
+          const proms = listFiles
             .sort((a, b) => a.localeCompare(b))
-            .map(async (file) => {
+            .map(async (file: string) => {
               const newPath = join(path, file)
               const fileStats = await lstat(newPath)
               if (fileStats.isDirectory()) {
-                const rs = await scanDir(newPath, level + 1, maxDeepLevel)
-                return rs?.flat(1).filter(f => !!f)
+                const rs = await scanDir(newPath, level + 1, maxDeepLevel) as FileRemote[]
+                return rs.flat(1).filter(f => !!f)
               }
               if (fileStats.isFile()) {
                 if (validFilePattern.test(file)) {
                   this.logger.trace('valid file %s', newPath)
-                  return new FileRemote(newPath, this.proxy.scene)
+                  return new FileRemote(newPath, this.proxy)
                 }
               }
               return null
             })
-          return proms.length ? await Promise.all(proms) : proms
+          return proms.length ? await Promise.all(proms) : []
         }
         const allFiles = await scanDir(f.uri, 0, this.maxDeepLevel)
-        if (allFiles) {
-          files.push(...allFiles.flat(1).filter(f => !!f))
-        }
+        allFiles?.flat(1).forEach(remoteFile => {
+          if (remoteFile) {
+            files.push(remoteFile)
+          }
+        })
         continue
       }
       files.push(f)
@@ -132,23 +134,50 @@ export class Include implements Element {
       const elementProxies = await Promise.all(files.map(async f => {
         const content = await f.getTextContent()
         const yamlType = new YamlType(this.proxy.scene)
-        const data = load(content, { schema: yamlType.spaceSchema })
+        const data: any = load(content, { schema: yamlType.spaceSchema })
         if (this._errorStack) {
+          const curDir = dirname(f.uri)
           if (Array.isArray(data)) {
-            data.forEach(d => {
-              d.errorStack = {
+            data.forEach((d: any) => {
+              Object.assign(d, {
+                _curDir: curDir,
+                errorStack: {
+                  sourceFile: f.uri
+                }
+              })
+            })
+          } else if (data !== null && typeof data === 'object') {
+            Object.assign(data, {
+              _curDir: curDir,
+              errorStack: {
                 sourceFile: f.uri
               }
             })
-          } else if (typeof data === 'object') {
-            (data as any).errorStack = {
-              sourceFile: f.uri
-            }
           }
         }
         return data
       }))
       const childs = this.getData(elementProxies)
+      if (Array.isArray(childs)) {
+        const includes = childs
+          .map((e: any, i: number) => e.include ? { idx: i, include: e.include, _curDir: e._curDir } : undefined)
+          .filter((e: any) => e)
+        if (includes.length) {
+          const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
+            .map(async (e: any) => {
+              const elemProxy = await this.proxy.scene.createAndExecuteElement([], 'include', {
+                _curDir: e._curDir
+              }, e.include)
+              return { idx: e.idx, runs: elemProxy?.result || [] }
+            })
+          )
+          allRuns
+            .reverse()
+            .forEach((allRunItem) => {
+              childs.splice(allRunItem.idx, 1, ...allRunItem.runs)
+            })
+        }
+      }
       if (this.cached) {
         this.proxy.scene.localCaches.set(uri, childs)
       }
