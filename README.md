@@ -1367,6 +1367,7 @@ Execute a bash script
       commands:
         - /bin/sh
         - /startup.sh
+      plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
       opts:
         cwd: /home/user/app
 ```
@@ -2477,6 +2478,7 @@ Execute a bash script
       bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
       timeout: 10m                    # Time to run before force quit
       process: true                   # Create a new child process to execute it. Default is false
+      plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
       opts:                           # Ref: "SpawnOptionsWithoutStdio", "ExecFileOptions" in nodeJS
         detached: true
         ...
