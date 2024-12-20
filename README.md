@@ -767,6 +767,25 @@ Acess $parentState incursive
 ```  
 
 
+## <a id="Prefix path"></a>Prefix path  
+`Global Notes`  
+Prefix path which is support in all of tags.
+Can used in code by: proxy.getPath(pathOfFile: string)  
+
+Example:  
+
+```sh
+  cd /app
+  yaml /scene/my-root-scene.yaml
+```
+- `~~/`: map to run dir `/app/`
+-  `~/`: map to root scene dir `/scene/`
+- `~./`: map to current scene dir
+-  `../`: map to parent directory of the current working file
+-  `./`: map to directory of the current working file
+-   `/`: absolute path  
+
+
 ## <a id="runs"></a>runs  
 `It's a property in a tag`  
 Steps will be run in the running element  
@@ -2013,11 +2032,11 @@ Include a scene file or list scene files in a folder
 Example:  
 
 ```yaml
-  - include: ./my-scenes/scene1.yaml  # Includes a only file "scene1.yaml"
+  - include: ./my-scenes/scene1.yaml                    # Includes a only file "scene1.yaml"
 
   - include:
       cached: true                                      # Load file for the first time, the next will get from caches
-      files: ./my-scenes                                 # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
+      files: ./my-scenes                                # Includes all of files (.yaml, .yml) which in the directory (./my-scenes)
       validFilePattern: ^[a-zA-Z0-9].*?\.stack\.ya?ml$  # Only load files which ends with .stack.yaml
       validDirPattern: ^[a-zA-Z0-9]                     # Only scan files in these valid directories
       maxDeepLevel: 0                                   # Max deep child directories to scan files
