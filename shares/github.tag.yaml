@@ -18,7 +18,7 @@ runs:
         Authorization: Bearer ${$vars.token}
 
   - exec'js: |
-      const version = require(this.scene.getPath($vars.packageJson)).version
+      const version = require(this.getPath($vars.packageJson)).version
       $vars.tag = !$vars.tag ? version : $vars.tag.replace('%s', version)
 
   - if: ${ !$vars.validTagRegex || new RegExp($vars.validTagRegex).test($vars.tag) }
