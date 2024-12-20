@@ -54,6 +54,12 @@
 			"script": "v:next",
 			"problemMatcher": [],
 			"label": "Create a next version"
+		},
+		{
+			"type": "npm",
+			"script": "v:minor",
+			"problemMatcher": [],
+			"label": "Create a minor version"
 		}
 	]
 }

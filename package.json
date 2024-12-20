@@ -45,6 +45,7 @@
   "scripts": {
     "v:next": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=alpha -e VERSIONNAME=prerelease -- ./scripts/up-version.yaml",
     "v:patch": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=latest -e VERSIONNAME=patch -- ./scripts/up-version.yaml",
+    "v:minor": "yarn ci:test && yarn doc && yarn ci:build && node dist -e preid=latest -e VERSIONNAME=minor -- ./scripts/up-version.yaml",
     "clean": "rm -rf dist",
     "doc": "yarn start ./scripts/doc.yaml",
     "start": "node --require ts-node/register src/index.ts",
