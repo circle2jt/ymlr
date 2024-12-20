@@ -106,7 +106,7 @@ export class Post extends Get {
           if (typeof vl === 'object') {
             if (!this.#isUpload) this.#isUpload = true
             const { path, name } = vl as UploadFile
-            const buf = await new FileRemote(path, this.proxy.scene).getContent()
+            const buf = await new FileRemote(path, this.proxy).getContent()
             form1.append(key, buf, { filename: name })
           } else {
             form1.append(key, vl)

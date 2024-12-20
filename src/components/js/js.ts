@@ -45,7 +45,7 @@ export class Js implements Element {
 
   async exec() {
     if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.proxy.scene)
+      const fileRemote = new FileRemote(this.path, this.proxy)
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script)

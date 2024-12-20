@@ -1,8 +1,9 @@
-import { type Scene } from 'src/components/scene/scene'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type Element } from 'src/components/element.interface'
 
 export class File {
-  constructor(private readonly path: string, scene: Scene) {
-    this.path = scene.getPath(path)
+  constructor(private readonly path: string, proxy: ElementProxy<Element>) {
+    this.path = proxy.getPath(path || '')
   }
 
   toString() {

@@ -103,7 +103,7 @@ export class SceneThread extends Scene {
 
   override async handleFile() {
     assert(this.path)
-    this.path = this.scene.getPath(this.path)
+    this.path = this.proxy.getPath(this.path)
     let tagDirs = this.tagDirs
     if (!tagDirs) {
       tagDirs = this.rootScene.tagsManager.tagDirs
@@ -125,7 +125,7 @@ export class SceneThread extends Scene {
       debug: this.proxy.logger.level.level
     }, {}, {
       id: this.#id,
-      tagDirs: tagDirs.map(dir => this.scene.getPath(dir)),
+      tagDirs: tagDirs.map(dir => this.proxy.getPath(dir)),
       templates: this.rootScene.templatesManager
     })
     if (!this.#id) {

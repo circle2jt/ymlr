@@ -7,6 +7,6 @@ beforeEach(async () => {
 
 test('toJSON()', () => {
   const p = 'abc.txt'
-  const f = new File(p, Testing.rootScene)
+  const f = new File(p, Testing.rootScene.proxy)
   expect(f.toJSON()).toBe(`file://${p}`)
 })

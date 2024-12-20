@@ -1,3 +1,4 @@
+import { isAbsolute, join } from 'path'
 import { type Scene } from 'src/components/scene/scene'
 import { callFunctionScript } from 'src/libs/async-function'
 import { type ErrorStack } from 'src/libs/error-stack'
@@ -600,6 +601,44 @@ export class ElementProxy<T extends Element> {
 
   set parentState(parentState: Record<string, any> | undefined) {
     this.#parentState = parentState ? new WeakRef(parentState) : null
+  }
+
+  _curDir?: string
+
+  get curDir(): string {
+    return this._curDir || this.parentProxy?.curDir as string
+  }
+
+  set curDir(p: string) {
+    this._curDir = p
+  }
+
+  /** |**  Prefix path
+    Prefix path which is support in all of tags.
+    Can used in code by: proxy.getPath(pathOfFile: string)
+    @position top
+    @tag Global Notes
+    @example
+    ```sh
+      cd /app
+      yaml /scene/my-root-scene.yaml
+    ```
+    - `~~/`: map to run dir `/app/`
+    -  `~/`: map to root scene dir `/scene/`
+    - `~./`: map to current scene dir
+    -  `../`: map to parent directory of the current working file
+    -  `./`: map to directory of the current working file
+    -   `/`: absolute path
+  */
+  getPath(p: string) {
+    if (!p) return p
+    if (p.startsWith('~~/')) return join(this.rootScene.runDir, p.substring(3))
+    if (p.startsWith('~./')) return join(this.sceneProxy.curDir, p.substring(2))
+    if (p.startsWith('~/')) return join(this.rootScene.rootDir, p.substring(2))
+    if (p.startsWith('../')) return join(this.curDir, '..', p.substring(3))
+    if (p.startsWith('./')) return join(this.curDir, p.substring(2))
+    if (isAbsolute(p)) return p
+    return p
   }
 
   tag!: string

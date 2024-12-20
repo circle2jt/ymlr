@@ -2,7 +2,7 @@ import assert from 'assert'
 import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
 import { type Element, type ElementClass } from 'src/components/element.interface'
-import { type Scene } from 'src/components/scene/scene'
+import { type RootScene } from 'src/components/root-scene'
 
 export const ClassInFileCharacter = "'"
 
@@ -13,13 +13,13 @@ export class TagsManager {
   private prInstall?: Promise<any>
   private readonly packages = new Array<string>()
   private get logger() {
-    return this.scene.proxy.logger
+    return this.rootScene.proxy.logger
   }
 
-  constructor(private readonly scene: Scene) { }
+  constructor(private readonly rootScene: RootScene) { }
 
   register(name: string, pathOfModule: string) {
-    this.modules[name] = this.scene.getPath(pathOfModule)
+    this.modules[name] = this.rootScene.proxy.getPath(pathOfModule)
   }
 
   setTag(name: string, obj: any) {
@@ -48,8 +48,8 @@ export class TagsManager {
     this.modules = {}
   }
 
-  async loadElementClass(name: string, scene: Scene) {
-    const logger = scene.proxy.logger
+  async loadElementClass(name: string, proxy: ElementProxy<Element>) {
+    const logger = proxy.logger
     let ElementModule: any
     const [path, className = 'default'] = name.split(ClassInFileCharacter)
     // let classNameKebab = kebabToCamelCase(className)
@@ -64,7 +64,7 @@ export class TagsManager {
         } catch (err) {
           for (const dir of this.tagDirs) {
             try {
-              ElementModule = await import(scene.getPath(join(dir, path)))
+              ElementModule = await import(proxy.getPath(join(dir, path)))
             } catch (err) {
               errors.push(err)
             }

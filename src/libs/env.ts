@@ -1,5 +1,6 @@
 import merge from 'lodash.merge'
-import { type Scene } from 'src/components/scene/scene'
+import { type ElementProxy } from 'src/components/element-proxy'
+import { type Element } from 'src/components/element.interface'
 import { FileRemote } from './file-remote'
 
 const ENV_LINE_PATTERN = /^\s*([^#][^=]+)\s*=\s*([^#]+)?/
@@ -26,13 +27,13 @@ export class Env {
     return [toUpperKey ? key.toUpperCase() : key, value.trim()]
   }
 
-  static async LoadEnvToBase(scene: Scene | null, baseConfig: any, ...envFiles: Array<string | Record<string, any>>) {
+  static async LoadEnvToBase(proxy: ElementProxy<Element> | null, baseConfig: any, ...envFiles: Array<string | Record<string, any>>) {
     const config = {}
     for (const file of envFiles.filter(e => e)) {
       if (typeof file === 'string') {
         const env: Record<string, string> = {}
         try {
-          const fileRemote = new FileRemote(file, scene)
+          const fileRemote = new FileRemote(file, proxy)
           if (fileRemote.existed !== false) {
             const content = await fileRemote.getTextContent()
             content.split('\n')
@@ -44,7 +45,7 @@ export class Env {
               })
           }
         } catch (err) {
-          scene?.proxy.logger.warn(`Could not found config file at ${file}`)
+          proxy?.logger.warn(`Could not found config file at ${file}`)
         }
         merge(config, env)
       } else {

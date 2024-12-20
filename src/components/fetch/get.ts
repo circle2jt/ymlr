@@ -122,6 +122,6 @@ export class Get extends Head {
       bytes: 0,
       loaded
     })
-    return new File(this.saveTo, this.proxy.scene)
+    return new File(this.saveTo, this.proxy)
   }
 }

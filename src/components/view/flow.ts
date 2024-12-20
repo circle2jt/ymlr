@@ -44,10 +44,10 @@ export class ViewFlow implements Element {
   async exec() {
     assert(this.file)
 
-    this.file = this.proxy.scene.getPath(this.file)
+    this.file = this.proxy.getPath(this.file)
 
     if (this.saveTo) {
-      this.saveTo = this.proxy.scene.getPath(this.saveTo)
+      this.saveTo = this.proxy.getPath(this.saveTo)
       await writeFile(this.saveTo, '')
       const access = createWriteStream(this.saveTo, { flags: 'a', encoding: 'utf-8', autoClose: true })
       const error = createWriteStream(this.saveTo, { flags: 'a', encoding: 'utf-8', autoClose: true })
@@ -91,7 +91,7 @@ class YamlElement {
       this.isSceneThread = tagName === "scene'thread"
       const yamlReader = new YamlReader(this.viewFlowProxy)
       const elemProps = this.props[tagName]
-      const path = this.viewFlowProxy.scene.getPath(elemProps?.file || elemProps?.path || elemProps)
+      const path = this.viewFlowProxy.getPath(elemProps?.file || elemProps?.path || elemProps)
       this.runs = await yamlReader.read(path)
       if (this.props?.name) {
         this.name = this.props.name
@@ -99,7 +99,7 @@ class YamlElement {
     } else if (tagName === 'include') {
       const yamlReader = new YamlReader(this.viewFlowProxy)
       const elemProps = this.props[tagName]
-      const path = this.viewFlowProxy.scene.getPath(elemProps?.file || elemProps?.path || elemProps)
+      const path = this.viewFlowProxy.getPath(elemProps?.file || elemProps?.path || elemProps)
       const includesItems = await yamlReader.read(path)
       return includesItems
     } else {
@@ -155,7 +155,7 @@ class YamlReader {
   }
 
   async read(file: string) {
-    const f = new FileRemote(file, this.viewFlowProxy.scene)
+    const f = new FileRemote(file, this.viewFlowProxy)
     const files = []
     if (f.isDirectory) {
       const listFiles = await readdir(f.uri)
@@ -163,7 +163,7 @@ class YamlReader {
         .sort((a, b) => a.localeCompare(b))
         .forEach(file => {
           if (file.endsWith('.yaml') || file.endsWith('.yml')) {
-            files.push(new FileRemote(join(f.uri, file), this.viewFlowProxy.scene))
+            files.push(new FileRemote(join(f.uri, file), this.viewFlowProxy))
           }
         })
     } else {

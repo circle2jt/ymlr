@@ -62,7 +62,7 @@ export class Sh implements Element {
 
   async exec() {
     if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.proxy.scene)
+      const fileRemote = new FileRemote(this.path, this.proxy)
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script)
@@ -94,7 +94,7 @@ export class Sh implements Element {
       const c = spawn(this.bin, [tmpFile.file], {
         stdio,
         env: process.env,
-        cwd: this.proxy.scene.curDir,
+        cwd: this.proxy.curDir,
         timeout,
         signal: this._abortController.signal,
         ...this.opts
@@ -134,7 +134,7 @@ export class Sh implements Element {
         this._abortController = new AbortController()
         proc = execFile(this.bin, [tmpFile.file], {
           env: process.env,
-          cwd: this.proxy.scene.curDir,
+          cwd: this.proxy.curDir,
           timeout,
           signal: this._abortController.signal,
           ...this.opts

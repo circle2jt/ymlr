@@ -34,7 +34,6 @@ import { MDFileParser } from './parser/md-file-parser'
 export class MDDoc implements Element {
   readonly proxy!: ElementProxy<this>
 
-  private get scene() { return this.proxy.scene }
   private get logger() { return this.proxy.logger }
 
   title?: string
@@ -60,8 +59,8 @@ export class MDDoc implements Element {
     this.logger.emit('addIndent')
     try {
       if (!this.includeDirs?.length || !this.saveTo) return
-      this.includeDirs = this.includeDirs.map(dir => this.scene.getPath(dir))
-      this.saveTo = this.scene.getPath(this.saveTo)
+      this.includeDirs = this.includeDirs.map(dir => this.proxy.getPath(dir))
+      this.saveTo = this.proxy.getPath(this.saveTo)
       const mdFileOutput = new MDFileOutput(this.title)
 
       await Promise.all(this.includeDirs.map(async dirPath => { await this.scanDir(dirPath, mdFileOutput) }))
@@ -69,14 +68,14 @@ export class MDDoc implements Element {
 
       const preContents = await Promise.all<string>(this.prependMDs?.map(async opt => {
         if (typeof opt === 'string') return opt
-        const buf = await readFile(this.scene.getPath(opt.path))
+        const buf = await readFile(this.proxy.getPath(opt.path))
         return buf.toString('utf8')
       }) || [])
       mdFileOutput.prependContent(...preContents)
 
       const postContents = await Promise.all<string>(this.appendMDs?.map(async opt => {
         if (typeof opt === 'string') return opt
-        const buf = await readFile(this.scene.getPath(opt.path))
+        const buf = await readFile(this.proxy.getPath(opt.path))
         return buf.toString('utf8')
       }) || [])
       mdFileOutput.appendContent(...postContents)

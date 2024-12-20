@@ -11,7 +11,7 @@ test('should get content if input is a file', async () => {
   const tempFile = new FileTemp()
   try {
     tempFile.create('ok')
-    const f = new FileRemote(tempFile.file, Testing.rootScene)
+    const f = new FileRemote(tempFile.file, Testing.rootScene.proxy)
     expect(f.isRemote).toBe(false)
     expect(f.existed).toBe(true)
     expect((await f.getContent()).toString()).toBe('ok')
@@ -30,7 +30,7 @@ test('should get content if input is a url', async () => {
     })
   try {
     await server.start()
-    const f = new FileRemote(server.getURL().toString(), Testing.rootScene)
+    const f = new FileRemote(server.getURL().toString(), Testing.rootScene.proxy)
     expect(f.isRemote).toBe(true)
     expect(f.existed).toBeUndefined()
     expect((await f.getContent()).toString()).toBe('ok')
