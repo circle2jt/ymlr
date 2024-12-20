@@ -19,35 +19,35 @@ runs:
       baseURL: https://api.github.com
       headers:
         Accept: application/vnd.github+json"
-        Authorization: Bearer ${$vars.token}
+        Authorization: Bearer ${$v.token}
 
   - exec'js: |
-      const version = require(this.scene.getPath($vars.packageJson)).version
-      $vars.tag = !$vars.tag ? version : $vars.tag.replace('%s', version)
-      $vars.name = $vars.name.replace('%s', $vars.tag)
+      const version = require(this.getPath($v.packageJson)).version
+      $v.tag = !$v.tag ? version : $v.tag.replace('%s', version)
+      $v.name = $v.name.replace('%s', $v.tag)
 
-  - if: ${ !$vars.validTagRegex || new RegExp($vars.validTagRegex).test($vars.tag) }
+  - if: ${ !$v.validTagRegex || new RegExp($v.validTagRegex).test($v.tag) }
     runs:
       - <-: git-http
         http'get:
-          url: /repos/${$vars.owner}/${$vars.repo}/commits/${$vars.lastCommitSHA}
+          url: /repos/${$v.owner}/${$v.repo}/commits/${$v.lastCommitSHA}
         vars:
           lastCommitDes: ${this.$.response.data.commit.message?.replace(/^[^\n]+/, '').trim()}
 
       - echo: |
-          tag_name: ${$vars.tag}
-          name: ${$vars.name}
-          body: ${$vars.lastCommitDes}
+          tag_name: ${$v.tag}
+          name: ${$v.name}
+          body: ${$v.lastCommitDes}
 
       - <-: git-http
         http'post:
-          url: /repos/${$vars.owner}/${$vars.repo}/releases
+          url: /repos/${$v.owner}/${$v.repo}/releases
           body:
-            tag_name: ${$vars.tag}
-            name: ${$vars.name}
-            body: ${$vars.lastCommitDes}
-            draft: ${$vars.draft}
-            prerelease: ${$vars.prerelease}
-            make_latest: ${$vars.makeLatest}
+            tag_name: ${$v.tag}
+            name: ${$v.name}
+            body: ${$v.lastCommitDes}
+            draft: ${$v.draft}
+            prerelease: ${$v.prerelease}
+            make_latest: ${$v.makeLatest}
             generate_release_notes: false
       - echo: Done

@@ -4,25 +4,25 @@ vars:
   script: ""
 runs:
   - exec'js: |
-      $vars.sshCommand = ["ssh"]
-      if ($vars.key) {
-        $vars.sshCommand.push("-i", $vars.key)
+      $v.sshCommand = ["ssh"]
+      if ($v.key) {
+        $v.sshCommand.push("-i", $v.key)
       }
-      $vars.sshCommand.push("-oStrictHostKeyChecking=no", $vars.address, "-T")
-      $vars.script = $vars.script.trim()
-      this.logger.debug($vars.script)
-      if ($vars.script.indexOf('\n') !== -1) {
-        $vars.sshCommand.push(`<<'ENDSSH'
-        ${$vars.script}
+      $v.sshCommand.push("-oStrictHostKeyChecking=no", $v.address, "-T")
+      $v.script = $v.script.trim()
+      this.logger.debug($v.script)
+      if ($v.script.indexOf('\n') !== -1) {
+        $v.sshCommand.push(`<<'ENDSSH'
+        ${$v.script}
       ENDSSH`)
       } else {
-        $vars.sshCommand.push($vars.script)
+        $v.sshCommand.push($v.script)
       }
-      $vars.sshCommand = $vars.sshCommand.join(' ')
-      this.logger.debug('>_ ' + $vars.sshCommand)
+      $v.sshCommand = $v.sshCommand.join(' ')
+      this.logger.debug('>_ ' + $v.sshCommand)
 
   - exec'sh: |
-      ${$vars.sshCommand} 
+      ${$v.sshCommand}
     vars: result
 
-  - scene'returns: ${$vars.result}
+  - scene'returns: ${$v.result}

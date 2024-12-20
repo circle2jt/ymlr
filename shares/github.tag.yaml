@@ -15,46 +15,46 @@ runs:
       baseURL: https://api.github.com
       headers:
         Accept: application/vnd.github+json"
-        Authorization: Bearer ${$vars.token}
+        Authorization: Bearer ${$v.token}
 
   - exec'js: |
-      const version = require(this.scene.getPath($vars.packageJson)).version
-      $vars.tag = !$vars.tag ? version : $vars.tag.replace('%s', version)
+      const version = require(this.getPath($v.packageJson)).version
+      $v.tag = !$v.tag ? version : $v.tag.replace('%s', version)
 
-  - if: ${ !$vars.validTagRegex || new RegExp($vars.validTagRegex).test($vars.tag) }
+  - if: ${ !$v.validTagRegex || new RegExp($v.validTagRegex).test($v.tag) }
     runs:
       - <-: git-http
         http'get:
-          url: /repos/${$vars.owner}/${$vars.repo}/commits/${$vars.lastCommitSHA}
+          url: /repos/${$v.owner}/${$v.repo}/commits/${$v.lastCommitSHA}
         vars:
           lastCommitter: ${this.$.response.data.commit.committer}
-          lastCommitDes: ${this.$.response.data.commit.message?.replace(/^[^\n]+/, $vars.tag)}
+          lastCommitDes: ${this.$.response.data.commit.message?.replace(/^[^\n]+/, $v.tag)}
 
       - echo: |
-          tag: ${$vars.tag}
-          message: ${$vars.lastCommitDes}
-          object: ${$vars.lastCommitSHA}
+          tag: ${$v.tag}
+          message: ${$v.lastCommitDes}
+          object: ${$v.lastCommitSHA}
           type: 'commit'
-          tagger: ${JSON.stringify($vars.lastCommitter || {})}
-          ref: refs/tags/${$vars.tag}
+          tagger: ${JSON.stringify($v.lastCommitter || {})}
+          ref: refs/tags/${$v.tag}
 
       - name: Create a new tag
         runs:
           - <-: git-http
             http'post:
-              url: /repos/${$vars.owner}/${$vars.repo}/git/tags
+              url: /repos/${$v.owner}/${$v.repo}/git/tags
               body:
-                tag: ${$vars.tag}
-                message: ${$vars.lastCommitDes}
-                object: ${$vars.lastCommitSHA}
+                tag: ${$v.tag}
+                message: ${$v.lastCommitDes}
+                object: ${$v.lastCommitSHA}
                 type: commit
-                tagger: ${$vars.lastCommitter}
+                tagger: ${$v.lastCommitter}
             vars:
               sha: ${this.$.response.data.sha}
           - <-: git-http
             http'post:
-              url: /repos/${$vars.owner}/${$vars.repo}/git/refs
+              url: /repos/${$v.owner}/${$v.repo}/git/refs
               body:
-                ref: refs/tags/${$vars.tag}
-                sha: ${$vars.sha}
+                ref: refs/tags/${$v.tag}
+                sha: ${$v.sha}
       - echo: Done

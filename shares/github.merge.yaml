@@ -15,18 +15,18 @@ runs:
       baseURL: https://api.github.com
       headers:
         Accept: application/vnd.github+json"
-        Authorization: Bearer ${$vars.token}
+        Authorization: Bearer ${$v.token}
 
   - name: Create a new tag
     runs:
       - <-: git-http
         debug: all
         http'post:
-          url: /repos/${ $vars.owner }/${ $vars.repo }/pulls
+          url: /repos/${ $v.owner }/${ $v.repo }/pulls
           body:
-            owner: ${ $vars.owner }
-            repo: ${ $vars.repo }
-            title: ${ $vars.title }
-            body: ${ $vars.body }
-            head: ${ $vars.from }
-            base: ${ $vars.to }
+            owner: ${ $v.owner }
+            repo: ${ $v.repo }
+            title: ${ $v.title }
+            body: ${ $v.body }
+            head: ${ $v.from }
+            base: ${ $v.to }
