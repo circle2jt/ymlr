@@ -41,6 +41,8 @@ Root scene file includes all of steps to run
     - test: test props
 ```
 */
+
+const TAG_REGEX = /^[a-zA-Z0-9]/
 export class RootScene extends Scene {
   override readonly isRootScene = true
   override readonly isScene = true
@@ -146,7 +148,7 @@ export class RootScene extends Scene {
         props[oldKey] = undefined
         props.async = true
       }
-      if (!ElementBaseKeys.has(key) && props[key] !== undefined) {
+      if (!ElementBaseKeys.has(key) && props[key] !== undefined && TAG_REGEX.test(key)) {
         return key
       }
     }

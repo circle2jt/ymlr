@@ -108,7 +108,7 @@ export class Include implements Element {
               const fileStats = await lstat(newPath)
               if (fileStats.isDirectory()) {
                 const rs = await scanDir(newPath, level + 1, maxDeepLevel) as FileRemote[]
-                return rs.flat(1).filter(f => !!f)
+                return rs?.flat(1).filter(f => !!f)
               }
               if (fileStats.isFile()) {
                 if (validFilePattern.test(file)) {
