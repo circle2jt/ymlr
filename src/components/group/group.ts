@@ -2,6 +2,7 @@ import assert from 'assert'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
+import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
 import { noop } from 'src/managers/constants'
 import { BaseElementProxy, ElementProxy } from '../element-proxy'
@@ -352,7 +353,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  public async createAndExecuteElement(asyncJobs: Array<Promise<any>>, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
+  public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
     const elemProxy = await this.newElementProxy(name, props, baseProps)
     // elemProxy.parentState = parentState
 
@@ -364,7 +365,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       elemProxy.detach ?? this.innerScene.getVars(elemProxy.detach, elemProxy),
       elemProxy.async ?? this.innerScene.getVars(elemProxy.async, elemProxy)
     ])
-    if (!async && !detach && asyncJobs.length) {
+    if (!async && !detach && asyncJobs?.length) {
       await Promise.all(asyncJobs)
       asyncJobs = []
     }
@@ -373,14 +374,42 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       await elemProxy.scene.setVars(elemProxy.id, elemProxy)
     }
 
-    const t = elemProxy
-      .exec()
-      .finally(elemProxy.dispose.bind(elemProxy) as () => void)
+    const t = (async (elemProxy: ElementProxy<Element>, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) => {
+      let error: any
+      let title: string | undefined
+      try {
+        await elemProxy.exec()
+      } catch (err) {
+        error = err
+        title = elemProxy.name || elemProxy.contextName
+        baseProps.async = false
+        baseProps.detach = false
+        baseProps.failure = elemProxy.failure
+      } finally {
+        await elemProxy.dispose()
+      }
+      if (error) {
+        const failure = baseProps.failure
+        if (!failure) throw error
+        if (failure.restart?.max) {
+          this.logger.warn(`[RETRY] ${failure.restart.max} \t ${title || ''}`)?.error(failure.logDetails ? error : error?.message)?.trace(error)
+
+          --failure.restart.max
+          if (failure.restart.sleep) {
+            await sleep(failure.restart.sleep)
+          }
+          await this.createAndExecuteElement(undefined, name, baseProps, props)
+          return
+        }
+        if (!failure.ignore) throw error
+        this.logger.warn(failure.logDetails ? error : error?.message)?.trace(error)
+      }
+    })(elemProxy, name, baseProps, props)
 
     if (detach) {
       this.rootScene.pushToBackgroundJob(t)
     } else if (async) {
-      asyncJobs.push(t)
+      asyncJobs?.push(t)
     } else {
       await t
     }
@@ -406,7 +435,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (includes.length) {
       const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
         .map(async (e: any) => {
-          const elemProxy = await this.createAndExecuteElement([], 'include', {
+          const elemProxy = await this.createAndExecuteElement(undefined, 'include', {
             _curDir: this.proxy._curDir
           }, e.include)
           return { idx: e.idx, runs: elemProxy?.result || [] }

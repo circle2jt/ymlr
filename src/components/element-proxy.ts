@@ -6,7 +6,6 @@ import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
 import { LevelFactory } from 'src/libs/logger/level-factory'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
-import { sleep } from 'src/libs/time'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
@@ -167,6 +166,7 @@ export class ElementProxy<T extends Element> {
           restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
             max: 3
             sleep: 3s
+          ignore: true                 # After retry 3 time failed, it keeps playing, not exit
         js: |
           const a = 1/0
       - failure:
@@ -633,7 +633,7 @@ export class ElementProxy<T extends Element> {
   getPath(p: string) {
     if (!p) return p
     if (p.startsWith('~~/')) return join(this.rootScene.runDir, p.substring(3))
-    if (p.startsWith('~./')) return join(this.sceneProxy.curDir, p.substring(2))
+    if (p.startsWith('~./')) return join(this.sceneProxy.curDir, p.substring(3))
     if (p.startsWith('~/')) return join(this.rootSceneProxy.curDir, p.substring(2))
     if (p.startsWith('../')) return join(this.curDir, '..', p.substring(3))
     if (p.startsWith('./')) return join(this.curDir, p.substring(2))
@@ -825,50 +825,23 @@ export class ElementProxy<T extends Element> {
             this.logger.meta = { printedName: true }
           }
         }
-        do {
-          try {
-            const isRunOnce = await this.element.preExec?.(this.parentState)
-            if (isRunOnce) {
-              this.element.preExec = undefined
-            }
-            const result = await this.element.exec(this.parentState)
-            if (this.result instanceof Returns) {
-              this.result = this.result.result
-            } else {
-              this.result = result
-            }
-            break
-          } catch (_err: any) {
-            let err: any
-            if (typeof _err === 'string') {
-              err = new Error(_err)
-            } else {
-              err = _err
-            }
-            if (this.name && !err.proxyName) {
-              err.proxyName = this.name
-            }
-            if (!this.failure?.restart || --this.failure.restart.max === 0) {
-              throw err
-            }
-            if (this.failure?.logDetails) {
-              this.logger.error(err)
-            } else {
-              this.logger.error(err?.message)?.trace(err)
-            }
-            await sleep(this.failure.restart.sleep)
-          }
-        } while (true)
-      } catch (err: any) {
-        if (this.name && !err.proxyName) {
+        await this.element.preExec?.(this.parentState)
+        const result = await this.element.exec(this.parentState)
+        if (this.result instanceof Returns) {
+          this.result = this.result.result
+        } else {
+          this.result = result
+        }
+      } catch (_err: any) {
+        let err = _err
+        if (typeof err === 'string') {
+          err = new Error(err)
+        }
+        if (!err.proxyName && this.name) {
           err.proxyName = this.name
         }
         this.error = err
-        if (!this.failure?.ignore) {
-          throw err
-        }
-        this.logger.warn(this.failure?.logDetails ? err : err?.message)?.trace(err)
-        return
+        throw err
       }
       await this.setVarsAfterExec()
     } finally {

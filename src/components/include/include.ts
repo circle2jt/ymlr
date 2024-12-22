@@ -165,7 +165,7 @@ export class Include implements Element {
         if (includes.length) {
           const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
             .map(async (e: any) => {
-              const elemProxy = await this.proxy.scene.createAndExecuteElement([], 'include', {
+              const elemProxy = await this.proxy.scene.createAndExecuteElement(undefined, 'include', {
                 _curDir: e._curDir
               }, e.include)
               return { idx: e.idx, runs: elemProxy?.result || [] }

@@ -101,7 +101,7 @@ export class YmlrLoad implements Element {
     const result = await this.proxy.scene.getVars(rawResult)
 
     if (this.saveTo && (result?.length || Object.keys(result ?? {}).length)) {
-      await this.proxy.scene.createAndExecuteElement([], "file'write", {}, {
+      await this.proxy.scene.createAndExecuteElement(undefined, "file'write", {}, {
         path: this.saveTo,
         content: result,
         format: 'yaml'
@@ -134,7 +134,7 @@ export class YmlrLoad implements Element {
         } else {
           props = opts
         }
-        const elemProxy = await this.proxy.rootScene.createAndExecuteElement([], 'include', {}, {
+        const elemProxy = await this.proxy.rootScene.createAndExecuteElement(undefined, 'include', {}, {
           validDirPattern: this.validDirPattern,
           validFilePattern: this.validFilePattern,
           ...props,
