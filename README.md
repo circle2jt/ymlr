@@ -542,6 +542,7 @@ Example:
       restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
         max: 3
         sleep: 3s
+      ignore: true                 # After retry 3 time failed, it keeps playing, not exit
     js: |
       const a = 1/0
   - failure:
