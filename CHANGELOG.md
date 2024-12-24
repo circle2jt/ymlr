@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.1-alpha.1.md](#1735037199233)  -  _12/24/2024, 5:46:39 PM_
 - [1.4.1-alpha.0.md](#1734846613417)  -  _12/22/2024, 12:50:13 PM_
 - [1.4.0.md](#1734683976322)  -  _12/20/2024, 3:39:36 PM_
 - [1.3.2-alpha.7.md](#1734681401520)  -  _12/20/2024, 2:56:41 PM_
@@ -115,6 +116,13 @@
 
 ## Details
 
+<a id="1735037199233"></a>
+### 1.4.1-alpha.1
+
+* script(shares): replace exec'sh to sh, exec'js to js (ac96e03)
+* fix(sh): strictly execuable file when run via "sh". (16258f4)
+* fix!(exec): remove "exec" which is dupplicated with "sh" (42c12f7)
+  
 <a id="1734846613417"></a>
 ### 1.4.1-alpha.0
 

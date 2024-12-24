@@ -232,9 +232,6 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [fn-throttle'del](#fn-throttle'del) | Cancel & remove throttle function (#Ref: lodash.throttle) |
 | [fn-throttle'flush](#fn-throttle'flush) | Force to call throttle function ASAP if it's called before that (#Ref: lodash.throttle) |
 | [fn-throttle'touch](#fn-throttle'touch) | touch throttle function. Reused last agruments (#Ref: lodash.throttle) |
-| [exec](#exec) | Execute a program |
-| [exec'js](#exec'js) | Execute a nodejs code |
-| [exec'sh](#exec'sh) | Execute a shell script |
 | [exit](#exit) | Stop then quit the program |
 | [fetch'del](#fetch'del) | Send a http request with DELETE method |
 | [fetch'get](#fetch'get) | Send a http request with GET method |
@@ -268,7 +265,7 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [scene](#scene) | Load another scene into the running program |
 | [scene'returns](#scene'returns) | Return value to parent scene |
 | [scene'thread](#scene'thread) | Same "scene" but it run in a new thread |
-| [sh](#sh) | Execute a shell script |
+| [sh](#sh) | Execute a bash script or shell file |
 | [sleep](#sleep) | Sleep the program then wait to user enter to continue |
 | [tag'register](#tag'register) | Register custom tags from code or npm module, github.... |
 | [test](#test) | Check conditions in the program |
@@ -583,7 +580,7 @@ Example:
   - id: echo1
     echo: Hello
 
-  - exec'js: |
+  - js: |
       this.logger.debug($vars.echo1.content)
 
 ```  
@@ -1354,50 +1351,6 @@ Example:
 ```  
 
 
-## <a id="exec"></a>exec  
-  
-Execute a program  
-
-Example:  
-
-Execute a bash script
-```yaml
-  - name: Run a bash script
-    exec:
-      exitCodes: [0, 1] # expect exit code is 0, 1 is success
-      commands:
-        - /bin/sh
-        - /startup.sh
-      plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
-      opts:
-        cwd: /home/user/app
-```
-Execute a python app
-```yaml
-  - exec:
-      - python
-      - app.py
-```  
-
-
-## <a id="exec'js"></a>exec'js  
-  
-Execute a nodejs code  
-
-Example:  
-
-Refers to "js" tag document  
-
-
-## <a id="exec'sh"></a>exec'sh  
-  
-Execute a shell script  
-
-Example:  
-
-Refers to "sh" tag document  
-
-
 ## <a id="exit"></a>exit  
   
 Stop then quit the program  
@@ -1693,7 +1646,7 @@ Use in global by reference
     vars:
       fileDB: ${this}         # Store this element to "fileDB" in vars
 
-  - exec'js: |
+  - js: |
       const { fileDB } = vars
       fileDB.data.push('item 1')
       fileDB.data.push('item 2')
@@ -2234,7 +2187,7 @@ Example:
     npm'install: [lodash, ymlr-telegram@latest]
 
   # How to used
-  - exec'js: |
+  - js: |
       vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
       require('myapp')
 
@@ -2456,7 +2409,7 @@ Send data via global event between threads and each others. (Includes main threa
 
 ## <a id="sh"></a>sh  
   
-Execute a shell script  
+Execute a bash script or shell file  
 
 Example:  
 
@@ -2465,6 +2418,8 @@ Execute a sh file
   - name: Write a hello file
     sh:
       path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
+      args:
+        - world
     vars: log       # !optional
 ```
 
@@ -2478,7 +2433,7 @@ Execute a bash script
         echo "Hello world" > /tmp/hello.txt
       bin: /bin/sh                    # !optional. Default use /bin/sh to run sh script
       timeout: 10m                    # Time to run before force quit
-      process: true                   # Create a new child process to execute it. Default is false
+      process: true                   # Create a new child process to execute a long task. Default is false
       plainExecuteLog: true           # Not prepend timestamp, loglevel... in the execution log. Only native message
       opts:                           # Ref: "SpawnOptionsWithoutStdio", "ExecFileOptions" in nodeJS
         detached: true
