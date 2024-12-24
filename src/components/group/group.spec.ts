@@ -118,7 +118,7 @@ test('loop', async () => {
 test('pass a config into item in group', async () => {
   group = await Testing.createElementProxy(Group, [
     {
-      "exec'js": 'return "OK"',
+      js: 'return "OK"',
       vars: 'result'
     }
   ])
@@ -132,7 +132,7 @@ test('pass full group information', async () => {
     name: 'Test group',
     runs: [
       {
-        "exec'js": 'return "OK"',
+        js: 'return "OK"',
         vars: 'result'
       }
     ]
@@ -148,7 +148,7 @@ test('run with false condition', async () => {
     runs: [
       {
         if: '${false}',
-        "exec'js": 'return "OK"',
+        js: 'return "OK"',
         vars: 'result'
       }
     ]

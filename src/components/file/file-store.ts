@@ -22,7 +22,7 @@ import { type FileStoreProps } from './file-store.props'
       vars:
         fileDB: ${this}         # Store this element to "fileDB" in vars
 
-    - exec'js: |
+    - js: |
         const { fileDB } = vars
         fileDB.data.push('item 1')
         fileDB.data.push('item 2')

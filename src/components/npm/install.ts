@@ -16,7 +16,7 @@ import { type InstallProps } from './install.props'
       npm'install: [lodash, ymlr-telegram@latest]
 
     # How to used
-    - exec'js: |
+    - js: |
         vars.newObject = require('lodash').merge({a: 2, b: 2}, {a: 1})
         require('myapp')
 

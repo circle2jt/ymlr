@@ -154,7 +154,7 @@ test('Test response by code', async () => {
     address: '0.0.0.0:3004',
     runs: [
       {
-        "exec'js": `
+        js: `
           await new Promise(r => setTimeout(r, 500))
           $parentState.res.writeHead(200, {
             key1: 'value 1'
@@ -183,7 +183,7 @@ test('Test response by return data', async () => {
     address: '0.0.0.0:3005',
     runs: [
       {
-        "exec'js": `
+        js: `
           await new Promise(r => setTimeout(r, 500))
           $parentState.response = {
             status: 200,

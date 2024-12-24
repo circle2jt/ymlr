@@ -41,7 +41,7 @@ export class ElementProxy<T extends Element> {
       - id: echo1
         echo: Hello
 
-      - exec'js: |
+      - js: |
           this.logger.debug($vars.echo1.content)
 
     ```

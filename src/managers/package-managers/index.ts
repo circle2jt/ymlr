@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { ElementProxy } from 'src/components/element-proxy'
-import { Exec } from 'src/components/exec/exec'
+import { Sh } from 'src/components/sh/sh'
 import { type Logger } from 'src/libs/logger'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
 import { nodeModulesDir } from '../modules-manager'
@@ -75,8 +75,8 @@ export abstract class PM {
     if (!packages.length) return
     const cmd = [...cmds, ...packages]
     const msg = `tags ${packages.map(e => `"${e}"`).join(', ')}`
-    const exec = new ElementProxy(new Exec({
-      commands: cmd,
+    const exec = new ElementProxy(new Sh({
+      script: cmd.join(' '),
       plainExecuteLog: true
     }), { _logger: this.logger })
     try {
