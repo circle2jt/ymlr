@@ -149,7 +149,9 @@ export class Sh implements Element {
         })
       }
       c.on('exit', (code, signal) => {
-        this.logger.warn(`Exit code=${code}, signal=${signal}`)
+        if (code || signal) {
+          this.logger.warn(`Exit code=${code}, signal=${signal}`)
+        }
       })
       c.on('close', (code: number) => {
         if (!this.exitCodes.includes(code)) {
