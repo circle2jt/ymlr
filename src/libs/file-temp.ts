@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, unlinkSync, type WriteFileOptions, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
@@ -34,8 +34,11 @@ export class FileTemp {
     return new FileTemp(this.ext, this.dir)
   }
 
-  create(content: string) {
-    writeFileSync(this.file, content, 'utf-8')
+  create(content: string, opts?: WriteFileOptions) {
+    writeFileSync(this.file, content, {
+      encoding: 'utf-8',
+      ...opts as any
+    })
   }
 
   remove() {

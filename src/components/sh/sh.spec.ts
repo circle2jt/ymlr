@@ -60,7 +60,10 @@ test('should not trace logs when not set vars', async () => {
 test('should run from external file', async () => {
   const txt = 'hello world'
   const tmpFile = new FileTemp('.sh')
-  tmpFile.create(`echo "${txt}"`)
+  tmpFile.create(`#!/bin/sh\necho "${txt}"`, {
+    flag: 'w',
+    mode: 0o775
+  })
   try {
     sh = await Testing.createElementProxy(Sh, {
       path: tmpFile.file
