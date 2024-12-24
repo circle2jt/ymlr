@@ -42,7 +42,7 @@ runs:
         input'text:
           title: Preid
         vars: preid
-  - exec'js: |
+  - js: |
       const matchVersion = []
       const allVersions = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
       allVersions.find(v => {
@@ -55,7 +55,7 @@ runs:
       $v.changeDir = this.getPath($v.changeDir)
       $v.changeFile = this.getPath($v.changeFile)
   - name: Get new version ${$v.matchVersion}
-    exec'sh: |
+    sh: |
       mkdir -p "${$v.changeDir}"
       npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${$v.preid} ${$v.versionName}
     vars:
@@ -74,11 +74,11 @@ runs:
   - name: Collect git logs ${$v.scanIndex}
     loop: ${$v.scan}
     runs:
-      - exec'sh: |
+      - sh: |
           git log --skip ${$v.scanIndex} -n ${$v.scanCount} --pretty="format:* %s (%h)"
         vars:
           gitLog: ${this.result.split('\n').map(e => e.trim()).filter(e => e)}
-      - exec'js: |
+      - js: |
           $v.scanIndex += $v.scanCount
           const { gitLog, gitLogs } = $v
           const m = new RegExp($v.commitFormat)
@@ -104,7 +104,7 @@ runs:
 
   - name: Concat changes file
     runs:
-      - exec'js: |
+      - js: |
           const { readdirSync, readFileSync } = require('fs') 
           const { join, basename } = require('path')
           const files = readdirSync($v.changeDir)
@@ -138,11 +138,11 @@ runs:
 
   - name: Add and commit changelog
     runs:
-      - exec'js: |
+      - js: |
           $v.gitCommitFiles = $v.commitFiles.map(file => {
             return `git add ${this.getPath(file)}`
           }).join('\n')
-      - exec'sh: |
+      - sh: |
           git add ${$v.changeFile}
           git add ${$v.changeDir}
           ${$v.gitCommitFiles}
@@ -155,5 +155,5 @@ runs:
     vars: isCommit
 
   - if: ${ $v.isCommit }
-    exec'sh: |
+    sh: |
       git push

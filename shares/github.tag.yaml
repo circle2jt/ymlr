@@ -17,7 +17,7 @@ runs:
         Accept: application/vnd.github+json"
         Authorization: Bearer ${$v.token}
 
-  - exec'js: |
+  - js: |
       const version = require(this.getPath($v.packageJson)).version
       $v.tag = !$v.tag ? version : $v.tag.replace('%s', version)
 

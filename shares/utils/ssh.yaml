@@ -3,7 +3,7 @@ vars:
   address: ""
   script: ""
 runs:
-  - exec'js: |
+  - js: |
       $v.sshCommand = ["ssh"]
       if ($v.key) {
         $v.sshCommand.push("-i", $v.key)
@@ -21,7 +21,7 @@ runs:
       $v.sshCommand = $v.sshCommand.join(' ')
       this.logger.debug('>_ ' + $v.sshCommand)
 
-  - exec'sh: |
+  - sh: |
       ${$v.sshCommand}
     vars: result
 
