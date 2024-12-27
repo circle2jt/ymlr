@@ -2,8 +2,7 @@ import { callFunctionScript } from 'src/libs/async-function'
 import { inspect } from 'util'
 
 const REGEX_FIRST_ALPHA = /(^_$)|(^[A-Za-z])/
-const PATTERN_JS_CODE_BLOCK = /^[\r\n\s\t]*\$\{([^}]+)\}[\r\n\s\t]*$/
-const REGEX_GET_EVAL_EXP_OBJECT = /^function (Object)|(Array)\(\)\s/
+const PATTERN_JS_CODE_BLOCK = /^[\r\n\s\t]*\$\{(.*?)\}[\r\n\s\t]*$/gs
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
@@ -14,68 +13,76 @@ export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   }
   const keys = Object.keys(varObj)
     .filter(key => REGEX_FIRST_ALPHA.test(key))
-  for (const k of keys) {
-    if (k !== '_') {
-      $vars[k] = await getVars(varObj[k], ctx, others)
-    } else {
-      await getVars(varObj[k], ctx, others)
-    }
+  if (keys.length) {
+    await Promise.all(keys.map(async (k) => {
+      if (k !== '_') {
+        $vars[k] = await getVars(varObj[k], ctx, others)
+      } else {
+        await getVars(varObj[k], ctx, others)
+      }
+    }))
   }
   return keys
 }
 
 export async function getVars(exp: any, ctx: any, others: any) {
-  if (exp) {
-    const evalExp = isGetEvalExp(exp)
-    if (evalExp === String) {
-      let str = ''
+  if (!exp) return exp
+
+  const evalExp = isGetEvalExp(exp)
+  if (!evalExp) return exp
+
+  if (evalExp === String) {
+    let vl: any
+    do {
       if (PATTERN_JS_CODE_BLOCK.test(exp)) {
-        str = exp.replace(PATTERN_JS_CODE_BLOCK, '$1')
+        const str = exp.replace(PATTERN_JS_CODE_BLOCK, '$1')
+        try {
+          vl = await callFunctionScript('return (' + str + ')', ctx, others)
+        } catch {
+          vl = await callFunctionScript('return `' + exp + '`', ctx, others)
+        }
       } else {
-        str = `\`${exp}\``
+        vl = await callFunctionScript('return `' + exp + '`', ctx, others)
       }
-      let vl: any = await callFunctionScript(`return (${str})`, ctx, others)
-      if (typeof vl === 'string' && vl.includes('${')) {
-        vl = await getVars(vl, ctx, others)
-      }
-      return vl
-    } else if (evalExp === Object) {
-      const obj = await evalObject(exp, ctx, others)
-      return obj
-    }
+    } while (typeof vl === 'string' && vl.includes('${'))
+    return vl
   }
-  return exp
+  if (evalExp === Object) {
+    const obj = await evalObject(exp, ctx, others)
+    return obj
+  }
 }
 
 export function isGetEvalExp(vl: any) {
   if (!vl) return null
   if (typeof vl === 'string') {
-    if (vl.includes('${')) return String
-  } else if (typeof vl === 'object') {
-    const typeName = vl.constructor?.toString()
-    if (typeName && REGEX_GET_EVAL_EXP_OBJECT.test(typeName)) {
-      if (isGetEvalExp(inspect(vl, false, Infinity, false))) return Object
+    if (vl.includes('${')) {
+      return String
+    }
+  } else if (vl.constructor === Object || vl.constructor === Array) {
+    if (isGetEvalExp(inspect(vl, false, Infinity, false))) {
+      return Object
     }
   }
   return null
 }
 
 export function cloneDeep<T>(obj: T): T {
-  if (typeof obj === 'object' && obj) {
-    return JSON.parse(JSON.stringify(obj))
-  }
-  return obj
+  return obj ? JSON.parse(JSON.stringify(obj)) : obj
 }
 
 async function evalObject(obj: any, ctx: any, others: any) {
   if (Array.isArray(obj)) {
-    const vl: any[] = await Promise.all(obj.map(async o => await getVars(o, ctx, others)))
+    const vl: any[] = await Promise.all(
+      obj.map(async o => await getVars(o, ctx, others))
+    )
     return vl
   }
-  const keys = Object.keys(obj)
-    .filter(key => REGEX_FIRST_ALPHA.test(key))
-  for (const k of keys) {
-    obj[k] = await getVars(obj[k], ctx, others)
+  const validKeys = Object.keys(obj).filter(key => REGEX_FIRST_ALPHA.test(key))
+  if (validKeys.length) {
+    await Promise.all(validKeys.map(async key => {
+      obj[key] = await getVars(obj[key], ctx, others)
+    }))
   }
   return obj
 }
