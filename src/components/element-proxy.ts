@@ -18,7 +18,7 @@ const ICON_MULTIPLE_STEP = '' // '▼'
 const ICON_SINGLE_STEP = '' // '▸'
 
 const REGEX_VALIDATE_VARS_NAME = /^[a-zA-Z0-9]/
-const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'failure'])
+const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'failure', 'icon'])
 const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   // Injected enumerable: false by system
   // 'proxy',

@@ -106,6 +106,7 @@ export class FNQueue implements Element {
         this.logger.debug('Run a job in queue "%s"\t%j', this.name, task)
         try {
           await this.innerRunsProxy.exec({
+            queueName: this.name,
             queueData,
             queueCount
           })
