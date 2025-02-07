@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.1-alpha.2.md](#1738942633295)  -  _2/7/2025, 10:37:13 PM_
 - [1.4.1-alpha.1.md](#1735037199233)  -  _12/24/2024, 5:46:39 PM_
 - [1.4.1-alpha.0.md](#1734846613417)  -  _12/22/2024, 12:50:13 PM_
 - [1.4.0.md](#1734683976322)  -  _12/20/2024, 3:39:36 PM_
@@ -116,6 +117,16 @@
 
 ## Details
 
+<a id="1738942633295"></a>
+### 1.4.1-alpha.2
+
+* fix(variable): Not eval exp recursive (6327088)
+* ci: update docker build for bun image (4066f34)
+* fix(http'get): timeout not resolve h,m,s,ms (87f5451)
+* fix: icon, yml dump, queue name (f0efb5d)
+* fix: eval function which include breakline at the end not working (1385ad9)
+* fix(sh): ignore warning when exit normally (d4fc722)
+  
 <a id="1735037199233"></a>
 ### 1.4.1-alpha.1
 
