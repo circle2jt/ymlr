@@ -32,17 +32,17 @@ export async function getVars(exp: any, ctx: any, others: any) {
   if (!evalExp) return exp
 
   if (evalExp === String) {
-    let vl: any
+    let vl = exp
     do {
-      if (PATTERN_JS_CODE_BLOCK.test(exp)) {
+      if (PATTERN_JS_CODE_BLOCK.test(vl)) {
         const str = exp.replace(PATTERN_JS_CODE_BLOCK, '$1')
         try {
           vl = await callFunctionScript('return (' + str + ')', ctx, others)
         } catch {
-          vl = await callFunctionScript('return `' + exp + '`', ctx, others)
+          vl = await callFunctionScript('return `' + vl + '`', ctx, others)
         }
       } else {
-        vl = await callFunctionScript('return `' + exp + '`', ctx, others)
+        vl = await callFunctionScript('return `' + vl + '`', ctx, others)
       }
     } while (typeof vl === 'string' && vl.includes('${'))
     return vl
