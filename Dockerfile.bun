@@ -10,9 +10,11 @@ ARG VERSION=latest
 ENV NODE_ENV=production
 ENV PACKAGE_MANAGERS=bun
 
-RUN bunx ymlr@$VERSION -v
 RUN mkdir /my-tags && \
     echo '- echo: Welcome to ymlr container' > /scripts/index.yaml
 
-ENTRYPOINT ["bunx", "--bun", "ymlr", "--tag-dirs", "/my-tags", "--"]
+RUN cd /usr/local/lib && \
+    bun add ymlr@$VERSION
+
+ENTRYPOINT ["bun", "run", "/usr/local/lib/node_modules/ymlr/bin/cli.js", "--tag-dirs", "/my-tags", "--"]
 CMD ["/scripts/index.yaml", ""]
