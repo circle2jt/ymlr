@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { Agent } from 'http'
 import { Agent as Agents } from 'https'
 import { decode, encode } from 'querystring'
+import { formatTextToMs } from 'src/libs/format'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type HeadProps } from './head.props'
@@ -71,7 +72,7 @@ export class Head implements Element {
       url: this.url,
       params: this.query,
       headers: this.headers,
-      timeout: this.timeout,
+      timeout: this.timeout ? formatTextToMs(this.timeout) : this.timeout,
       signal: this._abortController.signal,
       ...this.opts
     }
