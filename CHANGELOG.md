@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.1-alpha.3.md](#1741787561942)  -  _3/12/2025, 8:52:41 PM_
 - [1.4.1-alpha.2.md](#1738942633295)  -  _2/7/2025, 10:37:13 PM_
 - [1.4.1-alpha.1.md](#1735037199233)  -  _12/24/2024, 5:46:39 PM_
 - [1.4.1-alpha.0.md](#1734846613417)  -  _12/22/2024, 12:50:13 PM_
@@ -117,6 +118,13 @@
 
 ## Details
 
+<a id="1741787561942"></a>
+### 1.4.1-alpha.3
+
+* fix(fn-debouce,fn-throttle): recall not update new parentState (0ac17f3)
+* fix(fn-singleton): add autoRemove props (f7ac562)
+* doc: add note to fix later (415f55c)
+  
 <a id="1738942633295"></a>
 ### 1.4.1-alpha.2
 
