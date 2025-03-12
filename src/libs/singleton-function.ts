@@ -1,27 +1,34 @@
+const NO_CALL = Symbol('SINGLETON_NO_CALL')
+
 export function singleton(func: (...args: any[]) => any, opts?: { trailing?: boolean }) {
   let lock = false
-  let isCallLast: boolean | null = false
-  const fn = async function (...prms: any[]) {
+  let lastPrms: any[] | symbol = NO_CALL
+  const fn = async (...prms: any[]) => {
     if (lock) {
-      if (opts?.trailing && isCallLast === false) {
-        isCallLast = true
+      console.log('ignore')
+      if (opts?.trailing) {
+        lastPrms = prms
       }
       return
     }
     lock = true
     let rs: any
     try {
-      if (isCallLast === true) {
-        isCallLast = false
-      }
-      rs = await func(...prms)
+      do {
+        if (lastPrms !== NO_CALL) {
+          prms = lastPrms as any[]
+          lastPrms = NO_CALL
+        }
+        rs = await func(...prms)
+      } while (lastPrms !== NO_CALL)
     } finally {
       lock = false
-      if (isCallLast === true) {
-        rs = await fn(...prms)
+      if (fn.onDone) {
+        await fn.onDone()
       }
     }
     return rs
   }
+  fn.onDone = undefined as unknown as () => any | any
   return fn
 }

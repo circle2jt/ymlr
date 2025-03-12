@@ -1233,7 +1233,8 @@ Example:
 ```yaml
   - fn-singleton:
       name: Only run 1 time
-      trailing: true              # When someone call in the running but it's not finished yet, then it will run 1 time again after is unlocked
+      trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
+      autoRemove: true            # Auto remove after done
     runs:
       - echo: Do this when it's free for 1s
 ```  

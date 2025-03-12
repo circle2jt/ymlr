@@ -10,6 +10,27 @@ afterEach(async () => {
 
 })
 
+test('fn-singleton should be auto remove when done', async () => {
+  Testing.vars.i = 0
+  const fn = await Testing.createElementProxy(FNSingleton, {
+    name: 'stask2',
+    trailing: false,
+    autoRemove: true
+  }, {
+    runs: [
+      {
+        sleep: 200
+      }
+    ]
+  })
+  try {
+    await fn.exec()
+  } finally {
+    await fn.dispose()
+  }
+  expect(FNSingleton.Caches.size).toBe(0)
+})
+
 test('fn-singleton should be run correctly with no trailing', async () => {
   Testing.vars.i = 0
   for (let i = 0; i < 4; i++) {
