@@ -5,7 +5,6 @@ export function singleton(func: (...args: any[]) => any, opts?: { trailing?: boo
   let lastPrms: any[] | symbol = NO_CALL
   const fn = async (...prms: any[]) => {
     if (lock) {
-      console.log('ignore')
       if (opts?.trailing) {
         lastPrms = prms
       }

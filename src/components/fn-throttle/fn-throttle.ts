@@ -61,8 +61,8 @@ export class FNThrottle implements Element {
 
     if (ThrottleManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
-      ThrottleManager.Instance.touch(this.name)
-      // ThrottleManager.Instance.touch(this.name, parentState)
+      // ThrottleManager.Instance.touch(this.name)
+      ThrottleManager.Instance.touch(this.name, parentState)
     } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
         this.logger.trace('%s: create a new one', this.name)
