@@ -21,8 +21,11 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
         leading: true       # Specify invoking on the leading edge of the timeout. Default is true
         autoRemove: true    # Auto remove it when reached the event. Default is false
+        throttleData:       # Pass input debounceData to debounce to do async task
+          dataFromParentState: ${ $ps.channelData.name }
       runs:
-        - echo: Do this when it's free for 1s
+        - name: Do this ASAP and do again when it's called more than 1 times
+          echo: ${ $ps.throttleData.dataFromParentState }
 
     # Call if throttle is existed
     - fn-throttle:                         # Touch the existed throttle with last agruments
@@ -42,10 +45,11 @@ export class FNThrottle implements Element {
   wait?: number
   leading = true
   trailing = true
+  throttleData: any
+
   autoRemove?: true | string | number
   #tmAutoRemove?: NodeJS.Timeout
   #fn?: DebouncedFunc<any>
-  #parentState?: Record<string, any>
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -56,13 +60,13 @@ export class FNThrottle implements Element {
     Object.assign(this, props)
   }
 
-  async exec(parentState?: Record<string, any>) {
+  async exec() {
     assert(this.name)
 
     if (ThrottleManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
       // ThrottleManager.Instance.touch(this.name)
-      ThrottleManager.Instance.touch(this.name, parentState)
+      ThrottleManager.Instance.touch(this.name)
     } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
         this.logger.trace('%s: create a new one', this.name)
@@ -98,22 +102,21 @@ export class FNThrottle implements Element {
         if (typeof this.wait === 'string') {
           this.wait = formatTextToMs(this.wait)
         }
-        this.#fn = throttle(async (parentState?: Record<string, any>) => {
-          await this.innerRunsProxy.exec(parentState)
+        this.#fn = throttle(async (throttleData: any) => {
+          await this.innerRunsProxy.exec({
+            throttleData
+          })
         }, this.wait, opts)
         ThrottleManager.Instance.set(this.name, this)
       }
-      this.touch(parentState)
+      this.touch()
     }
   }
 
-  touch(parentState?: Record<string, any>) {
+  touch() {
     this.logger.trace('%s: touch', this.name)
-    if (parentState !== undefined) {
-      this.#parentState = parentState
-    }
     this.#scheduleAutoRemove(false)
-    this.#fn?.(this.#parentState)
+    this.#fn?.(this.throttleData)
   }
 
   cancel() {
@@ -125,6 +128,7 @@ export class FNThrottle implements Element {
   flush() {
     this.logger.trace('%s: flush', this.name)
     this.#fn?.flush()
+    this.#scheduleAutoRemove(true)
   }
 
   dispose() {

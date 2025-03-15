@@ -23,8 +23,8 @@ test('Listen to handle a request', async () => {
     runs: [
       {
         vars: {
-          method: '${$parentState.method}',
-          body: '${$parentState.body}'
+          method: '${ $ps.httpRequest.method }',
+          body: '${ $ps.httpRequest.body }'
         }
       }
     ]
@@ -46,8 +46,8 @@ test('Force quit server', async () => {
     runs: [
       {
         vars: {
-          method: '${$parentState.method}',
-          body: '${$parentState.body}'
+          method: '${ $ps.httpRequest.method }',
+          body: '${ $ps.httpRequest.body }'
         }
       },
       {
@@ -76,16 +76,17 @@ test('Check custom authentication', async () => {
       custom: {
         secret: 'SERVER_SECRET_TOKEN',
         secretKey: 'SECRET_HEADER_KEY',
-        'verify()': `
-          return $parentState.headers[this.secretKey.toLowerCase()] === this.secret
+        onCheck: `
+          return $ps.httpRequest.headers[this.secretKey.toLowerCase()] === this.secret
         `
       }
-    },
+    }
+  }, {
     runs: [
       {
         vars: {
-          method: '${$parentState.method}',
-          body: '${$parentState.body}'
+          method: '${ $ps.httpRequest.method }',
+          body: '${ $ps.httpRequest.body }'
         }
       }
     ]
@@ -119,12 +120,13 @@ test('Check basic authentication via headers', async () => {
         username: 'thanh',
         password: '123'
       }
-    },
+    }
+  }, {
     runs: [
       {
         vars: {
-          method: '${$parentState.method}',
-          body: '${$parentState.body}'
+          method: '${ $ps.httpRequest.method }',
+          body: '${ $ps.httpRequest.body }'
         }
       }
     ]
@@ -156,10 +158,10 @@ test('Test response by code', async () => {
       {
         js: `
           await new Promise(r => setTimeout(r, 500))
-          $parentState.res.writeHead(200, {
+          $ps.httpRequest.res.writeHead(200, {
             key1: 'value 1'
           })
-          $parentState.res.write('ok')
+          $ps.httpRequest.res.write('ok')
         `
       },
       {
@@ -180,12 +182,13 @@ test('Test response by code', async () => {
 
 test('Test response by return data', async () => {
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:3005',
+    address: '0.0.0.0:3005'
+  }, {
     runs: [
       {
         js: `
           await new Promise(r => setTimeout(r, 500))
-          $parentState.response = {
+          $ps.httpRequest.response = {
             status: 200,
             headers: {
               key1: 'value 1'

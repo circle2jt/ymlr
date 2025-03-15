@@ -48,13 +48,15 @@ export class EventOn implements Element {
   #handlers!: any[]
   #resolve?: (_: any) => void
   #reject?: (err: Error) => void
+  #t?: Promise<any>
 
   constructor({ name, names = [], ...props }: any) {
     if (name) names.push(name)
     Object.assign(this, { names, ...props })
   }
 
-  async exec(parentState?: any) {
+  async exec() {
+    if (this.#t) return
     assert(this.names?.length)
 
     this.#handlers = new Array(this.names.length)
@@ -77,21 +79,28 @@ export class EventOn implements Element {
       GlobalEvent.on(name, this.#handlers[i])
     })
 
-    await new Promise((resolve, reject) => {
+    this.#t = new Promise((resolve, reject) => {
       this.#resolve = resolve
       this.#reject = reject
     })
+    await this.#t
   }
 
-  dispose() {
-    if (this.#resolve) {
+  async stop() {
+    if (this.#t) {
       this.names.forEach((name, i) => {
         this.proxy.logger.trace('Off %s', name)
         GlobalEvent.off(name, this.#handlers[i])
       })
-      this.#resolve(undefined)
+      this.#resolve?.(undefined)
+      await this.#t
+      this.#t = undefined
       this.#resolve = undefined
       this.#reject = undefined
     }
+  }
+
+  async dispose() {
+    await this.stop()
   }
 }

@@ -119,10 +119,10 @@ export class RootScene extends Scene {
 
   override async exec() {
     const rs = await super.exec()
-    await this.#workerManager?.exec()
-    if (this.#backgroundJobs.length) {
-      await Promise.all(this.#backgroundJobs)
-    }
+    await Promise.all([
+      this.#workerManager?.exec(),
+      ...this.#backgroundJobs
+    ])
     return rs
   }
 

@@ -14,12 +14,14 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         name: Only run 1 time
         trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
         autoRemove: true            # Auto remove after done
+        singletonData:              # Pass input data to singleton to do async task
+          dataFromParentState: ${ $ps.channelData.name }
       runs:
         - echo: Do this when it's free for 1s
   ```
 */
 export class FNSingleton implements Element {
-  static readonly Caches = new Map<string, (parentState?: Record<string, any>) => any>()
+  static readonly Caches = new Map<string, (singletonData?: Record<string, any>) => any>()
 
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
@@ -27,18 +29,21 @@ export class FNSingleton implements Element {
   name!: string
   trailing?: boolean
   autoRemove?: boolean
+  singletonData?: any
 
   constructor(props: any) {
     Object.assign(this, props)
   }
 
-  async exec(parentState?: Record<string, any>) {
+  async exec() {
     assert(this.name)
 
     let fn = FNSingleton.Caches.get(this.name)
     if (!fn) {
-      fn = singleton(async (parentState?: Record<string, any>) => {
-        await this.innerRunsProxy.exec(parentState)
+      fn = singleton(async (singletonData) => {
+        await this.innerRunsProxy.exec({
+          singletonData
+        })
       }, {
         trailing: this.trailing
       })
@@ -49,9 +54,11 @@ export class FNSingleton implements Element {
       }
       FNSingleton.Caches.set(this.name, fn)
     }
-    const rs = await fn(parentState)
-    return rs
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setImmediate(fn, this.singletonData)
   }
 
-  dispose() { }
+  dispose() {
+    this.singletonData = null
+  }
 }

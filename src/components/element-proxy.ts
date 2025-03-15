@@ -10,7 +10,7 @@ import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
 import { type GroupItemProps } from './group/group.props'
-import { type RootScene } from './root-scene'
+import { RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
@@ -536,7 +536,6 @@ export class ElementProxy<T extends Element> {
   runs?: GroupItemProps[]
 
   _forceStop?: true
-  #parentState?: WeakRef<Record<string, any>> | null
   /** |**  parentState
     - Set/Get value to context variables. Used in tags support `runs` and support parentState
     Variables:
@@ -592,15 +591,20 @@ export class ElementProxy<T extends Element> {
             - params 2
     ```
   */
-  get parentState(): Record<string, any> | undefined {
-    if (this.#parentState) {
-      return this.#parentState.deref()
+  #parentState?: any
+  get parentState(): any {
+    const ps = this.#parentState || this._creator?.proxy.parentState
+    if (ps) {
+      return ps
     }
-    return this._creator?.proxy.parentState
+    if (this.$ instanceof RootScene) {
+      this.logger.warn('Parent state is wrong')
+    }
+    return (this.#parentState = {})
   }
 
-  set parentState(parentState: Record<string, any> | undefined) {
-    this.#parentState = parentState ? new WeakRef(parentState) : null
+  set parentState(parentState: any) {
+    this.#parentState = parentState
   }
 
   _curDir?: string
@@ -793,19 +797,19 @@ export class ElementProxy<T extends Element> {
       ...others,
       ...this.contextExpose,
       $vars: this.scene.localVars,
-      $utils: this.rootScene.globalUtils,
-      $const: Constants,
-      $env: process.env,
-
       $v: this.scene.localVars,
+      $utils: this.rootScene.globalUtils,
       $u: this.rootScene.globalUtils,
+      $const: Constants,
       $c: Constants,
+      $env: process.env,
       $e: process.env
     })
     return rs
   }
 
-  async exec(_parentState?: Record<string, any>) {
+  async exec(parentState: Record<string, any> = {}) {
+    Object.assign(this.parentState, parentState)
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.#elementAsyncProps)
       this.#elementAsyncProps = undefined
@@ -825,8 +829,11 @@ export class ElementProxy<T extends Element> {
             this.logger.meta = { printedName: true }
           }
         }
-        await this.element.preExec?.(this.parentState)
-        const result = await this.element.exec(this.parentState)
+        const isContinue = await this.element.preExec?.()
+        if (isContinue === false) {
+          return null
+        }
+        const result = await this.element.exec()
         if (this.result instanceof Returns) {
           this.result = this.result.result
         } else {
@@ -874,8 +881,9 @@ export class BaseElementProxy<T extends Element> extends ElementProxy<T> {
     super(element, props)
   }
 
-  override async exec(parentState?: Record<string, any>) {
-    const rs = await this.element.exec(parentState)
+  override async exec(parentState: Record<string, any>) {
+    Object.assign(this.parentState, parentState)
+    const rs = await this.element.exec()
     return rs
   }
 

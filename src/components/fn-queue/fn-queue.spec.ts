@@ -16,7 +16,7 @@ test('fn-queue should be run correctly', async () => {
     name: 'queue1',
     db: null,
     concurrent: 1,
-    data: {
+    queueData: {
       key1: 'value 1'
     }
   }, {
@@ -34,6 +34,7 @@ test('fn-queue should be run correctly', async () => {
     await setTimeout(200)
     expect(Testing.vars.key1 === 'value 1')
   } finally {
+    await fn.$.remove()
     await fn.dispose()
   }
 })
@@ -59,13 +60,13 @@ test('fn-queue with concurrent > 1', async () => {
       fn.exec(),
       setTimeout(200)
     ])
-    await fn.$.push({ key1: 'value 1' })
-    await fn.$.push({ key1: 'value 2' })
-    await fn.$.push({ key1: 'value 3' })
-    await fn.$.push({ key1: 'value 4' })
-    await fn.$.push({ key1: 'value 5' })
-    await fn.$.push({ key1: 'value 6' })
-    await fn.$.push({ key1: 'value 7' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 2' })
+    fn.$.push({ key1: 'value 3' })
+    fn.$.push({ key1: 'value 4' })
+    fn.$.push({ key1: 'value 5' })
+    fn.$.push({ key1: 'value 6' })
+    fn.$.push({ key1: 'value 7' })
     await setTimeout(1000)
     expect(Testing.vars.rs).toHaveLength(5)
   } finally {

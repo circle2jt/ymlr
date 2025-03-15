@@ -13,7 +13,7 @@ afterEach(async () => {
 test('fn-singleton should be auto remove when done', async () => {
   Testing.vars.i = 0
   const fn = await Testing.createElementProxy(FNSingleton, {
-    name: 'stask2',
+    name: 'stask3',
     trailing: false,
     autoRemove: true
   }, {
@@ -25,6 +25,7 @@ test('fn-singleton should be auto remove when done', async () => {
   })
   try {
     await fn.exec()
+    await sleep(300)
   } finally {
     await fn.dispose()
   }

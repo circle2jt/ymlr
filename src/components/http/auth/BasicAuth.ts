@@ -9,7 +9,7 @@ export class BasicAuth implements IVerify {
   }
 
   verify(parentState: Record<string, any>) {
-    const userToken = parentState.headers.authorization || parentState.query.authorization
+    const userToken = parentState.httpRequest.headers.authorization || parentState.httpRequest.query.authorization
     return this.#hash === userToken
   }
 }

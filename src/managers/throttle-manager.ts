@@ -10,8 +10,8 @@ export class ThrottleManager extends Map<string, FNThrottle> {
     return this.#Instance
   }
 
-  touch(name: string, parentState?: Record<string, any>) {
-    this.get(name)?.touch(parentState)
+  touch(name: string) {
+    this.get(name)?.touch()
   }
 
   cancel(name: string) {

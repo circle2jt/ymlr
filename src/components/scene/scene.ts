@@ -202,9 +202,9 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     }
   }
 
-  override async exec(parentState?: Record<string, any>) {
+  override async exec() {
     if (this.name) this.logger.info(this.name)
-    const results = await super.exec(parentState)
+    const results = await super.exec()
     return results || []
   }
 

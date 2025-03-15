@@ -1,3 +1,14 @@
 export interface IVerify {
-  verify: (parentState: Record<string, any>) => boolean | number | Promise<boolean | number>
+  verify: (
+    parentState: any,
+    vars: any,
+    utils: any,
+    cons: any,
+    env: any,
+    ps: any,
+    v: any,
+    u: any,
+    c: any,
+    e: any,
+  ) => boolean | number | Promise<boolean | number>
 }

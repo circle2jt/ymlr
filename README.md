@@ -223,7 +223,6 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
 | [fn-debounce'touch](#fn-debounce'touch) | touch debounce function. Reused last agruments(#Ref: lodash.debounce) |
 | [fn-queue](#fn-queue) | Register a queue job |
-| [fn-queue'add](#fn-queue'add) | Add a job to an exsited queue |
 | [fn-queue'del](#fn-queue'del) | Stop and remove a queue |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
 | [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
@@ -1074,8 +1073,11 @@ Example:
       leading: false          # Specify invoking on the leading edge of the timeout. Default is false
       maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
       autoRemove: true        # Auto remove it when reached the event. Default is false.
+      debounceData:           # Pass input debounceData to debounce to do async task
+        dataFromParentState: ${ $ps.channelData.name }
     runs:
-      - echo: Do this when it's free for 1s
+      - name: Do this when it's free for 1s
+        echo: ${ $ps.debounceData.dataFromParentState }
 
   # touch if debounce is existed
   - fn-debounce:                          # Touch the existed throttle with last agruments
@@ -1167,12 +1169,16 @@ Example:
   - fn-queue:
       name: My Queue 1        # Use stateless queue, not reload after startup
       concurrent: 2
+      startup: true           # Run ASAP
+      queueData:              # Pass input data to queue to do async task
+        dataFromParentState: ${ $ps.channelData.name }
     runs:
       - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+      - echo: ${ $parentState.queueData.dataFromParentState }
 
-  - fn-queue'add:
+  - fn-queue:
       name: My Queue 1
-      data:
+      queueData:
         key1: value1
         key2: value 2
 ```
@@ -1188,25 +1194,11 @@ Example:
     runs:
       - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
 
-  - fn-queue'add:
+  - fn-queue:
       name: My Queue 1
-      data:
+      queueData:
         key1: value1
         key2: value 2
-```  
-
-
-## <a id="fn-queue'add"></a>fn-queue'add  
-  
-Add a job to an exsited queue  
-
-Example:  
-
-```yaml
-  - fn-queue'add:
-      name: My Queue 1                 # Queue name to add
-      data:                            # Job data
-        key1: value1
 ```  
 
 
@@ -1219,8 +1211,12 @@ Example:
 ```yaml
   - fn-queue'del:
       name: My Queue 1                 # Queue name to delete
-  # OR
+
   - fn-queue'del: My Queue 1           # Queue name to delete
+
+  - fn-queue'del:
+      - My Queue 1                    # List Queues name to delete
+      - My Queue 2
 ```  
 
 
@@ -1235,6 +1231,8 @@ Example:
       name: Only run 1 time
       trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
       autoRemove: true            # Auto remove after done
+      singletonData:              # Pass input data to singleton to do async task
+        dataFromParentState: ${ $ps.channelData.name }
     runs:
       - echo: Do this when it's free for 1s
 ```  
@@ -1269,8 +1267,11 @@ Example:
       trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
       leading: true       # Specify invoking on the leading edge of the timeout. Default is true
       autoRemove: true    # Auto remove it when reached the event. Default is false
+      throttleData:       # Pass input debounceData to debounce to do async task
+        dataFromParentState: ${ $ps.channelData.name }
     runs:
-      - echo: Do this when it's free for 1s
+      - name: Do this ASAP and do again when it's called more than 1 times
+        echo: ${ $ps.throttleData.dataFromParentState }
 
   # Call if throttle is existed
   - fn-throttle:                         # Touch the existed throttle with last agruments
@@ -1940,8 +1941,8 @@ Example:
         custom:
           secret: 'SERVER_SECRET_TOKEN'
           secretKey: SECRET_HEADER_KEY
-          verify(): |
-            return $parentState.headers[this.secretKey] === this.secret
+          onCheck: |
+            return $ps.headers[this.secretKey] === this.secret
       // cors: {}                           # enable all cors requests
       cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
         origin: '*'
@@ -1961,23 +1962,23 @@ Example:
         maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
         requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
     runs:                                   # Execute when a request comes
-      - echo: ${ $parentState.path }        # Get request path
-      - echo: ${ $parentState.method }      # Get request method
-      - echo: ${ $parentState.headers }     # Get request headers
-      - echo: ${ $parentState.query }       # Get request query string
-      - echo: ${ $parentState.body }        # Get request body
-      - echo: ${ $parentState.response }    # Set response data
+      - echo: ${ $ps.httpRequest.path }     # Get request path
+      - echo: ${ $ps.httpRequest.method }   # Get request method
+      - echo: ${ $ps.httpRequest.headers }  # Get request headers
+      - echo: ${ $ps.httpRequest.query }    # Get request query string
+      - echo: ${ $ps.httpRequest.body }     # Get request body
+      - echo: ${ $ps.httpRequest.response } # Set response data
                                             # - status: 200       - http response status
                                             # - statusMessage: OK - http response status message
                                             # - headers: {}       - Set response headers
                                             # - data: {}          - Set response data
-      - echo: ${ $parentState.req }         # Ref to req in http.IncomingMessage in nodejs
-      - echo: ${ $parentState.res }         # Ref to res in http.ServerResponse in nodejs
-      - js: |                               # Handle response by yourself (When $parentState.response is undefined)
-          $parentState.res.status = 200
-          $parentState.res.statusMessage = 'OK'
-          $parentState.res.write('OK')
-          $parentState.res.end()
+      - echo: ${ $ps.httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
+      - echo: ${ $ps.httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
+      - js: |                               # Handle response by yourself (When $ps.response is undefined)
+          $ps.httpRequest.res.status = 200
+          $ps.httpRequest.res.statusMessage = 'OK'
+          $ps.httpRequest.res.write('OK')
+          $ps.httpRequest.res.end()
 ```  
 
 

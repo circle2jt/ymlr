@@ -3,6 +3,7 @@ import { type CorsOptions } from 'cors'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { parse } from 'querystring'
 import { bindFunctionScript } from 'src/libs/async-function'
+import { Constants } from 'src/managers/constants'
 import { promisify } from 'util'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -25,8 +26,8 @@ import { type IVerify } from './auth/IVerify'
           custom:
             secret: 'SERVER_SECRET_TOKEN'
             secretKey: SECRET_HEADER_KEY
-            verify(): |
-              return $parentState.headers[this.secretKey] === this.secret
+            onCheck: |
+              return $ps.headers[this.secretKey] === this.secret
         // cors: {}                           # enable all cors requests
         cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
           origin: '*'
@@ -46,23 +47,23 @@ import { type IVerify } from './auth/IVerify'
           maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
           requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
       runs:                                   # Execute when a request comes
-        - echo: ${ $parentState.path }        # Get request path
-        - echo: ${ $parentState.method }      # Get request method
-        - echo: ${ $parentState.headers }     # Get request headers
-        - echo: ${ $parentState.query }       # Get request query string
-        - echo: ${ $parentState.body }        # Get request body
-        - echo: ${ $parentState.response }    # Set response data
+        - echo: ${ $ps.httpRequest.path }     # Get request path
+        - echo: ${ $ps.httpRequest.method }   # Get request method
+        - echo: ${ $ps.httpRequest.headers }  # Get request headers
+        - echo: ${ $ps.httpRequest.query }    # Get request query string
+        - echo: ${ $ps.httpRequest.body }     # Get request body
+        - echo: ${ $ps.httpRequest.response } # Set response data
                                               # - status: 200       - http response status
                                               # - statusMessage: OK - http response status message
                                               # - headers: {}       - Set response headers
                                               # - data: {}          - Set response data
-        - echo: ${ $parentState.req }         # Ref to req in http.IncomingMessage in nodejs
-        - echo: ${ $parentState.res }         # Ref to res in http.ServerResponse in nodejs
-        - js: |                               # Handle response by yourself (When $parentState.response is undefined)
-            $parentState.res.status = 200
-            $parentState.res.statusMessage = 'OK'
-            $parentState.res.write('OK')
-            $parentState.res.end()
+        - echo: ${ $ps.httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
+        - echo: ${ $ps.httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
+        - js: |                               # Handle response by yourself (When $ps.response is undefined)
+            $ps.httpRequest.res.status = 200
+            $ps.httpRequest.res.statusMessage = 'OK'
+            $ps.httpRequest.res.write('OK')
+            $ps.httpRequest.res.end()
   ```
 */
 export class HttpServer implements Element {
@@ -109,9 +110,20 @@ export class HttpServer implements Element {
     if (this.auth?.basic) {
       this.#authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
     } else if (this.auth?.custom) {
-      const { 'verify()': verify, ...props } = this.auth.custom
+      const { onCheck, ...props } = this.auth.custom
       this.#authVerifier = new CustomAuth(props)
-      this.#authVerifier.verify = bindFunctionScript<IVerify['verify']>(verify, this.#authVerifier, '$parentState')
+      this.#authVerifier.verify = bindFunctionScript<IVerify['verify']>(onCheck, this.#authVerifier,
+        '$parentState',
+        '$ps',
+        '$vars',
+        '$v',
+        '$utils',
+        '$u',
+        '$const',
+        '$c',
+        '$env',
+        '$e'
+      )
     }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
@@ -149,24 +161,37 @@ export class HttpServer implements Element {
   private async handleRequest(req: IncomingMessage, res: ServerResponse) {
     const [path, qstr] = req.url?.split('?') || []
     const parentState = {
-      path,
-      method: req.method as string,
-      headers: req.headers,
-      query: parse(qstr),
-      body: undefined,
-      response: undefined,
-      // data: {
-      //   ...parentState?.headers,
-      //   ...parentState?.query,
-      //   ...parentState?.body
-      // },
-      req,
-      res
+      httpRequest: {
+        path,
+        method: req.method as string,
+        headers: req.headers,
+        query: parse(qstr),
+        body: undefined,
+        response: undefined,
+        // data: {
+        //   ...parentState?.headers,
+        //   ...parentState?.query,
+        //   ...parentState?.body
+        // },
+        req,
+        res
+      }
     } as any
-    this.logger.debug('%s %s \t%s', '⥃', req.method, req.url)?.trace('%j', parentState)
+    this.logger.debug('%s %s \t%s', '⥃', req.method, req.url)?.trace('%j', parentState.httpRequest)
     try {
       if (this.#authVerifier) {
-        const code = await this.#authVerifier.verify(parentState)
+        const code = await this.#authVerifier.verify(
+          parentState,
+          parentState,
+          this.proxy.scene.localVars,
+          this.proxy.scene.localVars,
+          this.proxy.rootScene.globalUtils,
+          this.proxy.rootScene.globalUtils,
+          Constants,
+          Constants,
+          process.env,
+          process.env
+        )
         if (code === false) {
           res.statusCode = 401
           return
@@ -178,14 +203,14 @@ export class HttpServer implements Element {
       }
       const body = await this.getRequestBody(req)
       if (body) {
-        const requestType = parentState.headers['content-type']
+        const requestType = parentState.httpRequest.headers['content-type']
         if (requestType?.includes('/json')) {
-          parentState.body = JSON.parse(body)
+          parentState.httpRequest.body = JSON.parse(body)
         } else if (requestType?.includes('/xml')) {
           const { parseString } = require('xml2js')
-          parentState.body = await promisify(parseString)(body)
+          parentState.httpRequest.body = await promisify(parseString)(body)
         } else {
-          parentState.body = body
+          parentState.httpRequest.body = body
         }
       }
       res.statusCode = 204
@@ -195,7 +220,7 @@ export class HttpServer implements Element {
         res.end()
         return
       }
-      const response = parentState.response
+      const response = parentState.httpRequest.response
       if (response) {
         if (response.status) {
           res.statusCode = response.status

@@ -5,7 +5,7 @@ import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
 import { noop } from 'src/managers/constants'
-import { BaseElementProxy, ElementProxy } from '../element-proxy'
+import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
@@ -107,13 +107,35 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     if (Object.getOwnPropertyDescriptor(elem, 'innerRunsProxy')) {
       const { name, ...groupProxyProps } = baseProps
-      const innerGroupWrapper = new InnerGroupWrapper({ creator: this, owner: elem, groupProps: props, groupProxyProps })
-      const innerGroupWrapperProxy = new BaseElementProxy(innerGroupWrapper, { runs: groupProxyProps.runs })
-      innerGroupWrapperProxy.exec = async function (parentState: any) {
-        return await this.element.exec(parentState)
+      const innerGroupWrapperProxy = await this.newElementProxy(InnerGroupWrapper, {
+        creator: this,
+        owner: elem,
+        groupProps: props,
+        groupProxyProps
+      }, {
+        runs: groupProxyProps.runs
+      })
+      Object.defineProperties(innerGroupWrapperProxy, {
+        tag: {
+          enumerable: false,
+          configurable: false,
+          writable: true,
+          value: `${elem.proxy.tag}/inner-group-wrapper`
+        },
+        parentState: {
+          get() {
+            return elemProxy.parentState
+          },
+          set(parentState: any) {
+            elemProxy.parentState = parentState
+          }
+        }
+      })
+      innerGroupWrapperProxy.exec = function (parentState: any) {
+        return this.$.exec(parentState)
       }
       innerGroupWrapperProxy.dispose = async function () {
-        await this.element.dispose()
+        await this.$.dispose()
       }
       Object.defineProperty(elem, 'innerRunsProxy', {
         value: innerGroupWrapperProxy,
@@ -135,7 +157,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return elemProxy
   }
 
-  async preExec(_parentState?: Record<string, any>) {
+  async preExec() {
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
       this.proxy.runs = this.#runs || []
@@ -157,7 +179,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return true
   }
 
-  async exec(_?: Record<string, any>) {
+  async exec() {
     if (!this.proxy.runs) {
       return
     }
@@ -355,7 +377,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
     const elemProxy = await this.newElementProxy(name, props, baseProps)
-    // elemProxy.parentState = parentState
 
     const condition = baseProps.elseif ?? baseProps.if
     const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
@@ -494,29 +515,11 @@ export class InnerGroupWrapper implements Element {
     this.#groupProxyProps = props.groupProxyProps
   }
 
-  async exec(parentState: Record<string, any> = {}) {
+  async exec(parentState: any) {
     const innerGroupProxy = await this.#creator.newElementProxy(InnerGroup, { owner: this.#owner, ...this.#groupProps }, this.#groupProxyProps)
     try {
-      if (parentState) {
-        if (this.#owner.proxy.parentState) {
-          Object.defineProperties(parentState, {
-            $parentState: {
-              enumerable: true,
-              configurable: true,
-              writable: true,
-              value: this.#owner.proxy.parentState
-            },
-            $ps: {
-              enumerable: true,
-              configurable: true,
-              writable: true,
-              value: this.#owner.proxy.parentState
-            }
-          })
-        }
-        innerGroupProxy.parentState = parentState
-      }
-      const rs = await innerGroupProxy.exec()
+      innerGroupProxy.parentState = { ...this.proxy.parentState }
+      const rs = await innerGroupProxy.exec(parentState)
       return rs
     } finally {
       await innerGroupProxy.dispose()

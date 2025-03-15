@@ -22,8 +22,11 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         leading: false          # Specify invoking on the leading edge of the timeout. Default is false
         maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
         autoRemove: true        # Auto remove it when reached the event. Default is false.
+        debounceData:           # Pass input debounceData to debounce to do async task
+          dataFromParentState: ${ $ps.channelData.name }
       runs:
-        - echo: Do this when it's free for 1s
+        - name: Do this when it's free for 1s
+          echo: ${ $ps.debounceData.dataFromParentState }
 
     # touch if debounce is existed
     - fn-debounce:                          # Touch the existed throttle with last agruments
@@ -45,9 +48,10 @@ export class FNDebounce implements Element {
   trailing = true
   leading = false
   autoRemove?: true | string | number
+  debounceData: any
+
   #tmAutoRemove?: NodeJS.Timeout
   #fn?: DebouncedFunc<any>
-  #parentState?: Record<string, any>
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -58,13 +62,13 @@ export class FNDebounce implements Element {
     Object.assign(this, props)
   }
 
-  async exec(parentState?: Record<string, any>) {
+  async exec() {
     assert(this.name)
 
     if (DebounceManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
       // DebounceManager.Instance.touch(this.name)
-      DebounceManager.Instance.touch(this.name, parentState)
+      DebounceManager.Instance.touch(this.name)
     } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
         this.logger.trace('%s: create a new one', this.name)
@@ -102,22 +106,21 @@ export class FNDebounce implements Element {
           this.maxWait = formatTextToMs(this.maxWait)
           opts.maxWait = this.maxWait
         }
-        this.#fn = debounce(async (parentState?: Record<string, any>) => {
-          await this.innerRunsProxy.exec(parentState)
+        this.#fn = debounce(async (debounceData: any) => {
+          await this.innerRunsProxy.exec({
+            debounceData
+          })
         }, this.wait, opts)
         DebounceManager.Instance.set(this.name, this)
       }
-      this.touch(parentState)
+      this.touch()
     }
   }
 
-  touch(parentState?: Record<string, any>) {
+  touch() {
     this.logger.trace('%s: touch', this.name)
-    if (parentState !== undefined) {
-      this.#parentState = parentState
-    }
     this.#scheduleAutoRemove(false)
-    this.#fn?.(this.#parentState)
+    this.#fn?.(this.debounceData)
   }
 
   cancel() {
@@ -129,6 +132,7 @@ export class FNDebounce implements Element {
   flush() {
     this.logger.trace('%s: flush', this.name)
     this.#fn?.flush()
+    this.#scheduleAutoRemove(true)
   }
 
   dispose() {
