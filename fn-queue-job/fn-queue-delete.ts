@@ -10,49 +10,39 @@ import { FNQueue } from './fn-queue'
   ```yaml
     - fn-queue'del:
         name: My Queue 1                 # Queue name to delete
-
+    # OR
     - fn-queue'del: My Queue 1           # Queue name to delete
-
-    - fn-queue'del:
-        - My Queue 1                    # List Queues name to delete
-        - My Queue 2
   ```
 */
 export class FNQueueDelete implements Element {
   readonly proxy!: ElementProxy<this>
-  get logger() {
-    return this.proxy.logger
-  }
 
-  name!: string[]
+  name!: string
 
   constructor(props: any) {
-    if (typeof props === 'string' || Array.isArray(props)) {
+    if (typeof props === 'string') {
       props = {
         name: props
       }
     }
     Object.assign(this, props)
-    if (this.name && !Array.isArray(this.name)) {
-      this.name = [this.name]
-    }
   }
 
   async exec() {
-    assert(this.name?.length)
+    assert(this.name)
 
-    const rs = await Promise.all(this.name.map(async name => {
-      const queue = FNQueue.Caches.get(name)
-      if (queue) {
-        await queue.remove()
-        return true
-      }
-      return false
-    }))
-    return rs.filter(isRemoved => isRemoved).length
+    const queue = this.getQueue()
+    if (queue) {
+      await queue.remove()
+      await queue.dispose()
+      return true
+    }
+    return false
   }
 
-  // eslint-disable-next-line
   dispose() { }
 
+  protected getQueue() {
+    return FNQueue.Caches.get(this.name)
+  }
 }

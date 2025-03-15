@@ -66,7 +66,6 @@ export class EventOn implements Element {
         const [data, ...opts] = args
         try {
           await this.innerRunsProxy.exec({
-            ...parentState,
             eventData: data,
             eventOpt: opts[0],
             eventOpts: opts

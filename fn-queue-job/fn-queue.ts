@@ -17,11 +17,10 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
     - fn-queue:
         name: My Queue 1        # Use stateless queue, not reload after startup
         concurrent: 2
-        startup: true           # Run ASAP
       runs:
         - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
 
-    - fn-queue:
+    - fn-queue'add:
         name: My Queue 1
         data:
           key1: value1
@@ -39,7 +38,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
       runs:
         - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
 
-    - fn-queue:
+    - fn-queue'add:
         name: My Queue 1
         data:
           key1: value1
@@ -56,7 +55,6 @@ export class FNQueue implements Element {
   }
 
   name!: string
-  startup = true
   concurrent = 1
   skipError = false
   db!: {
@@ -68,104 +66,91 @@ export class FNQueue implements Element {
   #data = new Array<any>()
   #store!: StorageInterface
   #isStoped = false
+  #resolve: any
+  #reject: any
   #t?: Promise<any>
-  #resolve?: any
 
-  data: any
+  get data() {
+    return this.#data
+  }
 
   constructor(props: any) {
     Object.assign(this, props)
   }
 
-  async exec(parentState?: any) {
+  async exec() {
     assert(this.name)
 
-    const existed = FNQueue.Caches.get(this.name)
-    if (!existed) {
-      this.load()
-      FNQueue.Caches.set(this.name, this)
-      if (this.startup) {
-        await this.push(this.data, parentState)
-      }
-    } else {
-      await existed.push(this.data, parentState)
-    }
+    this.load()
+    this.run()
+    this.#t = new Promise((resolve, reject) => {
+      this.#resolve = resolve
+      this.#reject = reject
+    })
+    await this.#t
   }
 
-  async push(data: any, parentState = {}) {
+  push(data: any) {
     this.logger.debug('Add a job in queue "%s"\t%j', this.name, data)
     this.#data.push(data)
     this.save()
-    await this.run(parentState)
+    this.run()
   }
 
-  async run(parentState: any) {
-    if (!this.#isStoped && this.#taskCount < this.concurrent && this.#data.length) {
-      if (!this.#t) {
-        this.#t = new Promise((resolve) => {
-          this.#resolve = resolve
-        })
-      }
+  run() {
+    let task: any
+    while (!this.#isStoped && this.#taskCount < this.concurrent && (task = this.#data.shift())) {
       ++this.#taskCount
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setImmediate(async (queueData, queueCount) => {
-        this.logger.debug('Run a job in queue "%s"\t%j', this.name, queueData)
+      setTimeout(async (queueData, queueCount) => {
+        this.logger.debug('Run a job in queue "%s"\t%j', this.name, task)
         try {
           await this.innerRunsProxy.exec({
             queueName: this.name,
             queueData,
             queueCount
           })
-          if (--this.#taskCount === 0) {
-            this.#resolve()
-            this.#t = undefined
-          }
-          await this.run(parentState)
+          --this.#taskCount
+          this.run()
         } catch (err: any) {
-          if (--this.#taskCount === 0) {
-            this.#resolve()
-            this.#t = undefined
-          }
-          this.logger.error(err)
           if (!this.skipError) {
-            this.#data.push(queueData)
+            this.#data.push(task)
             this.save()
-            await this.stop()
+            this.stop()
+            this.#reject(err)
           } else {
-            await this.run(parentState)
+            this.logger.error(err?.message)
+            --this.#taskCount
+            this.run()
           }
         }
-      }, this.#data.shift(), this.#data.length)
+      }, 0, task, this.data.length)
       this.save()
     }
   }
 
-  async stop() {
-    this.logger.debug('Stoped queue ' + this.name)
+  stop() {
     this.#isStoped = true
-    await this.#t
   }
 
   async remove() {
-    this.logger.debug('Removed queue ' + this.name)
-    await this.stop()
     this.#store.clean()
-    FNQueue.Caches.delete(this.name)
+    this.stop()
   }
 
   async dispose() {
-    // this.stop()
-    // this.logger.debug('Removed the queue "%s"', this.name)
-    // FNQueue.Caches.delete(this.name)
+    this.stop()
+    this.logger.debug('Removed the queue "%s"', this.name)
+    FNQueue.Caches.delete(this.name)
+    this.#resolve()
+    await this.#t
   }
 
   private save() {
-    this.logger.debug('Saved queue ' + this.name)
     this.#store.save(this.#data)
   }
 
   private load() {
-    this.logger.debug('Loaded queue ' + this.name)
     if (this.db !== undefined) {
       if (this.db === null) {
         this.db = {
@@ -180,5 +165,7 @@ export class FNQueue implements Element {
       this.#store = new MemStorage(this.logger)
     }
     this.#data = this.#store.load([])
+
+    FNQueue.Caches.set(this.name, this)
   }
 }

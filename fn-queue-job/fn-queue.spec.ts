@@ -15,10 +15,7 @@ test('fn-queue should be run correctly', async () => {
   const fn = await Testing.createElementProxy<FNQueue>(FNQueue, {
     name: 'queue1',
     db: null,
-    concurrent: 1,
-    data: {
-      key1: 'value 1'
-    }
+    concurrent: 1
   }, {
     runs: [
       {
@@ -31,6 +28,7 @@ test('fn-queue should be run correctly', async () => {
       fn.exec(),
       setTimeout(200)
     ])
+    fn.$.push({ key1: 'value 1' })
     await setTimeout(200)
     expect(Testing.vars.key1 === 'value 1')
   } finally {
@@ -41,9 +39,8 @@ test('fn-queue should be run correctly', async () => {
 test('fn-queue with concurrent > 1', async () => {
   Testing.vars.rs = []
   const fn = await Testing.createElementProxy<FNQueue>(FNQueue, {
-    name: 'queue2',
-    concurrent: 5,
-    startup: false
+    name: 'queue1',
+    concurrent: 5
   }, {
     runs: [
       {
@@ -59,17 +56,16 @@ test('fn-queue with concurrent > 1', async () => {
       fn.exec(),
       setTimeout(200)
     ])
-    await fn.$.push({ key1: 'value 1' })
-    await fn.$.push({ key1: 'value 2' })
-    await fn.$.push({ key1: 'value 3' })
-    await fn.$.push({ key1: 'value 4' })
-    await fn.$.push({ key1: 'value 5' })
-    await fn.$.push({ key1: 'value 6' })
-    await fn.$.push({ key1: 'value 7' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
+    fn.$.push({ key1: 'value 1' })
     await setTimeout(1000)
     expect(Testing.vars.rs).toHaveLength(5)
   } finally {
-    await fn.$.remove()
     await fn.dispose()
   }
 })
