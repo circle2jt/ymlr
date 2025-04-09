@@ -109,14 +109,14 @@ export class FNThrottle implements Element {
         }, this.wait, opts)
         ThrottleManager.Instance.set(this.name, this)
       }
-      this.touch()
+      this.touch(this.throttleData)
     }
   }
 
-  touch() {
+  touch(throttleData?: any) {
     this.logger.trace('%s: touch', this.name)
     this.#scheduleAutoRemove(false)
-    this.#fn?.(this.throttleData)
+    this.#fn?.(throttleData)
   }
 
   cancel() {

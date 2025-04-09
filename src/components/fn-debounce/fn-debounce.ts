@@ -68,7 +68,7 @@ export class FNDebounce implements Element {
     if (DebounceManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
       // DebounceManager.Instance.touch(this.name)
-      DebounceManager.Instance.touch(this.name)
+      DebounceManager.Instance.touch(this.name, this.debounceData)
     } else if (this.proxy.runs?.length) {
       if (!this.#fn) {
         this.logger.trace('%s: create a new one', this.name)
@@ -113,14 +113,14 @@ export class FNDebounce implements Element {
         }, this.wait, opts)
         DebounceManager.Instance.set(this.name, this)
       }
-      this.touch()
+      this.touch(this.debounceData)
     }
   }
 
-  touch() {
+  touch(debounceData?: any) {
     this.logger.trace('%s: touch', this.name)
     this.#scheduleAutoRemove(false)
-    this.#fn?.(this.debounceData)
+    this.#fn?.(debounceData)
   }
 
   cancel() {

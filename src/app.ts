@@ -15,6 +15,11 @@ export class App {
     assert(rootSceneProps.path, 'Scene file is required')
     this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps), { tag: 'root-scene', _logger: this.logger })
     Object.defineProperties(this.#rootSceneProxy, {
+      rootSceneProxy: {
+        get() {
+          return this
+        }
+      },
       rootScene: {
         get() {
           return this.$

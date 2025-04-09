@@ -597,7 +597,7 @@ export class ElementProxy<T extends Element> {
     if (ps) {
       return ps
     }
-    if (this.$ instanceof RootScene) {
+    if (!(this.$ instanceof RootScene)) {
       this.logger.warn('Parent state is wrong')
     }
     return (this.#parentState = {})

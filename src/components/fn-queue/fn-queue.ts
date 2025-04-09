@@ -140,7 +140,7 @@ export class FNQueue implements Element {
             this.#resolve()
             this.#t = undefined
             await this.stop()
-          } else if (this.#taskCount === 0) {
+          } else if (this.#taskCount === 0 && this.queue.length === 0) {
             this.#resolve()
             this.#t = undefined
           } else {
