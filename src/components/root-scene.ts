@@ -140,18 +140,14 @@ export class RootScene extends Scene {
   }
 
   getTagName(props: any) {
-    for (let key of Object.keys(props)) {
-      if (key[0] === '~') {
-        const oldKey = key
-        key = key.substring(1)
-        props[key] = props[oldKey]
-        props[oldKey] = undefined
-        props.async = true
-      }
-      if (!ElementBaseKeys.has(key) && props[key] !== undefined && TAG_REGEX.test(key)) {
-        return key
-      }
-    }
+    Object.keys(props)
+      .filter(key => key[0] === '~')
+      .forEach(key => {
+        props[key.substring(1)] = props[key]
+        props[key] = undefined
+        if (!props.async) props.async = true
+      })
+    return Object.keys(props).find(key => !ElementBaseKeys.has(key) && props[key] !== undefined && TAG_REGEX.test(key))
   }
 
   // private handleShutdown() {
