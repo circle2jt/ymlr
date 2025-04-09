@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.1.md](#1744171229882)  -  _4/9/2025, 11:00:29 AM_
 - [1.4.1-alpha.3.md](#1741787561942)  -  _3/12/2025, 8:52:41 PM_
 - [1.4.1-alpha.2.md](#1738942633295)  -  _2/7/2025, 10:37:13 PM_
 - [1.4.1-alpha.1.md](#1735037199233)  -  _12/24/2024, 5:46:39 PM_
@@ -118,6 +119,31 @@
 
 ## Details
 
+<a id="1744171229882"></a>
+### 1.4.1
+
+* fix: allow use multiple ~ in tags name or runs (8032270)
+* fix(fn-debounce,fn-throttle,fn-queue): parentState not clone in the loop (11b52b8)
+* refactor(parentState, queue, throttle, debounce, singleton): support stateful (a0af098)
+* fix(fn-queue): merge fn-queue startup same fn-debounce, fn-throttle (e31de29)
+* chore: prerelease 1.4.1-alpha.3 (002d44f)
+* fix(fn-debouce,fn-throttle): recall not update new parentState (0ac17f3)
+* fix(fn-singleton): add autoRemove props (f7ac562)
+* doc: add note to fix later (415f55c)
+* chore: prerelease 1.4.1-alpha.2 (526c019)
+* fix(variable): Not eval exp recursive (6327088)
+* ci: update docker build for bun image (4066f34)
+* fix(http'get): timeout not resolve h,m,s,ms (87f5451)
+* fix: icon, yml dump, queue name (f0efb5d)
+* fix: eval function which include breakline at the end not working (1385ad9)
+* fix(sh): ignore warning when exit normally (d4fc722)
+* chore: prerelease 1.4.1-alpha.1 (0bf2662)
+* script(shares): replace exec'sh to sh, exec'js to js (ac96e03)
+* fix(sh): strictly execuable file when run via "sh". (16258f4)
+* fix!(exec): remove "exec" which is dupplicated with "sh" (42c12f7)
+* chore: prerelease 1.4.1-alpha.0 (080f848)
+* fix(elementProxy): always call dispose before restart (7935cde)
+  
 <a id="1741787561942"></a>
 ### 1.4.1-alpha.3
 
