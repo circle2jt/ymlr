@@ -858,6 +858,29 @@ export class ElementProxy<T extends Element> {
     return this.result
   }
 
+  async isValid() {
+    const condition = this.elseif ?? this.if
+    const isValid = (condition === undefined) || await this.scene.getVars(condition, this)
+    if (isValid && this.id) {
+      await this.scene.setVars(this.id, this)
+    }
+    return isValid
+  }
+
+  async isAsync() {
+    if (typeof this.async === 'string') {
+      this.async = await this.scene.getVars(this.async, this)
+    }
+    return this.async
+  }
+
+  async isDetach() {
+    if (typeof this.detach === 'string') {
+      this.detach = await this.scene.getVars(this.detach, this)
+    }
+    return this.detach
+  }
+
   async dispose() {
     if (this._logger === null) return
     GlobalEvent.emit('@app/proxy/before:exec:dispose', this)

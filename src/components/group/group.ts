@@ -377,23 +377,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
     const elemProxy = await this.newElementProxy(name, props, baseProps)
-
-    const condition = baseProps.elseif ?? baseProps.if
-    const isContinue = (condition === undefined) || await this.innerScene.getVars(condition, elemProxy)
-    if (!isContinue) return undefined
-
-    const [detach, async] = await Promise.all([
-      elemProxy.detach ?? this.innerScene.getVars(elemProxy.detach, elemProxy),
-      elemProxy.async ?? this.innerScene.getVars(elemProxy.async, elemProxy)
+    const [isAsync, isDetach] = await Promise.all([
+      elemProxy.isAsync(),
+      elemProxy.isDetach()
     ])
-    if (!async && !detach && asyncJobs?.length) {
+    if (!isAsync && !isDetach && asyncJobs?.length) {
       await Promise.all(asyncJobs)
       asyncJobs = []
     }
 
-    if (elemProxy.id) {
-      await elemProxy.scene.setVars(elemProxy.id, elemProxy)
-    }
+    const isContinue = await elemProxy.isValid()
+    if (!isContinue) return undefined
 
     const t = (async (elemProxy: ElementProxy<Element>, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) => {
       let error: any
@@ -413,7 +407,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const failure = baseProps.failure
         if (!failure) throw error
         if (failure.restart?.max) {
-          this.logger.warn(`[RETRY] ${failure.restart.max} \t ${title || ''}`)?.error(failure.logDetails ? error : error?.message)?.trace(error)
+          elemProxy.logger.warn(`[RETRY] ${failure.restart.max} \t ${title || ''}`)?.error(failure.logDetails ? error : error?.message)?.trace(error)
 
           --failure.restart.max
           if (failure.restart.sleep) {
@@ -423,14 +417,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           return
         }
         if (!failure.ignore) throw error
-        this.logger.warn(failure.logDetails ? error : error?.message)?.trace(error)
+        elemProxy.logger.warn(failure.logDetails ? error : error?.message)?.trace(error)
       }
     })(elemProxy, name, baseProps, props)
 
-    if (detach) {
+    if (isDetach) {
       this.rootScene.pushToBackgroundJob(t)
-    } else if (async) {
-      asyncJobs?.push(t)
+    } else if (isAsync && asyncJobs) {
+      asyncJobs.push(t)
     } else {
       await t
     }
