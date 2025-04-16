@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.2-alpha.0.md](#1744785762389)  -  _4/16/2025, 1:42:42 PM_
 - [1.4.1.md](#1744171229882)  -  _4/9/2025, 11:00:29 AM_
 - [1.4.1-alpha.3.md](#1741787561942)  -  _3/12/2025, 8:52:41 PM_
 - [1.4.1-alpha.2.md](#1738942633295)  -  _2/7/2025, 10:37:13 PM_
@@ -119,6 +120,13 @@
 
 ## Details
 
+<a id="1744785762389"></a>
+### 1.4.2-alpha.0
+
+* fix: always re-eval props in loop (2cb7033)
+* fix: not check condition after async step (3420fd5)
+* fix(fn-throttle): not passed new state when touch (ac20728)
+  
 <a id="1744171229882"></a>
 ### 1.4.1
 
