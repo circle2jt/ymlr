@@ -19,7 +19,8 @@ afterEach(async () => {
 test('Listen to handle a request', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:3001',
+    address: '0.0.0.0:3001'
+  }, {
     runs: [
       {
         vars: {
@@ -42,7 +43,8 @@ test('Listen to handle a request', async () => {
 test('Force quit server', async () => {
   const jobData = { foo: 'bar' }
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:3002',
+    address: '0.0.0.0:3002'
+  }, {
     runs: [
       {
         vars: {
@@ -153,7 +155,8 @@ test('Check basic authentication via headers', async () => {
 
 test('Test response by code', async () => {
   serve = await Testing.createElementProxy(HttpServer, {
-    address: '0.0.0.0:3004',
+    address: '0.0.0.0:3004'
+  }, {
     runs: [
       {
         js: `

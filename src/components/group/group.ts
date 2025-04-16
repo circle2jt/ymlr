@@ -510,7 +510,11 @@ export class InnerGroupWrapper implements Element {
   }
 
   async exec(parentState: any) {
-    const innerGroupProxy = await this.#creator.newElementProxy(InnerGroup, { owner: this.#owner, ...this.#groupProps }, this.#groupProxyProps)
+    const innerGroupProxy = await this.#creator.newElementProxy(InnerGroup, {
+      owner: this.#owner
+    }, {
+      runs: this.#groupProxyProps?.runs
+    })
     try {
       innerGroupProxy.parentState = { ...this.proxy.parentState }
       const rs = await innerGroupProxy.exec(parentState)
