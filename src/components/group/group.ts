@@ -7,6 +7,7 @@ import { cloneDeep } from 'src/libs/variable'
 import { noop } from 'src/managers/constants'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
+import { Scene } from '../scene/scene'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
 /** |**  runs
@@ -60,6 +61,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       const { runs, ..._props } = props
       this.#runs = runs
       Object.assign(this, _props)
+      if (runs?.length && !(this instanceof Scene)) {
+        console.warn('Should use "runs" in proxy, not in the tag %j', this.proxy.tag)
+      }
     }
   }
 
@@ -297,6 +301,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     if (inheritKeys) {
       eProps = this.rootScene.inherit(tagName, eProps, inheritKeys)
+
+      if (!tagName) {
+        tagName = this.rootScene.getTagName(eProps)
+      }
     }
     const { '->': exposeKey, ..._eProps } = eProps
     eProps = _eProps
@@ -313,11 +321,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     if (elseCondition === null) {
       elseIfCondition = true
-    }
-
-    // Retry to get tagName which is override by keys
-    if (!tagName) {
-      tagName = this.rootScene.getTagName(eProps)
     }
 
     let elemProps: any

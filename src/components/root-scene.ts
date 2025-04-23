@@ -42,7 +42,8 @@ Root scene file includes all of steps to run
 ```
 */
 
-const TAG_REGEX = /^[a-zA-Z0-9]/
+// const TAG_REGEX = /^[a-zA-Z0-9]/
+const QUICK_TAG_REGEX = /^([~;]*)([a-zA-Z0-9].*)/
 export class RootScene extends Scene {
   override readonly isRootScene = true
   override readonly isScene = true
@@ -140,14 +141,34 @@ export class RootScene extends Scene {
   }
 
   getTagName(props: any) {
-    Object.keys(props)
-      .filter(key => key[0] === '~')
-      .forEach(key => {
-        props[key.substring(1)] = props[key]
-        props[key] = undefined
-        if (!props.async) props.async = true
-      })
-    return Object.keys(props).find(key => !ElementBaseKeys.has(key) && props[key] !== undefined && TAG_REGEX.test(key))
+    let tagName: string | undefined
+    Object.keys(props).forEach(key => {
+      if (props[key] === undefined) return
+
+      const m = key.match(QUICK_TAG_REGEX)
+      if (!m) return
+
+      if (m[2]) {
+        if (m[1]) {
+          if (!props.async && m[1].includes('~')) {
+            props.async = true
+          }
+          if (!props.template && m[1].includes(';')) {
+            props.template = true
+          }
+          props[m[2]] = props[key]
+          props[key] = undefined
+          key = m[2]
+        }
+        if (!ElementBaseKeys.has(key)) {
+          if (tagName) {
+            throw new Error(`Could not declare multiple tags "${tagName}"`)
+          }
+          tagName = key
+        }
+      }
+    })
+    return tagName
   }
 
   // private handleShutdown() {

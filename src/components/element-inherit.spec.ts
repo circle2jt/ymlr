@@ -28,16 +28,16 @@ test('Should run echo element', async () => {
   scene = await Testing.createElementProxy(Scene, {
     content: `
 - ->: school
-  template:
+  ;props:
     schoolName: School 1
 
 - ->: class
   <-: school
-  template:
+  ;props:
     className: Class 1
 
 - ->: student
-  template:
+  ;props:
     name: Person
 
 - <-: [class, school, student]

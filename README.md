@@ -308,11 +308,10 @@ Expose item properties for others extends
 
 Example:  
 
-Use `skip`
+Use a shortcut `;`
 ```yaml
   - ->: helloTemplate
-    skip: true
-    echo: Hello               # Not run
+    ;echo: Hello              # Not run. ";" is same "template: true"
 
   - <-: helloTemplate         # => Hello
 
@@ -320,11 +319,26 @@ Use `skip`
 
 Use `template`
 ```yaml
-  - ->: hiTemplate
-    template: Hi              # Not run
+  - ->: helloTemplate         # Not run
+    template: true
+    echo: Hello               
 
-  - <-: hiTemplate            # => Hi
-    echo:
+  - <-: helloTemplate         # => Hello
+
+```
+
+Use `template`
+```yaml
+  - ->: hiTemplate            # Not run
+    ;event'emit: 
+      name: test-event
+      data: Hi              
+
+  - <-: hiTemplate            # => send "Hi" to "test-event"
+
+  - <-: hiTemplate            # => send "Hello" to "test-event"
+    props:
+      data: Hello
 ```  
 
 
@@ -357,15 +371,17 @@ Example:
 
 ```yaml
   - ->: baseRequest
-    template:
+    ;props:
       baseURL: http://localhost
+
   - <-: baseRequest
     ->: user1Request
-    template:
+    ;props:
       headers:
         authorization: Bearer user1_token
+
   - ->: user2RequestWithoutBaseURL
-    template:
+    ;props:
       headers:
         authorization: Bearer user2_token
 
@@ -557,15 +573,15 @@ Example:
 ```yaml
   - ->: sleepID
     icon: ⏳
-    template: 1000
+    ;sleep: 1000
 
   - name: Sleep in 1s       # => ⏳ Sleep in 1s
     <-: sleepID
-    sleep: 1s
+    props: 1s
 
   - name: Sleep in 2s       # => ⏳ Sleep in 2s
     <-: sleepID
-    sleep: 2s
+    props: 2s
 ```  
 
 
@@ -813,6 +829,22 @@ Example:
     echo: Hello                # No print "Hello"
 
   - echo: world                # Print "world"
+
+  - ->: testEvent
+    ;event'emit:
+      name: test_event
+      data: 
+        hello: ${ this.$.cusName }
+
+  - name: say hello to A
+    <-: testEvent
+    props:
+      cusName: A
+
+  - name: say hello to B
+    <-: testEvent
+    props:
+      cusName: B
 ```  
 
 
@@ -841,12 +873,17 @@ Declare a template to extends later
 Example:  
 
 ```yaml
-  - ->: localhost           # Auto skip, not run it
-    template:
+  - ->: localhost           
+    template: true          # Template is true then it will be not run
+    props:
       baseURL: http://localhost:3000
 
-  - <-: localhost           # => Auto inherits "baseURL" from localhost
-    http'get:
+  - ->: localhost           
+    ;props:                 # Same with "template: true" then it will be not run
+      baseURL: http://localhost:3000
+
+  - <-: localhost           # Auto inherits "baseURL" from localhost
+    http'get:               # => make a http request to http://localhost:3000/items
       url: /items
 ```  
 

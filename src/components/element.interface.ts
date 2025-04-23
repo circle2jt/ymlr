@@ -14,6 +14,6 @@ export interface Element {
   dispose: () => void | Promise<void>
 }
 
-export const ElementBaseKeys = new Set(['->', '<-', 'id', 'runs', 'template', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack'])
+export const ElementBaseKeys = new Set(['->', '<-', 'id', 'runs', 'template', 'props', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack'])
 export type ElementBaseProps = Pick<ElementProxy<Element>, 'id' | 'if' | 'elseif' | 'failure' | 'debug' | 'vars' | 'async' | 'detach' | 'loop' | 'name' | 'icon' | 'skip' | 'context' | 'skipNext' | 'runs' | 'errorStack' | '_curDir'>
 export type ElementClass = new (props?: any) => Element

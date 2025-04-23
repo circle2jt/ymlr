@@ -290,7 +290,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   inherit(tagName: string | undefined, baseProps: any, ids: string[] | string) {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
-    const caches = ids.reverse().map(id => {
+    const tempProps = ids.reverse()
+      .reduce<any>((rs, id) => {
       const cached = this.templatesManager[id]
       if (!cached) {
         throw new Error(`Could not found element with id "${id}"`)
@@ -299,28 +300,30 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (!tagName) {
         tagName = _tagName
       }
-      return cloneDeep(props)
-    })
-    caches.forEach(cached => {
-      if (tagName && cached.template !== undefined) {
-        cached[tagName] = cached.template
-        cached.template = undefined
+      return merge(rs, cloneDeep(props))
+    }, {})
+
+    if (tagName) {
+      tempProps[tagName] = tempProps.props
+      if (baseProps.props !== undefined && baseProps[tagName] === undefined) {
+        baseProps[tagName] = baseProps.props
       }
-      baseProps = merge(cached, baseProps)
-    })
+      tempProps.props = baseProps.props = undefined
+      return merge(tempProps, baseProps)
+    }
+    return merge(tempProps, baseProps)
     // this.logger.trace('extends id "%s": %j', ids, baseProps)
-    return baseProps
   }
 
   export(tagName: string | undefined, allProps: any, id: string) {
     if (!id) return
     // No clone erroStask, condition...
-    const { errorStack, if: condition, elseif: elseIfCondition, else: elseCondition, ...props } = allProps
+    const { errorStack, if: condition, elseif: elseIfCondition, else: elseCondition, template, ...props } = allProps
     const newOne = cloneDeep(props)
     if (tagName) {
       newOne.tagName = tagName
       if (newOne[tagName] !== undefined) {
-        newOne.template = newOne[tagName]
+        newOne.props = newOne[tagName]
         newOne[tagName] = undefined
       }
     }

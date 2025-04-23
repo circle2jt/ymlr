@@ -129,7 +129,8 @@ test('pass a config into item in group', async () => {
 
 test('pass full group information', async () => {
   group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
+    name: 'Test group'
+  }, {
     runs: [
       {
         js: 'return "OK"',
@@ -144,7 +145,8 @@ test('pass full group information', async () => {
 
 test('run with false condition', async () => {
   group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
+    name: 'Test group'
+  }, {
     runs: [
       {
         if: '${false}',
@@ -160,7 +162,8 @@ test('run with false condition', async () => {
 
 test('skip', async () => {
   group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
+    name: 'Test group'
+  }, {
     runs: [
       {
         echo: 0
@@ -186,7 +189,8 @@ test('skip', async () => {
 
 test('skipNext', async () => {
   group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
+    name: 'Test group'
+  }, {
     runs: [
       {
         echo: 0
@@ -238,7 +242,8 @@ test('only', async () => {
 
 test('execute template', async () => {
   group = await Testing.createElementProxy(Group, {
-    name: 'Test group',
+    name: 'Test group'
+  }, {
     '~runs': [
       {
         '->': 'echo0',
@@ -275,7 +280,8 @@ test('should include a file to execute', async () => {
 - echo: 2
 `)
     group = await Testing.createElementProxy(Group, {
-      name: 'Test group',
+      name: 'Test group'
+    }, {
       runs: [
         {
           echo: 0
