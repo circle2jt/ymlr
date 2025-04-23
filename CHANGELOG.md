@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.2-alpha.1.md](#1745400880835)  -  _4/23/2025, 4:34:40 PM_
 - [1.4.2-alpha.0.md](#1744785762389)  -  _4/16/2025, 1:42:42 PM_
 - [1.4.1.md](#1744171229882)  -  _4/9/2025, 11:00:29 AM_
 - [1.4.1-alpha.3.md](#1741787561942)  -  _3/12/2025, 8:52:41 PM_
@@ -120,6 +121,12 @@
 
 ## Details
 
+<a id="1745400880835"></a>
+### 1.4.2-alpha.1
+
+* fix(shares)!: update to support latest ymlr version (f995e21)
+* refactor!: replace template to props (145d16a)
+  
 <a id="1744785762389"></a>
 ### 1.4.2-alpha.0
 
