@@ -15,7 +15,7 @@ runs:
   - ->: git-http
     failure:
       ignore: true
-    template:
+    ;props:
       baseURL: https://api.github.com
       headers:
         Accept: application/vnd.github+json"

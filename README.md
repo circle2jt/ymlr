@@ -321,7 +321,7 @@ Use `template`
 ```yaml
   - ->: helloTemplate         # Not run
     template: true
-    echo: Hello               
+    echo: Hello
 
   - <-: helloTemplate         # => Hello
 
@@ -330,9 +330,9 @@ Use `template`
 Use `template`
 ```yaml
   - ->: hiTemplate            # Not run
-    ;event'emit: 
+    ;event'emit:
       name: test-event
-      data: Hi              
+      data: Hi
 
   - <-: hiTemplate            # => send "Hi" to "test-event"
 
@@ -833,7 +833,7 @@ Example:
   - ->: testEvent
     ;event'emit:
       name: test_event
-      data: 
+      data:
         hello: ${ this.$.cusName }
 
   - name: say hello to A
@@ -873,12 +873,12 @@ Declare a template to extends later
 Example:  
 
 ```yaml
-  - ->: localhost           
+  - ->: localhost
     template: true          # Template is true then it will be not run
     props:
       baseURL: http://localhost:3000
 
-  - ->: localhost           
+  - ->: localhost
     ;props:                 # Same with "template: true" then it will be not run
       baseURL: http://localhost:3000
 
