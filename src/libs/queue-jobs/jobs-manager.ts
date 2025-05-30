@@ -82,13 +82,13 @@ export class JobsManager {
         }
       }
     }
-    new Array(this.concurrent)
-      .fill(null)
-      .forEach(() => { this.pullJobToRun() })
     await Promise.race([
       new Promise((resolve, reject) => {
         this.resolve = resolve
         this.reject = reject
+        new Array(this.concurrent)
+          .fill(null)
+          .forEach(() => { this.pullJobToRun() })
       }),
       UtilityFunctionManager.Instance.hang
     ])
