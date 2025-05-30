@@ -51,14 +51,14 @@ import { type SceneThreadProps } from './scene-thread.props'
 
       - name: Listen data from childs thread
         ~event'on:
-          name: ${ $const.FROM_GLOBAL_EVENT }
+          name: ${ $c.FROM_GLOBAL_EVENT }
         runs:
           - name: Received data from thread ID ${ $parentState.eventOpt.fromID }
             echo: ${ $parentState.eventData }
 
       - name: Emit data to childs threads
         ~event'emit:
-          name: ${ $const.TO_GLOBAL_EVENT }
+          name: ${ $c.TO_GLOBAL_EVENT }
           data:
             name: this is data from main thread
   ```
@@ -69,14 +69,14 @@ import { type SceneThreadProps } from './scene-thread.props'
       name: Thread name will be overried by parent scene
     runs:
       - event'on:
-          name: ${ $const.FROM_GLOBAL_EVENT }
+          name: ${ $c.FROM_GLOBAL_EVENT }
         runs:
           - name: Thread ${ $vars.name } is received data from thread ID ${ $parentState.eventOpt.fromID }
             echo: ${ $parentState.eventData }
 
           - name: Thead ${ $vars.name } sent data to global event
             event'emit:
-              name: ${ $const.TO_GLOBAL_EVENT }
+              name: ${ $c.TO_GLOBAL_EVENT }
               data:
                 name: this is data from thread ${ $vars.name }
               # opts:
@@ -87,8 +87,8 @@ import { type SceneThreadProps } from './scene-thread.props'
   ```
 */
 export class SceneThread extends Scene {
-  #thread!: Worker
-  #id?: string
+  thread!: Worker
+  id?: string
   tagDirs?: string[]
 
   constructor(eProps: SceneThreadProps | string) {
@@ -97,13 +97,17 @@ export class SceneThread extends Scene {
     }
     const { id, tagDirs, ...props } = eProps
     super(props)
-    this.#id = id
+    this.id = id
     this.tagDirs = tagDirs
+    this.ignoreEvalProps.push('thread')
   }
 
   override async handleFile() {
+    this.path = this.proxy.getPath(this.path || '')
     assert(this.path)
-    this.path = this.proxy.getPath(this.path)
+  }
+
+  override async exec() {
     let tagDirs = this.tagDirs
     if (!tagDirs) {
       tagDirs = this.rootScene.tagsManager.tagDirs
@@ -116,7 +120,7 @@ export class SceneThread extends Scene {
         }
       }
     }
-    this.#thread = this.rootScene.workerManager.createWorker({
+    this.thread = this.rootScene.workerManager.createWorker({
       path: this.path,
       password: this.password,
       globalVars: removeCircleRef(toPlainObject(this.rootScene.localVars)),
@@ -124,17 +128,14 @@ export class SceneThread extends Scene {
     }, {
       debug: this.proxy.logger.level.level
     }, {}, {
-      id: this.#id,
+      id: this.id,
       tagDirs: tagDirs.map(dir => this.proxy.getPath(dir)),
       templates: this.rootScene.templatesManager
     })
-    if (!this.#id) {
-      this.#id = this.#thread.id
+    if (!this.id) {
+      this.id = this.thread.id
     }
-  }
-
-  override async exec() {
-    await this.#thread.exec()
+    await this.thread.exec()
     return []
   }
 }
