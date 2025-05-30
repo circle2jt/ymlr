@@ -1,3 +1,4 @@
+import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { type Logger } from '../logger'
 import { type StorageInterface } from '../storage/storage.interface'
 import { type Job } from './job'
@@ -81,13 +82,16 @@ export class JobsManager {
         }
       }
     }
-    return await new Promise((resolve, reject) => {
-      this.resolve = resolve
-      this.reject = reject
-      new Array(this.concurrent)
-        .fill(null)
-        .forEach(() => { this.pullJobToRun() })
-    })
+    new Array(this.concurrent)
+      .fill(null)
+      .forEach(() => { this.pullJobToRun() })
+    await Promise.race([
+      new Promise((resolve, reject) => {
+        this.resolve = resolve
+        this.reject = reject
+      }),
+      UtilityFunctionManager.Instance.hang
+    ])
   }
 
   stop() {

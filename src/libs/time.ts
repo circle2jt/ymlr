@@ -5,7 +5,7 @@ type DateTimeUnit = 'YYYY' | 'MM' | 'DD' | 'hh' | 'mm' | 'ss' | 'ms'
 export async function sleep(time: number | string) {
   const delayTime = formatTextToMs(time)
   if (!delayTime) return
-  return await new Promise(resolve => setTimeout(resolve, delayTime))
+  await new Promise(resolve => setTimeout(resolve, delayTime))
 }
 
 export function toDate(dateString: string, format: string) {

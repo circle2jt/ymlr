@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { GlobalEvent } from 'src/libs/global-event'
+import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -83,7 +84,10 @@ export class EventOn implements Element {
       this.#resolve = resolve
       this.#reject = reject
     })
-    await this.#t
+    await Promise.race([
+      this.#t,
+      UtilityFunctionManager.Instance.hang
+    ])
   }
 
   async stop() {

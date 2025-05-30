@@ -235,4 +235,18 @@ export class UtilityFunctionManager {
   get styles() {
     return chalk
   }
+
+  #hang?: Promise<void>
+  get hang() {
+    if (!this.#hang) {
+      this.#hang = new Promise<void>((resolve) => {
+        const tm = setTimeout(() => {
+          if (!tm?.refresh()) {
+            resolve()
+          }
+        }, 24 * 60 * 60000)
+      })
+    }
+    return this.#hang
+  }
 }
