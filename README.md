@@ -2410,14 +2410,14 @@ Send data via global event between threads and each others. (Includes main threa
 
     - name: Listen data from childs thread
       ~event'on:
-        name: ${ $const.FROM_GLOBAL_EVENT }
+        name: ${ $c.FROM_GLOBAL_EVENT }
       runs:
         - name: Received data from thread ID ${ $parentState.eventOpt.fromID }
           echo: ${ $parentState.eventData }
 
     - name: Emit data to childs threads
       ~event'emit:
-        name: ${ $const.TO_GLOBAL_EVENT }
+        name: ${ $c.TO_GLOBAL_EVENT }
         data:
           name: this is data from main thread
 ```
@@ -2428,14 +2428,14 @@ Send data via global event between threads and each others. (Includes main threa
     name: Thread name will be overried by parent scene
   runs:
     - event'on:
-        name: ${ $const.FROM_GLOBAL_EVENT }
+        name: ${ $c.FROM_GLOBAL_EVENT }
       runs:
         - name: Thread ${ $vars.name } is received data from thread ID ${ $parentState.eventOpt.fromID }
           echo: ${ $parentState.eventData }
 
         - name: Thead ${ $vars.name } sent data to global event
           event'emit:
-            name: ${ $const.TO_GLOBAL_EVENT }
+            name: ${ $c.TO_GLOBAL_EVENT }
             data:
               name: this is data from thread ${ $vars.name }
             # opts:

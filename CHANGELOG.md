@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.2-alpha.2.md](#1748606760920)  -  _5/30/2025, 7:06:00 PM_
 - [1.4.2-alpha.1.md](#1745400880835)  -  _4/23/2025, 4:34:40 PM_
 - [1.4.2-alpha.0.md](#1744785762389)  -  _4/16/2025, 1:42:42 PM_
 - [1.4.1.md](#1744171229882)  -  _4/9/2025, 11:00:29 AM_
@@ -121,6 +122,16 @@
 
 ## Details
 
+<a id="1748606760920"></a>
+### 1.4.2-alpha.2
+
+* fix(jobs-manager): fix unit test (baa115e)
+* refactor(log): reformat log style (0cfd1be)
+* fix(flow): warning when format is error (dc8c83d)
+* fix(scene'thread): no eval vars, id before pass to scene (3ba4467)
+* chore: format, log debug (256f3b0)
+* feat($u): Add hang() function to sleep forever (8a3999d)
+  
 <a id="1745400880835"></a>
 ### 1.4.2-alpha.1
 
