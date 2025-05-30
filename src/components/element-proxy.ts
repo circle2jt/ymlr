@@ -634,8 +634,8 @@ export class ElementProxy<T extends Element> {
     if (ps) {
       return ps
     }
-    if (!(this.$ instanceof RootScene)) {
-      this.logger.warn('Parent state is wrong')
+    if (!(this.$ instanceof RootScene) && this.rootScene) {
+      this.logger.warn(`Parent state is wrong [${this.tag}]`)
     }
     return (this.#parentState = {})
   }

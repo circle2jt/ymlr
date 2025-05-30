@@ -8,7 +8,7 @@ import { LoggerFactory } from './libs/logger/logger-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
-  static ThreadID = '#0'
+  static ThreadID = 'main'
   readonly #rootSceneProxy: ElementProxy<RootScene>
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
