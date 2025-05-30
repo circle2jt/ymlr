@@ -107,7 +107,11 @@ class YamlElement {
       this.name = name
       this.isAsync = async
       this.isDetach = detach
-      runs = runs.filter((props: any) => !props.skip)
+      try {
+        runs = runs.filter((props: any) => !props.skip)
+      } catch {
+        throw new Error('runs is not valid: ' + JSON.stringify(runs))
+      }
       if (runs.length) {
         this.runs = (await Promise.all((runs as any[])
           .map(async eprops => {
