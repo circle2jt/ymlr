@@ -1,4 +1,5 @@
-import { H_SPACE, V_SPACE } from './console'
+import chalk from 'chalk'
+import { H_SPACE, H_SPACE_0, V_SPACE, V_SPACE_0 } from './console'
 
 export class Indent {
   indentString = ''
@@ -7,7 +8,15 @@ export class Indent {
 
   set indent(indent: number) {
     this.#indent = indent
-    this.indentString = new Array(indent).fill(`${V_SPACE}${H_SPACE}`).join('')
+    this.indentString = chalk.gray.dim(new Array(indent)
+      .fill(`${V_SPACE_0}${H_SPACE_0}`)
+      .map((vl, i) => {
+        if (i === indent - 1) {
+          return vl.replace(V_SPACE_0, V_SPACE).replace(H_SPACE_0, H_SPACE)
+        }
+        return vl
+      })
+      .join(''))
   }
 
   get indent() {

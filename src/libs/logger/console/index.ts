@@ -1,4 +1,3 @@
-import chalk from 'chalk'
 import { App } from 'src/app'
 import { type ErrorStack } from 'src/libs/error-stack'
 import { Logger } from '..'
@@ -7,8 +6,10 @@ import { type Level } from '../level'
 import { LoggerLevel } from '../logger-level'
 import { StyleFactory } from './styles/style-factory'
 
-export const V_SPACE = chalk.gray.dim('├')
-export const H_SPACE = chalk.gray.dim('╴')
+export const V_SPACE = '│'
+export const H_SPACE = '─╴'
+export const V_SPACE_0 = '│'
+export const H_SPACE_0 = '  '
 
 export class ConsoleLogger extends Logger {
   indent = new Indent()
