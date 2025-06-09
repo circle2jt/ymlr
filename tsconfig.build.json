@@ -29,7 +29,8 @@
   },
   "include": [
     "src",
-    "bin/cli.js"
+    "bin/cli.js",
+    "bin/cli.bun.js"
   ],
   "exclude": [
     "src/**/*.spec.ts",

@@ -16,5 +16,5 @@ RUN mkdir /my-tags && \
 RUN cd /usr/local/lib && \
     bun add ymlr@$VERSION
 
-ENTRYPOINT ["bun", "run", "/usr/local/lib/node_modules/ymlr/bin/cli.js", "--tag-dirs", "/my-tags", "--"]
+ENTRYPOINT ["/usr/local/lib/node_modules/ymlr/bin/cli.bun.js"]
 CMD ["/scripts/index.yaml", ""]
