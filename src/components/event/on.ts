@@ -26,6 +26,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           - test-event2
           - test-event3
       runs:
+        - echo: ${ $parentState.eventName }   # => test-event1 or test-event2 or test-event3
         - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
         - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
   ```
@@ -69,6 +70,7 @@ export class EventOn implements Element {
         const [data, ...opts] = args
         try {
           await this.innerRunsProxy.exec({
+            eventName: name,
             eventData: data,
             eventOpt: opts[0],
             eventOpts: opts
