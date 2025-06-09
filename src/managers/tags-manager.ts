@@ -16,6 +16,8 @@ export class TagsManager {
     return this.rootScene.proxy.logger
   }
 
+  private readonly caches = new Map<string, any>()
+
   constructor(private readonly rootScene: RootScene) { }
 
   register(name: string, pathOfModule: string) {
@@ -28,16 +30,13 @@ export class TagsManager {
 
   async getTag(name: string) {
     const path = this.modules[name]
-    let isExit: boolean | undefined
     try {
-      assert(path, `Could not found tag "${name}"`)
-      isExit = true
+      assert(path, `Could not found tag "${name}" in the modules`)
       const Clazz = await import(path)
       return Clazz
     } catch (err: any) {
       const tag = this.tags[name]
       if (!tag) {
-        err.$$exit = isExit
         throw err
       }
       return tag
@@ -50,67 +49,86 @@ export class TagsManager {
 
   async loadElementClass(name: string, proxy: ElementProxy<Element>) {
     const logger = proxy.logger
-    let ElementModule: any
     const [path, className = 'default'] = name.split(ClassInFileCharacter)
     // let classNameKebab = kebabToCamelCase(className)
     // if (className === classNameKebab) classNameKebab = undefined
-    let triedToInstall: true | undefined
+    const classKey = `${path}${ClassInFileCharacter}${className}`
+    let ElementClazz: any = this.caches.get(classKey)
+    if (ElementClazz) return ElementClazz
+
     let tagName: string | undefined
-    do {
-      const errors = []
-      try {
+    let ElementModule = this.caches.get(path)
+    if (!ElementModule) {
+      let triedToInstall: true | undefined
+      do {
+        const errors = []
+        // Load from native
         try {
           ElementModule = await import(`../components/${path}`)
         } catch (err) {
-          for (const dir of this.tagDirs) {
-            try {
-              ElementModule = await import(proxy.getPath(join(dir, path)))
-            } catch (err) {
-              errors.push(err)
-            }
-          }
-          if (!ElementModule) throw err
+          errors.push(new Error(`Could not found module at ../components/${path}`))
         }
-      } catch (err1: any) {
-        errors.push(err1)
+        if (ElementModule) break
+
+        // Load from ext tags
+        try {
+          ElementModule = await import(`../node_modules/${path}`)
+        } catch {
+          errors.push(new Error(`Could not found module at ../node_modules/${path}`))
+        }
+        if (ElementModule) break
+
+        // Load from external source code
+        for (const dir of this.tagDirs) {
+          const modulePath = proxy.getPath(join(dir, path))
+          try {
+            ElementModule = await import(modulePath)
+          } catch {
+            errors.push(new Error(`Could not found module at "${modulePath}"`))
+          }
+          if (ElementModule) break
+        }
+        if (ElementModule) break
+
+        // Load from tag-register
         try {
           ElementModule = await this.getTag(path)
           tagName = path
-        } catch (err2: any) {
-          errors.push(err2)
-          if (err2.$$exit) throw err2
-          try {
-            ElementModule = await import(path)
-          } catch (err3: any) {
-            errors.push(err3)
-            if (triedToInstall) {
-              errors.forEach(err => logger.error(err?.message)?.trace(err))
-              throw new Error(`Could not found class "${className}" in "${path}"`)
-            }
-            triedToInstall = true
-            errors.forEach(err => logger.warn(err))
-            await this.install(path)
-          }
+        } catch (err) {
+          errors.push(err)
         }
-      }
-    } while (!ElementModule)
-    let ElementClazz = ElementModule[className] // || OwnerClazz[classNameKebab]
+        if (ElementModule) break
+
+        // Load from global modules
+        try {
+          ElementModule = await import(path)
+        } catch {
+          errors.push(new Error(`Could not found global module "${path}"`))
+        }
+        if (ElementModule) break
+
+        if (!triedToInstall) {
+          triedToInstall = true
+          errors.forEach((err: any) => logger.warn(err?.message))
+          await this.install(path)
+          continue
+        }
+
+        throw new Error(`Could not found class "${className}" in "${path}"`)
+      } while (!ElementModule)
+      this.caches.set(path, ElementModule)
+    }
+    ElementClazz = ElementModule[className] // || OwnerClazz[classNameKebab]
     if (ElementClazz && !ElementClazz.prototype) {
       if (typeof ElementClazz === 'function') {
         // Function type
-        try {
-          ElementClazz = await ElementClazz()
-        } catch (err: any) {
-          err.$$exit = true
-          throw err
-        }
+        ElementClazz = await ElementClazz()
       } else {
         // Instance type
         const { constructor, ...objProps } = ElementClazz
         tagName = name
         ElementClazz = class UnknownTag implements Element {
           readonly proxy!: ElementProxy<this>
-
           constructor(props?: any) {
             constructor?.call(this, props)
           }
@@ -123,13 +141,14 @@ export class TagsManager {
     }
     assert(ElementClazz?.prototype, `Could not found the tag "${path}.${className}"`)
     // Class type
+    this.caches.set(classKey, ElementClazz)
     if (tagName) ElementClazz.tag = tagName
     return ElementClazz as ElementClass
   }
 
   private async install(...packages: string[]) {
-    packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
     if (!this.prInstall) {
+      packages.forEach(pack => !this.packages.includes(pack) && this.packages.push(pack))
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       this.prInstall = new Promise<any>(async (resolve, reject) => {
         try {
