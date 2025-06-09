@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.2-alpha.3.md](#1749470002288)  -  _6/9/2025, 6:53:22 PM_
 - [1.4.2-alpha.2.md](#1748606760920)  -  _5/30/2025, 7:06:00 PM_
 - [1.4.2-alpha.1.md](#1745400880835)  -  _4/23/2025, 4:34:40 PM_
 - [1.4.2-alpha.0.md](#1744785762389)  -  _4/16/2025, 1:42:42 PM_
@@ -122,6 +123,14 @@
 
 ## Details
 
+<a id="1749470002288"></a>
+### 1.4.2-alpha.3
+
+* doc(event'on): Update DOC for event'on (9039387)
+* fix(tagManager): cached to reuse before try to reload new tag (ae9c5a2)
+* feat(event'on): add $ps.eventName (0855f6c)
+* fix(build): add bun cli for bun env (63622c3)
+  
 <a id="1748606760920"></a>
 ### 1.4.2-alpha.2
 
