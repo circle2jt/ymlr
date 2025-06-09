@@ -1079,6 +1079,7 @@ Example:
         - test-event2
         - test-event3
     runs:
+      - echo: ${ $parentState.eventName }   # => test-event1 or test-event2 or test-event3
       - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
       - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
 ```
