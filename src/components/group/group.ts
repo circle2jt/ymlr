@@ -1,6 +1,7 @@
 import assert from 'assert'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
+import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
@@ -410,7 +411,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const failure = baseProps.failure
         if (!failure) throw error
         if (failure.restart?.max) {
-          elemProxy.logger.warn(`[RETRY] ${failure.restart.max} \t ${title || ''}`)?.error(failure.logDetails ? error : error?.message)?.trace(error)
+          let failureLogger: Logger
+          if (failure.debug) {
+            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
+          } else {
+            failureLogger = this.logger
+          }
+          failureLogger.error(error?.message)?.warn(`[RETRY] ${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
 
           --failure.restart.max
           if (failure.restart.sleep) {
@@ -420,7 +428,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           return
         }
         if (!failure.ignore) throw error
-        elemProxy.logger.warn(failure.logDetails ? error : error?.message)?.trace(error)
+        let failureLogger: Logger
+        if (failure.debug) {
+          const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+          failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
+        } else {
+          failureLogger = this.logger
+        }
+        failureLogger.warn(error?.message)?.trace(error)
       }
     })(elemProxy, name, baseProps, props)
 

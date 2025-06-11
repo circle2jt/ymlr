@@ -200,6 +200,7 @@ export class ElementProxy<T extends Element> {
     @example
     ```yaml
       - failure:
+          debug: warn                  # Show warning when failed
           restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
             max: 3
             sleep: 3s
@@ -214,7 +215,7 @@ export class ElementProxy<T extends Element> {
   */
   failure?: {
     ignore?: boolean
-    logDetails?: boolean
+    debug?: string | boolean
     restart?: {
       max: number
       sleep: number | string
