@@ -403,14 +403,21 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         title = elemProxy.name || elemProxy.contextName
         baseProps.async = false
         baseProps.detach = false
-        baseProps.failure = elemProxy.failure
+        if (elemProxy.failure?.restart && baseProps.failure?.restart) {
+          baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
+        }
       } finally {
         await elemProxy.dispose()
       }
       if (error) {
-        const failure = baseProps.failure
-        if (!failure) throw error
-        if (failure.restart?.max) {
+        if (!baseProps.failure) throw error
+        const failure = await this.scene.getVars(cloneDeep(baseProps.failure), this)
+        if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count <= failure.restart.max))) {
+          ++failure.restart.count
+          if (baseProps.failure?.restart) {
+            baseProps.failure.restart.count = failure.restart.count
+          }
+
           let failureLogger: Logger
           if (failure.debug) {
             const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
@@ -418,9 +425,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           } else {
             failureLogger = this.logger
           }
-          failureLogger.error(error?.message)?.warn(`[RETRY] ${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
+          failureLogger.error(error?.message)?.warn(`[RETRY] ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
 
-          --failure.restart.max
           if (failure.restart.sleep) {
             await sleep(failure.restart.sleep)
           }
