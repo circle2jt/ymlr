@@ -551,6 +551,7 @@ Example:
 
 ```yaml
   - failure:
+      debug: warn                  # Show warning when failed
       restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
         max: 3
         sleep: 3s
