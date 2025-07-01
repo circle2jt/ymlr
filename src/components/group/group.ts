@@ -412,7 +412,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (error) {
         if (!baseProps.failure) throw error
         const failure = await this.scene.getVars(cloneDeep(baseProps.failure), this)
-        if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count <= failure.restart.max))) {
+        if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))) {
           ++failure.restart.count
           if (baseProps.failure?.restart) {
             baseProps.failure.restart.count = failure.restart.count
@@ -425,7 +425,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           } else {
             failureLogger = this.logger
           }
-          failureLogger.error(error?.message)?.warn(`[RETRY] ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
+          failureLogger.error(error?.message)?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
 
           if (failure.restart.sleep) {
             await sleep(failure.restart.sleep)
