@@ -439,7 +439,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
           failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
         } else {
-          failureLogger = this.logger
+          failureLogger = elemProxy.logger
         }
         failureLogger.warn(error?.message)?.trace(error)
       }
