@@ -4,7 +4,6 @@ import { join } from 'path'
 import { FileStorage } from 'src/libs/storage/file-storage'
 import { MemStorage } from 'src/libs/storage/mem-storage'
 import { type StorageInterface } from 'src/libs/storage/storage.interface'
-import { setTimeout } from 'timers/promises'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -15,15 +14,22 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   @order 6
   @example
   ```yaml
-    - fn-queue:
+    - id: myQueue
+      fn-queue:
         name: My Queue 1        # Use stateless queue, not reload after startup
         concurrent: 2
-        startup: true           # Run ASAP
+        startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
         queueData:              # Pass input data to queue to do async task
           dataFromParentState: ${ $ps.channelData.name }
       runs:
         - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
         - echo: ${ $parentState.queueData.dataFromParentState }
+
+        - echo: ${ $ps.queueData }    # Queue data
+        - echo: ${ $ps.queueInStore } # Describe this job queue is loaded from store, not added later
+        - echo: ${ $ps.queueIndex }   # Queue index. Start from 0, reload when restart
+        - echo: ${ $ps.queueCount }   # Count of queue which not done
+        - echo: ${ $ps.queueName }    # Queue name
 
     - fn-queue:
         name: My Queue 1
@@ -50,6 +56,8 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           key2: value 2
   ```
 */
+const QUEUE_REMOVED = Symbol('QUEUE_REMOVED')
+
 export class FNQueue implements Element {
   static readonly Caches = new Map<string, FNQueue>()
   readonly proxy!: ElementProxy<this>
@@ -70,13 +78,18 @@ export class FNQueue implements Element {
   }
 
   queue = new Array<any>()
-  isLoaded = false
 
   #taskCount = 0
+  #taskIndex = -1
   #store!: StorageInterface
-  #isStoped = false
+  #isStoped?: boolean
   #t?: Promise<any>
   #resolve?: any
+  #initJobCountInStore = 0
+
+  get availQueue() {
+    return this.queue.filter(data => data !== QUEUE_REMOVED)
+  }
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -88,68 +101,113 @@ export class FNQueue implements Element {
     const existed = FNQueue.Caches.get(this.name)
     if (!existed) {
       FNQueue.Caches.set(this.name, this)
+      if (this.db !== undefined) {
+        if (this.db === null) {
+          this.db = {
+            path: ''
+          }
+        }
+        if (!this.db.path) {
+          this.db.path = join(tmpdir(), this.name)
+        }
+        this.#store = new FileStorage(this.logger, this.db.path, this.db.password)
+      } else {
+        this.#store = new MemStorage(this.logger)
+      }
       this.load()
       if (this.startup) {
+        this.start()
         this.push(this.queueData)
       }
-      this.isLoaded = true
     } else {
-      while (!existed.isLoaded) {
-        await setTimeout(100)
-      }
       existed.push(this.queueData)
     }
   }
 
   push(queueData: any) {
+    if (queueData === null) return
     this.logger.debug('Add a job in queue "%s"\t%j', this.name, queueData)
     this.queue.push(queueData)
     this.save()
-    // eslint-disable-next-line
-    setImmediate(async () => await this.run())
+    if (this.#isStoped === false) {
+      this.run()
+    }
   }
 
-  async run() {
-    if (!this.#isStoped && this.#taskCount < this.concurrent && this.queue.length) {
+  run() {
+    while (this.#isStoped === false && this.#taskCount < this.concurrent && this.#taskIndex < this.queue.length - 1) {
       if (!this.#t) {
         this.#t = new Promise((resolve) => {
           this.#resolve = resolve
         })
       }
       ++this.#taskCount
+      ++this.#taskIndex
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setImmediate(async (queueData, queueCount) => {
+      setImmediate(async (queueData, queueIndex) => {
         this.logger.debug('Run a job in queue "%s"\t%j', this.name, queueData)
         let isStop = false
         try {
           await this.innerRunsProxy.exec({
             queueName: this.name,
             queueData,
-            queueCount
+            queueIndex,
+            queueCount: this.availQueue.length,
+            queueInStore: queueIndex < this.#initJobCountInStore
           })
         } catch (err: any) {
-          this.logger.error(err)
+          err.queueData = queueData
+          this.logger.error('Job in queue "%s" error', this.name, err)
           if (!this.skipError) {
             this.queue.push(queueData)
-            this.save()
             isStop = true
           }
         } finally {
+          this.queue[queueIndex] = QUEUE_REMOVED
+          this.save()
           --this.#taskCount
+
           if (isStop) {
+            // Job error then force stop queue
             this.#resolve()
             this.#t = undefined
             await this.stop()
-          } else if (this.#taskCount === 0 && this.queue.length === 0) {
+          } else if (this.#taskCount === 0 && this.availQueue.length === 0) {
+            // All job in queue done
             this.#resolve()
             this.#t = undefined
           } else {
-            await this.run()
+            // Job done then there are some waiting jobs in the queue
+            this.run()
           }
         }
-      }, this.queue.shift(), this.queue.length)
-      this.save()
+      }, this.queue[this.#taskIndex], this.#taskIndex)
     }
+  }
+
+  private load() {
+    this.logger.debug('Load queue jobs ' + this.name)
+    this.queue = this.#store.load([])
+    this.#taskIndex = -1
+    this.#taskCount = 0
+    this.#isStoped = undefined
+    this.#t = undefined
+    this.#initJobCountInStore = this.queue.length
+  }
+
+  start() {
+    this.logger.debug('Start queue ' + this.name)
+    this.#isStoped = false
+    this.run()
+  }
+
+  filter(filter: (queue: any) => boolean) {
+    this.queue = this.queue.map(queue => {
+      if (QUEUE_REMOVED === queue || !filter(queue)) {
+        return QUEUE_REMOVED
+      }
+      return queue
+    })
   }
 
   async stop() {
@@ -175,24 +233,6 @@ export class FNQueue implements Element {
 
   private save() {
     this.logger.debug('Saved queue ' + this.name)
-    this.#store.save(this.queue)
-  }
-
-  private load() {
-    this.logger.debug('Loaded queue ' + this.name)
-    if (this.db !== undefined) {
-      if (this.db === null) {
-        this.db = {
-          path: ''
-        }
-      }
-      if (!this.db.path) {
-        this.db.path = join(tmpdir(), this.name)
-      }
-      this.#store = new FileStorage(this.logger, this.db.path, this.db.password)
-    } else {
-      this.#store = new MemStorage(this.logger)
-    }
-    this.queue = this.#store.load([])
+    this.#store.save(this.availQueue)
   }
 }

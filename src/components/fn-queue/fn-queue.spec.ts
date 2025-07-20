@@ -27,10 +27,7 @@ test('fn-queue should be run correctly', async () => {
     ]
   })
   try {
-    await Promise.race<any>([
-      fn.exec(),
-      setTimeout(200)
-    ])
+    await fn.exec()
     await setTimeout(200)
     expect(Testing.vars.key1 === 'value 1')
   } finally {
@@ -67,6 +64,7 @@ test('fn-queue with concurrent > 1', async () => {
     fn.$.push({ key1: 'value 5' })
     fn.$.push({ key1: 'value 6' })
     fn.$.push({ key1: 'value 7' })
+    fn.$.start()
     await setTimeout(1000)
     expect(Testing.vars.rs).toHaveLength(5)
   } finally {

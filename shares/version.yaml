@@ -16,7 +16,6 @@ vars:
   scanCount: 10
   gitLogs: []
 runs:
-  - echo: ${$v}
   - name: Validate input
     runs:
       - if: ${!$v.versionName}
@@ -60,7 +59,7 @@ runs:
       npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${$v.preid} ${$v.versionName}
     vars:
       lastCommit: "chore${$v.versionName === 'major' ? '!' : ''}: ${$v.versionName} ${this.result}"
-      version: ${this.result}
+      version: ${this.result.trim().replace(/\r|\n/g, '')}
 
   - name: Commit information
     runs:
