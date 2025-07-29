@@ -42,9 +42,12 @@ export function formatDuration(ms: number) {
   const [m, remainM] = getNum(remainH, 1000 * 60)
   const [s, ss] = getNum(remainM, 1000)
 
-  const time = [ss, s, m, h].filter(n => n)
-  const label = ['ms', 's', 'm', 'h']
-  return time.map((t, i) => `${t}${label[i]}`).reverse().join(' ')
+  const time = [h, m, s, ss]
+  const label = ['h', 'm', 's', 'ms']
+  return time
+    .map((t, i) => t ? `${t} ${label[i]}` : null)
+    .filter(n => n)
+    .join(' ')
 }
 
 export function formatTextToMs(time: string | number) {
