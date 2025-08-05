@@ -45,7 +45,7 @@ export function formatDuration(ms: number) {
   const time = [h, m, s, ss]
   const label = ['h', 'm', 's', 'ms']
   return time
-    .map((t, i) => t ? `${t} ${label[i]}` : null)
+    .map((t, i) => t ? `${t}${label[i]}` : null)
     .filter(n => n)
     .join(' ')
 }
