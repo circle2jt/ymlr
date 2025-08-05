@@ -73,10 +73,8 @@ export abstract class Logger extends EventEmitter {
     }
     Object.keys(LoggerCoreLevel)
       .forEach(level => {
-        if (levelsDisable.has(level)) {
+        if (levelsDisable.has(level) && (this as any)[level] !== this.silent) {
           (this as any)[level] = this.silent
-        } else if ((this as any)[level] === this.silent) {
-          (this as any)[level] = this.constructor.prototype[level].bind(this)
         }
       })
   }
