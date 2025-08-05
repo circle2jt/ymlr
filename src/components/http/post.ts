@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import FormData from 'form-data'
 import { FileRemote } from 'src/libs/file-remote'
 import { formatNumber } from 'src/libs/format'
 import { LoggerLevel } from 'src/libs/logger/logger-level'
@@ -98,22 +97,14 @@ export class Post extends Get {
     } else if (this.type === 'multipart') {
       this.setHeader('content-type', 'multipart/form-data')
       if (hasBody) {
-        const form1 = new FormData()
-        const keys = Object.keys(body)
-        for (const key of keys) {
-          const vl = this.body[key]
+        for (const key of Object.keys(body)) {
           // file: {path: '', name: '', }
-          if (typeof vl === 'object') {
+          if (typeof body[key] === 'object') {
             if (!this.#isUpload) this.#isUpload = true
-            const { path, name } = vl as UploadFile
-            const buf = await new FileRemote(path, this.proxy).getContent()
-            form1.append(key, buf, { filename: name })
-          } else {
-            form1.append(key, vl)
+            const { path } = body[key] as UploadFile
+            body[key] = await new FileRemote(path, this.proxy).getStream()
           }
         }
-        Object.assign(this.headers, form1.getHeaders())
-        body = form1
       }
     } else if (this.type === 'text') {
       this.setHeader('content-type', 'text/plain')

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { existsSync, statSync } from 'fs'
+import { createReadStream, existsSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
@@ -31,6 +31,14 @@ export class FileRemote {
   get existed() {
     if (this.isRemote) return undefined
     return existsSync(this.uri)
+  }
+
+  async getStream() {
+    if (!this.isRemote) {
+      return createReadStream(this.uri)
+    }
+    const resp = await fetch(this.uri)
+    return resp.body
   }
 
   async getContent() {
