@@ -555,6 +555,9 @@ Example:
       restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
         max: 3
         sleep: 3s
+        sequence:                  # all of failed elements in same name will be restart sequence after sleep time
+          name: test
+          sleep: 1s
       ignore: true                 # After retry 3 time failed, it keeps playing, not exit
     js: |
       const a = 1/0
@@ -1205,15 +1208,22 @@ Register a queue job
 Example:  
 
 ```yaml
-  - fn-queue:
+  - id: myQueue
+    fn-queue:
       name: My Queue 1        # Use stateless queue, not reload after startup
       concurrent: 2
-      startup: true           # Run ASAP
+      startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
       queueData:              # Pass input data to queue to do async task
         dataFromParentState: ${ $ps.channelData.name }
     runs:
       - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
       - echo: ${ $parentState.queueData.dataFromParentState }
+
+      - echo: ${ $ps.queueData }    # Queue data
+      - echo: ${ $ps.queueInStore } # Describe this job queue is loaded from store, not added later
+      - echo: ${ $ps.queueIndex }   # Queue index. Start from 0, reload when restart
+      - echo: ${ $ps.queueCount }   # Count of queue which not done
+      - echo: ${ $ps.queueName }    # Queue name
 
   - fn-queue:
       name: My Queue 1

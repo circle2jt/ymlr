@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.3-alpha.0.md](#1755681296476)  -  _8/20/2025, 4:14:56 PM_
 - [1.4.2.md](#1751368423814)  -  _7/1/2025, 6:13:43 PM_
 - [1.4.2-alpha.3.md](#1749470002288)  -  _6/9/2025, 6:53:22 PM_
 - [1.4.2-alpha.2.md](#1748606760920)  -  _5/30/2025, 7:06:00 PM_
@@ -124,6 +125,17 @@
 
 ## Details
 
+<a id="1755681296476"></a>
+### 1.4.3-alpha.0
+
+* fix: leak mem (279ffdc)
+* fix(format): replace space in format duration (1613bce)
+* fix(logger): get wrong log level from parent (df378d7)
+* fix: replace axios to skip warning utils.Array (c91cdbd)
+* fix(utils): formatDuration not format when time is long (c5041e9)
+* fix(fn-queue): not retry after error (b25a0af)
+* fix: not apply current log level when failure.restart (2bb6a9c)
+  
 <a id="1751368423814"></a>
 ### 1.4.2
 
