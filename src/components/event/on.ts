@@ -1,6 +1,5 @@
 import assert from 'assert'
 import { GlobalEvent } from 'src/libs/global-event'
-import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -47,10 +46,10 @@ export class EventOn implements Element {
 
   names!: string[]
 
-  #handlers!: any[]
-  #resolve?: (_: any) => void
-  #reject?: (err: Error) => void
-  #t?: Promise<any>
+  private handlers!: any[]
+  private resolve?: (_: any) => void
+  private reject?: (err: Error) => void
+  private t?: Promise<any>
 
   constructor({ name, names = [], ...props }: any) {
     if (name) names.push(name)
@@ -58,14 +57,14 @@ export class EventOn implements Element {
   }
 
   async exec() {
-    if (this.#t) return
+    if (this.t) return
     assert(this.names?.length)
 
-    this.#handlers = new Array(this.names.length)
+    this.handlers = new Array(this.names.length)
     this.names.forEach((name, i) => {
       this.proxy.logger.trace('Listening event %s', name)
 
-      this.#handlers[i] = async (...args: any[]) => {
+      this.handlers[i] = async (...args: any[]) => {
         this.proxy.logger.trace('<-[%s]: %j', name, ...args)
         const [data, ...opts] = args
         try {
@@ -76,33 +75,30 @@ export class EventOn implements Element {
             eventOpts: opts
           })
         } catch (err: any) {
-          this.#reject?.(err as Error)
+          this.reject?.(err as Error)
         }
       }
-      GlobalEvent.on(name, this.#handlers[i])
+      GlobalEvent.on(name, this.handlers[i])
     })
 
-    this.#t = new Promise((resolve, reject) => {
-      this.#resolve = resolve
-      this.#reject = reject
+    this.t = new Promise((resolve, reject) => {
+      this.resolve = resolve
+      this.reject = reject
     })
-    await Promise.race([
-      this.#t,
-      UtilityFunctionManager.Instance.hang
-    ])
+    await this.t
   }
 
   async stop() {
-    if (this.#t) {
+    if (this.t) {
       this.names.forEach((name, i) => {
         this.proxy.logger.trace('Off %s', name)
-        GlobalEvent.off(name, this.#handlers[i])
+        GlobalEvent.off(name, this.handlers[i])
       })
-      this.#resolve?.(undefined)
-      await this.#t
-      this.#t = undefined
-      this.#resolve = undefined
-      this.#reject = undefined
+      this.resolve?.(undefined)
+      this.handlers = []
+      this.t = undefined
+      this.resolve = undefined
+      this.reject = undefined
     }
   }
 

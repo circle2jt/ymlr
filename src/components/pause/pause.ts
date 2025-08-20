@@ -16,20 +16,20 @@ import { type Element } from '../element.interface'
 export class Pause implements Element {
   readonly proxy!: ElementProxy<this>
 
-  #confirm?: InputConfirm
+  private confirm?: InputConfirm
 
   private getInputOptions() {
     return { label: '⏸ Continue ?', yes: 'Continue', no: chalk.red('Stop now') }
   }
 
   async exec() {
-    this.#confirm = new InputConfirm({ default: true, ...this.getInputOptions() })
-    const isContinue = await this.#confirm.exec()
+    this.confirm = new InputConfirm({ default: true, ...this.getInputOptions() })
+    const isContinue = await this.confirm.exec()
     if (!isContinue) process.exit(1)
   }
 
   continue() {
-    this.#confirm?.answer('')
+    this.confirm?.answer('')
   }
 
   dispose() { }

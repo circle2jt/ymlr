@@ -18,6 +18,6 @@ import { FNDebounceCancel } from './fn-debounce-cancel'
 */
 export class FNDebounceDelete extends FNDebounceCancel {
   override exec() {
-    this.name?.forEach(name => DebounceManager.Instance.delete(name))
+    this.name?.forEach(name => { DebounceManager.Instance.remove(name) })
   }
 }

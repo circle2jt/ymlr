@@ -27,8 +27,8 @@ test('cancel a fn-throttle', async () => {
     ]
   })
   try {
-    await fnThrottle.exec()
-    await fnThrottle.exec()
+    void fnThrottle.exec()
+    void fnThrottle.exec()
     await sleep(200)
     const fnThrottleCancel = await Testing.createElementProxy(FNThrottleCancel, 'ttaskc1')
     await fnThrottleCancel.exec()

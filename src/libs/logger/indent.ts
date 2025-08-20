@@ -4,10 +4,9 @@ import { H_SPACE, H_SPACE_0, V_SPACE, V_SPACE_0 } from './console'
 export class Indent {
   indentString = ''
 
-  #indent = 0
-
+  private _indent = 0
   set indent(indent: number) {
-    this.#indent = indent
+    this._indent = indent
     this.indentString = chalk.gray.dim(new Array(indent)
       .fill(`${V_SPACE_0}${H_SPACE_0}`)
       .map((vl, i) => {
@@ -20,7 +19,7 @@ export class Indent {
   }
 
   get indent() {
-    return this.#indent
+    return this._indent
   }
 
   constructor(indent = 0) {

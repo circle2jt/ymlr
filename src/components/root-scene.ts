@@ -1,5 +1,4 @@
 import chalk from 'chalk'
-import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { GlobalEvent } from 'src/libs/global-event'
@@ -48,12 +47,12 @@ export class RootScene extends Scene {
   override readonly isRootScene = true
   override readonly isScene = true
 
-  #workerManager?: WorkerManager
+  private _workerManager?: WorkerManager
   get workerManager() {
-    return this.#workerManager || (this.#workerManager = new WorkerManager(this.logger.clone('worker-manager')))
+    return this._workerManager || (this._workerManager = new WorkerManager(this.logger.clone('worker-manager')))
   }
 
-  readonly #backgroundJobs = new Array<Promise<any>>()
+  readonly backgroundJobs = new Array<Promise<any>>()
   readonly tagsManager = new TagsManager(this)
   readonly globalUtils = UtilityFunctionManager.Instance
   readonly onAppExit = new Array<AppEvent>()
@@ -81,7 +80,9 @@ export class RootScene extends Scene {
 
   constructor({ globalVars, ...props }: RootSceneProps) {
     super(props)
-    if (globalVars) merge(this.localVars, globalVars)
+    if (globalVars) {
+      this.localVars = globalVars
+    }
     this.ignoreEvalProps.push('globalUtils', 'tagsManager', 'runDir', 'onAppExit')
   }
 
@@ -115,14 +116,14 @@ export class RootScene extends Scene {
   }
 
   pushToBackgroundJob(task: Promise<any>) {
-    this.#backgroundJobs.push(task)
+    this.backgroundJobs.push(task)
   }
 
   override async exec() {
     const rs = await super.exec()
     await Promise.all([
-      this.#workerManager?.exec(),
-      ...this.#backgroundJobs
+      this._workerManager?.exec(),
+      ...this.backgroundJobs
     ])
     return rs
   }
@@ -132,7 +133,7 @@ export class RootScene extends Scene {
       super.dispose()
     ]
     try {
-      if (this.#workerManager) proms.push(this.#workerManager.dispose())
+      if (this._workerManager) proms.push(this._workerManager.dispose())
       if (this.onAppExit.length) proms.push(...this.onAppExit.map((elem: AppEvent) => elem.onAppExit()))
       await Promise.all(proms)
     } finally {

@@ -47,6 +47,7 @@ const REGEX_FIRST_UPPER = /^[A-Z]/
 */
 export class Scene extends Group<GroupProps, GroupItemProps> {
   override readonly isScene = true
+
   name?: string
   path?: string
   vars?: Record<string, any>
@@ -54,37 +55,45 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   templatesManager: Record<string, any> = {}
 
+  readonly localCaches = new Map<string, any[]>()
+
   protected readonly password?: string
   protected override get innerScene() {
     return this
   }
 
-  #content?: string
+  private readonly content?: string
   #localVars!: { proxy: Record<string, any>, revoke: () => void }
   set localVars(vars: Record<string, any>) {
     this.#localVars = Proxy.revocable(vars, {
-      set: (target: any, name: any, vl: any) => {
-        if (REGEX_FIRST_UPPER.test(name[0])) {
-          Object.defineProperty(target, name, {
-            enumerable: true,
-            get: () => {
-              return this.proxy.rootScene.localVars[name]
-            },
-            set: (vl: any) => {
-              this.proxy.rootScene.localVars[name] = vl
-            }
-          })
+      get: (target: any, name: any) => {
+        if (!REGEX_FIRST_UPPER.test(name[0])) {
+          return target[name]
         }
-        target[name] = vl
+        return this.proxy.rootScene.localVars[name]
+      },
+      has: (target: any, name: any) => {
+        if (!REGEX_FIRST_UPPER.test(name[0])) {
+          return name in target
+        }
+        return name in this.proxy.rootScene.localVars
+      },
+      set: (target: any, name: any, vl: any) => {
+        if (!REGEX_FIRST_UPPER.test(name[0])) {
+          target[name] = vl
+          return true
+        }
+        this.proxy.rootScene.localVars[name] = vl
         return true
       },
       deleteProperty: (target: any, name: any) => {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete target[name]
-        if (REGEX_FIRST_UPPER.test(name[0])) {
+        if (!REGEX_FIRST_UPPER.test(name[0])) {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete this.proxy.rootScene.localVars[name]
+          delete target[name]
+          return true
         }
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete this.proxy.rootScene.localVars[name]
         return true
       }
     })
@@ -95,23 +104,6 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       this.localVars = {}
     }
     return this.#localVars.proxy
-  }
-
-  get globalVars() {
-    return Object.keys(this.localVars)
-      .filter(key => REGEX_FIRST_UPPER.test(key[0]))
-      .reduce((sum: Record<string, any>, key) => {
-        sum[key] = this.localVars[key]
-        return sum
-      }, {})
-  }
-
-  #localCaches!: Map<string, any[]>
-  get localCaches() {
-    if (!this.#localCaches) {
-      this.#localCaches = new Map<string, any[]>()
-    }
-    return this.#localCaches
   }
 
   get encryptedPath() {
@@ -126,13 +118,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     const { path, content, password, vars, ...props } = eProps
     super(props)
     this.password = password
-    this.#content = content
+    this.content = content
     Object.assign(this, { path, vars })
     this.ignoreEvalProps.push('curDir', 'password', 'templatesManager')
   }
 
   async asyncConstructor() {
-    this.localVars = this.rootScene.globalVars
     Object.assign(this.templatesManager, this.scene.templatesManager)
     await this.handleFile()
   }
@@ -144,6 +135,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     } else {
       const { password, env, envFiles, ...remoteFileProps } = remoteFileRawProps
 
+      const envObject: any = {}
+
       if (envFiles?.length) {
         let envArrFiles = []
         if (Array.isArray(envFiles)) {
@@ -154,7 +147,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         for (const envFile of envArrFiles) {
           const fm = new FileRemote(envFile, this.proxy)
           const content = await fm.getTextContent()
-          Object.assign(process.env, Env.ParseEnvContent(content, true))
+          Object.assign(envObject, Env.ParseEnvContent(content, true))
         }
       }
 
@@ -163,14 +156,16 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         if (Array.isArray(env)) {
           (env as string[]).forEach(line => {
             const [key, value] = Env.ParseEnvLine(line, true)
-            process.env[key] = value
+            envObject[key] = value
           })
         } else if (typeof env === 'object') {
           Object.entries(env).forEach(([key, value]) => {
-            process.env[key] = value as string
+            envObject[key] = value as string
           })
         }
       }
+
+      process.env = merge(envObject, process.env)
 
       LoggerFactory.LoadFromEnv()
       if (password) {
@@ -209,8 +204,13 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   override async dispose() {
-    this.#localVars?.revoke()
-    this.templatesManager = {}
+    this.localCaches.clear();
+    (this.templatesManager as any) = null
+    if (this.#localVars) {
+      this.#localVars.revoke();
+      (this.#localVars as any).proxy = null;
+      (this.#localVars as any) = null
+    }
     await super.dispose()
   }
 
@@ -255,7 +255,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     let props: any
     this.path = await this.scene.getVars(this.path)
     let fileRemote: FileRemote | undefined
-    let content = this.#content
+    let content = this.content
     if (!content && this.path) {
       if (this.isRootScene) this.proxy.curDir = resolve('.')
       fileRemote = new FileRemote(this.path, this.proxy.parentProxy || this.proxy || null)
@@ -290,8 +290,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   inherit(tagName: string | undefined, baseProps: any, ids: string[] | string) {
     if (!ids?.length) return
     if (typeof ids === 'string') ids = [ids]
-    const tempProps = ids.reverse()
-      .reduce<any>((rs, id) => {
+    const tempProps = ids.reverse().reduce<any>((rs, id) => {
       const cached = this.templatesManager[id]
       if (!cached) {
         throw new Error(`Could not found element with id "${id}"`)

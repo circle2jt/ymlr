@@ -1,4 +1,5 @@
 import { sleep } from 'src/libs/time'
+import { SingletonManager } from 'src/managers/singleton-manager'
 import { Testing } from 'src/testing'
 import { FNSingleton } from './fn-singleton'
 
@@ -29,7 +30,7 @@ test('fn-singleton should be auto remove when done', async () => {
   } finally {
     await fn.dispose()
   }
-  expect(FNSingleton.Caches.size).toBe(0)
+  expect(SingletonManager.Instance.size).toBe(0)
 })
 
 test('fn-singleton should be run correctly with no trailing', async () => {

@@ -68,6 +68,10 @@ import { type IVerify } from './auth/IVerify'
 */
 export class HttpServer implements Element {
   readonly proxy!: ElementProxy<this>
+  readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
 
   address: string = '0.0.0.0:8811'
   opts?: {
@@ -93,13 +97,8 @@ export class HttpServer implements Element {
 
   cors?: CorsOptions
 
-  #authVerifier?: IVerify
-  #server?: Server
-
-  private get logger() { return this.proxy.logger }
-
-  // Support runs
-  innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  private authVerifier?: IVerify
+  private server?: Server
 
   constructor({ address, auth, type, ...props }: any) {
     Object.assign(this, { address, auth, type, ...props })
@@ -108,11 +107,11 @@ export class HttpServer implements Element {
   async exec() {
     assert(this.address)
     if (this.auth?.basic) {
-      this.#authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
+      this.authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
     } else if (this.auth?.custom) {
       const { onCheck, ...props } = this.auth.custom
-      this.#authVerifier = new CustomAuth(props)
-      this.#authVerifier.verify = bindFunctionScript<IVerify['verify']>(onCheck, this.#authVerifier,
+      this.authVerifier = new CustomAuth(props)
+      this.authVerifier.verify = bindFunctionScript<IVerify['verify']>(onCheck, this.authVerifier,
         '$parentState',
         '$ps',
         '$vars',
@@ -139,7 +138,7 @@ export class HttpServer implements Element {
         handler = this.handleRequest.bind(this)
       }
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      this.#server = createServer(handler)
+      this.server = createServer(handler)
         .on('error', reject)
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         .on('close', async () => {
@@ -147,11 +146,11 @@ export class HttpServer implements Element {
           resolve(undefined)
         })
         .listen(+port, host, () => {
-          this.logger.debug('http\'#server is listened at %s', this.address)
+          this.logger.debug('http\'server is listened at %s', this.address)
         })
       if (this.opts) {
         for (const [key, value] of Object.entries(this.opts)) {
-          (this.#server as any)[key] = value
+          (this.server as any)[key] = value
         }
       }
     })
@@ -179,8 +178,8 @@ export class HttpServer implements Element {
     } as any
     this.logger.debug('%s %s \t%s', '⥃', req.method, req.url)?.trace('%j', parentState.httpRequest)
     try {
-      if (this.#authVerifier) {
-        const code = await this.#authVerifier.verify(
+      if (this.authVerifier) {
+        const code = await this.authVerifier.verify(
           parentState,
           parentState,
           this.proxy.scene.localVars,
@@ -215,7 +214,7 @@ export class HttpServer implements Element {
       }
       res.statusCode = 204
       await this.innerRunsProxy.exec(parentState)
-      if (!this.#server) {
+      if (!this.server) {
         res.statusCode = 503
         res.end()
         return
@@ -268,9 +267,9 @@ export class HttpServer implements Element {
   }
 
   async stop() {
-    if (!this.#server?.listening) return
-    this.#server?.close()
-    this.#server = undefined
+    if (!this.server?.listening) return
+    this.server?.close()
+    this.server = undefined
   }
 
   async dispose() {

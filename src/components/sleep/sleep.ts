@@ -40,7 +40,7 @@ export class Sleep implements Element {
       assert(this.duration)
       await sleep(this.duration)
     } else if (this.duration === null) {
-      await this.proxy.rootScene.globalUtils.hang
+      await new Promise(() => { })
     }
     return this.duration
   }

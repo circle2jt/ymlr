@@ -5,7 +5,7 @@ import { LevelFactory } from '../../level-factory'
 import { type LogMetaData, type LogStyle } from './log-style'
 
 export default class ColorfulStyle implements LogStyle {
-  #getColorLevel(level: Level) {
+  private getColorLevel(level: Level) {
     switch (level.name.toString()) {
       case 'trace':
         return chalk.magenta(level.icon)
@@ -32,7 +32,7 @@ export default class ColorfulStyle implements LogStyle {
 
   print(printToConsole: (...args: any[]) => any, meta: LogMetaData, msg: string | any, ...prms: any) {
     const formater = LevelFactory.GetInstance(meta.level)
-    const level = this.#getColorLevel(formater)
+    const level = this.getColorLevel(formater)
     if (!meta.plainLog) {
       const threadID = chalk.gray.dim(meta.threadID)
       const timestamp = chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))

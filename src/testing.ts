@@ -21,11 +21,27 @@ export class Testing {
   }
 
   static async reset(content = '[]') {
-    const rootScene = new RootScene({ content })
-    const proxy = new ElementProxy(rootScene, { _logger: LoggerFactory.NewLogger(LoggerLevel.silent) })
-    Testing.rootScene = rootScene
+    Testing.rootScene = new RootScene({ content })
+    const rootSceneProxy = new ElementProxy(Testing.rootScene, { _logger: LoggerFactory.NewLogger(LoggerLevel.silent) })
+    Object.defineProperties(rootSceneProxy, {
+      rootSceneProxy: {
+        get() {
+          return this
+        }
+      },
+      rootScene: {
+        get() {
+          return this.$
+        }
+      },
+      scene: {
+        get() {
+          return this.$
+        }
+      }
+    })
     // Testing.rootScene = proxy.scene = proxy.rootScene = rootScene
-    return await proxy.exec()
+    return await rootSceneProxy.exec()
   }
 
   static async createElementProxy<T extends Element>(ElementClazz: ElementClass, props?: any, baseProps?: any) {

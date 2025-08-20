@@ -1,8 +1,10 @@
 import assert from 'assert'
+import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
+import { Sequence } from 'src/libs/sequence'
 import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
 import { noop } from 'src/managers/constants'
@@ -10,6 +12,28 @@ import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { Scene } from '../scene/scene'
 import { type GroupItemProps, type GroupProps } from './group.props'
+
+export class Restartor {
+  private isStop?: boolean
+  public t?: Promise<any>
+  next?: Promise<any>
+
+  constructor(public name: string) { }
+
+  async exec() {
+    while (!this.isStop && this.t) {
+      await this.t
+      this.t = this.next
+      this.next = undefined
+    }
+  }
+
+  async stop() {
+    this.isStop = true
+    await this.t
+    this.t = this.next = undefined
+  }
+}
 
 /** |**  runs
   Group elements
@@ -25,6 +49,7 @@ import { type GroupItemProps, type GroupProps } from './group.props'
   ```
 */
 export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements Element {
+  private static readonly SequenceRestartJob = new Map<string, Sequence>()
   readonly isRootScene?: boolean
   readonly isScene?: boolean
   readonly ignoreEvalProps = ['isRootScene', 'isScene']
@@ -48,7 +73,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return this.scene
   }
 
-  #runs?: GroupItemProps[]
+  private runs?: GroupItemProps[]
 
   constructor(props?: GP | GIP[]) {
     this.lazyInitRuns(props)
@@ -56,11 +81,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   lazyInitRuns(props?: GP | GIP[]) {
     if (Array.isArray(props)) {
-      this.#runs = props
+      this.runs = props
     } else if (props) {
       this.resolveShortcutAsync(props)
       const { runs, ..._props } = props
-      this.#runs = runs
+      this.runs = runs
       Object.assign(this, _props)
       if (runs?.length && !(this instanceof Scene)) {
         console.warn('Should use "runs" in proxy, not in the tag %j', this.proxy.tag)
@@ -70,6 +95,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
+    if (elem.overrideProxyProps) {
+      merge(baseProps, elem.overrideProxyProps())
+    }
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
     if (elem instanceof InnerGroup) {
@@ -165,12 +193,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async preExec() {
     this.resolveShortcutAsync(this.proxy)
     if (!this.proxy.runs?.length) {
-      this.proxy.runs = this.#runs || []
+      this.proxy.runs = this.runs || []
       if (this.proxy.runs.length && !this.isScene && this.constructor?.name !== 'Group') {
         this.logger.warn(`${this.proxy.name || this.proxy.tag} should set "runs" in parent proxy element`)
       }
     }
-    this.#runs = undefined
+    this.runs = undefined
     if (!this.proxy.runs.length) {
       return true
     }
@@ -279,7 +307,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return result
   }
 
-  async dispose() { }
+  async dispose() {
+    this.runs = undefined
+  }
 
   private resolveShortcutAsync(props?: any) {
     if (props?.['~runs']) {
@@ -379,42 +409,33 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) {
+  public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any, restartor?: Restartor) {
     const elemProxy = await this.newElementProxy(name, props, baseProps)
     const [isAsync, isDetach] = await Promise.all([
       elemProxy.isAsync(),
       elemProxy.isDetach()
     ])
-    if (!isAsync && !isDetach && asyncJobs?.length) {
+    if (asyncJobs?.length && !isAsync && !isDetach) {
       await Promise.all(asyncJobs)
-      asyncJobs = []
+      asyncJobs.splice(0, asyncJobs.length)
     }
 
     const isContinue = await elemProxy.isValid()
     if (!isContinue) return undefined
 
-    const t = (async (elemProxy: ElementProxy<Element>, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any) => {
-      let error: any
-      let title: string | undefined
+    const t = (async () => {
       try {
         await elemProxy.exec()
-      } catch (err) {
-        error = err
-        title = elemProxy.name || elemProxy.contextName
-        baseProps.async = false
-        baseProps.detach = false
-        if (elemProxy.failure?.restart && baseProps.failure?.restart) {
+      } catch (error: any) {
+        if (!baseProps.failure) throw error
+
+        if (baseProps.failure.restart && elemProxy.failure?.restart) {
           baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
         }
-      } finally {
-        await elemProxy.dispose()
-      }
-      if (error) {
-        if (!baseProps.failure) throw error
         const failure = await this.scene.getVars(cloneDeep(baseProps.failure), this)
         if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))) {
           ++failure.restart.count
-          if (baseProps.failure?.restart) {
+          if (baseProps.failure.restart) {
             baseProps.failure.restart.count = failure.restart.count
           }
 
@@ -423,17 +444,32 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
             failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
           } else {
-            failureLogger = elemProxy.logger
+            failureLogger = elemProxy.logger.clone()
           }
+          const title = elemProxy.name || elemProxy.contextName
           failureLogger.error(error?.message)?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
 
           if (failure.restart.sleep) {
             await sleep(failure.restart.sleep)
           }
-          await this.createAndExecuteElement(undefined, name, baseProps, props)
+          let sequence: Sequence | undefined
+          if (failure.restart.sequence) {
+            sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
+            if (!sequence) {
+              sequence = new Sequence(failure.restart.sequence.sleep)
+              Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
+            }
+          }
+          await sequence?.wait(this)
+          if (baseProps.async) baseProps.async = false
+          if (baseProps.detach) baseProps.detach = false
+          if (!restartor) throw new Error('Why restartor is null ???')
+          restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor)
           return
         }
-        if (!failure.ignore) throw error
+
+        if (!baseProps.failure?.ignore) throw error
+
         let failureLogger: Logger
         if (failure.debug) {
           const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
@@ -442,16 +478,35 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           failureLogger = elemProxy.logger
         }
         failureLogger.warn(error?.message)?.trace(error)
+      } finally {
+        await elemProxy.dispose()
       }
-    })(elemProxy, name, baseProps, props)
+    })()
+
+    if (restartor) {
+      await t
+      return elemProxy
+    }
+
+    const supportRestart = baseProps.failure?.restart
+    if (supportRestart) {
+      restartor = new Restartor(name)
+      restartor.t = t
+    }
+
+    const execution = restartor ? restartor.exec() : t
 
     if (isDetach) {
-      this.rootScene.pushToBackgroundJob(t)
-    } else if (isAsync && asyncJobs) {
-      asyncJobs.push(t)
-    } else {
-      await t
+      this.rootScene.pushToBackgroundJob(execution)
+      return elemProxy
     }
+
+    if (isAsync && asyncJobs) {
+      asyncJobs.push(execution)
+      return elemProxy
+    }
+
+    await execution
     return elemProxy
   }
 
@@ -505,39 +560,38 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 export class InnerGroupWrapper implements Element {
   readonly proxy!: ElementProxy<this>
 
-  #owner!: Element
-  #creator!: Group<any, any>
-  #groupProps: any
-  #groupProxyProps: any
-
+  private readonly _owner!: Element
   get owner() {
-    return this.#owner
+    return this._owner
   }
 
+  private readonly _creator!: Group<any, any>
   get creator() {
-    return this.#creator
+    return this._creator
   }
 
+  private readonly _groupProps: any
   get groupProps() {
-    return this.#groupProps
+    return this._groupProps
   }
 
+  private readonly _groupProxyProps: any
   get groupProxyProps() {
-    return this.#groupProxyProps
+    return this._groupProxyProps
   }
 
   constructor(props: { creator: Group<any, any>, owner: Element, groupProps: any, groupProxyProps: any }) {
-    this.#owner = props.owner
-    this.#creator = props.creator
-    this.#groupProps = props.groupProps
-    this.#groupProxyProps = props.groupProxyProps
+    this._owner = props.owner
+    this._creator = props.creator
+    this._groupProps = props.groupProps
+    this._groupProxyProps = props.groupProxyProps
   }
 
   async exec(parentState: any) {
-    const innerGroupProxy = await this.#creator.newElementProxy(InnerGroup, {
-      owner: this.#owner
+    const innerGroupProxy = await this._creator.newElementProxy(InnerGroup, {
+      owner: this._owner
     }, {
-      runs: this.#groupProxyProps?.runs
+      runs: this._groupProxyProps?.runs
     })
     try {
       innerGroupProxy.parentState = { ...this.proxy.parentState }
@@ -552,16 +606,16 @@ export class InnerGroupWrapper implements Element {
 }
 
 export class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> extends Group<GP, GIP> {
-  #owner!: Element
+  _owner!: Element
 
   get owner() {
-    return this.#owner
+    return this._owner
   }
 
   constructor(baseProps?: GP & { owner: Element }) {
     assert(baseProps?.owner)
     const { owner, ...props } = baseProps
     super(props as unknown as GP)
-    this.#owner = owner
+    this._owner = owner
   }
 }

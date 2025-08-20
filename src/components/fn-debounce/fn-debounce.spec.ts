@@ -13,6 +13,7 @@ afterEach(async () => {
 
 test('fn-debounce should be run correctly', async () => {
   Testing.vars.i = 0
+  const elems = []
   for (let i = 0; i < 4; i++) {
     const fnDebounce = await Testing.createElementProxy(FNDebounce, {
       name: 'dtask1',
@@ -27,11 +28,8 @@ test('fn-debounce should be run correctly', async () => {
         }
       ]
     })
-    try {
-      await fnDebounce.exec()
-    } finally {
-      await fnDebounce.dispose()
-    }
+    elems.push(fnDebounce)
+    void fnDebounce.exec()
     if (i > 1) {
       await sleep(600)
     } else {
@@ -41,6 +39,9 @@ test('fn-debounce should be run correctly', async () => {
   await sleep(1000)
   expect(Testing.vars.i).toBe(2)
   expect(DebounceManager.Instance.has('dtask1')).toBe(false)
+  await Promise.all(elems.map(async (e) => {
+    await e.dispose()
+  }))
 })
 
 test('fn-debounce recall', async () => {
@@ -60,21 +61,18 @@ test('fn-debounce recall', async () => {
       }
     ]
   })
-  try {
-    Testing.vars.begin = Date.now()
-    Testing.vars.i = 0
-    await fnDebounce.exec()
-    for (let i = 0; i < 3; i++) {
-      await sleep(100)
-      const recaller = await Testing.createElementProxy(FNDebounce, 'dtask2')
-      await recaller.exec()
-      await recaller.dispose()
-    }
-  } finally {
-    await fnDebounce.dispose()
+  Testing.vars.begin = Date.now()
+  Testing.vars.i = 0
+  void fnDebounce.exec()
+  for (let i = 0; i < 3; i++) {
+    await sleep(100)
+    const recaller = await Testing.createElementProxy(FNDebounce, 'dtask2')
+    await recaller.exec()
+    await recaller.dispose()
   }
   await sleep(500)
   expect(Testing.vars.end).toBeGreaterThan(500)
   expect(Testing.vars.i).toBe(1)
   expect(DebounceManager.Instance.has('dtask2')).toBe(true)
+  await fnDebounce.dispose()
 })

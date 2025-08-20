@@ -42,6 +42,12 @@ export class FNDebounce implements Element {
     return this.proxy.logger
   }
 
+  overrideProxyProps() {
+    return {
+      detach: true
+    }
+  }
+
   name!: string
   wait?: number | string
   maxWait?: number | string
@@ -50,8 +56,13 @@ export class FNDebounce implements Element {
   autoRemove?: true | string | number
   debounceData: any
 
-  #tmAutoRemove?: NodeJS.Timeout
-  #fn?: DebouncedFunc<any>
+  private scheduleAutoRemove: any
+  private fn?: DebouncedFunc<any>
+  private promsise?: {
+    t: Promise<any>
+    resolve: (value?: any) => void
+    reject: (reason?: any) => void
+  }
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -69,87 +80,98 @@ export class FNDebounce implements Element {
       this.logger.trace('%s: reused', this.name)
       // DebounceManager.Instance.touch(this.name)
       DebounceManager.Instance.touch(this.name, this.debounceData)
-    } else if (this.proxy.runs?.length) {
-      if (!this.#fn) {
-        this.logger.trace('%s: create a new one', this.name)
-
-        this.wait ?? assert.fail('wait is required')
-        let wait = 0
-        let autoRemove: number | undefined
-        if (typeof this.wait === 'string') {
-          wait = formatTextToMs(this.wait)
-        } else if (typeof this.wait === 'number') {
-          wait = this.wait
-        }
-        this.wait = wait
-
-        if (this.autoRemove === true) {
-          autoRemove = wait
-        } else if (typeof this.autoRemove === 'string') {
-          autoRemove = formatTextToMs(this.autoRemove)
-        } else if (typeof this.autoRemove === 'number') {
-          autoRemove = this.autoRemove
-        }
-        if (autoRemove !== undefined) {
-          if (autoRemove <= wait) {
-            autoRemove = wait + 500
-          }
-          this.autoRemove = autoRemove
-        }
-
-        const opts: DebounceSettings = {
-          trailing: this.trailing,
-          leading: this.leading
-        }
-
-        if (this.maxWait && typeof this.maxWait === 'string') {
-          this.maxWait = formatTextToMs(this.maxWait)
-          opts.maxWait = this.maxWait
-        }
-        this.#fn = debounce(async (debounceData: any) => {
-          await this.innerRunsProxy.exec({
-            debounceData
-          })
-        }, this.wait, opts)
-        DebounceManager.Instance.set(this.name, this)
-      }
-      this.touch(this.debounceData)
+      return
     }
+    assert(this.proxy.runs?.length)
+
+    this.logger.trace('%s: create a new one', this.name)
+
+    const promsise = {
+      t: undefined,
+      resolve: (_value?: any) => { },
+      reject: (_reason?: any) => { }
+    }
+    const t = new Promise<any>((resolve, reject) => {
+      promsise.resolve = resolve
+      promsise.reject = reject
+    })
+    promsise.t = t as any
+    this.promsise = promsise as any
+
+    this.wait ?? assert.fail('wait is required')
+    let wait = 0
+    if (typeof this.wait === 'string') {
+      wait = formatTextToMs(this.wait)
+    } else if (typeof this.wait === 'number') {
+      wait = this.wait
+    }
+    this.wait = wait
+
+    const opts: DebounceSettings = {
+      trailing: this.trailing,
+      leading: this.leading
+    }
+
+    if (this.maxWait && typeof this.maxWait === 'string') {
+      this.maxWait = formatTextToMs(this.maxWait)
+      opts.maxWait = this.maxWait
+    }
+    const waitTime = (this.maxWait || this.wait) as number
+    if (this.autoRemove && waitTime) {
+      this.scheduleAutoRemove = debounce(() => {
+        this.logger.trace('%s: schedule auto remove after', this.name)
+        this.remove()
+      }, waitTime + 500, { leading: false, trailing: true })
+    }
+    this.fn = debounce(async (debounceData: any) => {
+      this.scheduleAutoRemove?.()
+      try {
+        await this.innerRunsProxy.exec({
+          debounceData
+        })
+      } catch (err) {
+        this.promsise?.reject(err)
+      }
+    }, this.wait, opts)
+    DebounceManager.Instance.set(this.name, this)
+    this.touch(this.debounceData)
+    await this.promsise?.t
   }
 
   touch(debounceData?: any) {
+    if (!this.fn) return
     this.logger.trace('%s: touch', this.name)
-    this.#scheduleAutoRemove(false)
-    this.#fn?.(debounceData)
+    this.fn?.(debounceData)
   }
 
   cancel() {
+    if (!this.fn) return
     this.logger.trace('%s: cancel', this.name)
-    this.#scheduleAutoRemove(true)
-    this.#fn?.cancel()
+    this.fn?.cancel()
+    this.scheduleAutoRemove?.cancel()
   }
 
   flush() {
+    if (!this.fn) return
     this.logger.trace('%s: flush', this.name)
-    this.#fn?.flush()
-    this.#scheduleAutoRemove(true)
+    this.fn?.flush()
   }
 
-  dispose() {
+  remove() {
+    if (!this.fn) return
+    this.logger.trace('%s: remove', this.name)
+    DebounceManager.Instance.delete(this.name)
+    this.cancel()
+    this.debounceData = undefined
+    this.promsise?.resolve()
+  }
+
+  async dispose() {
+    if (!this.fn) return
     this.logger.trace('%s: dispose', this.name)
-  }
-
-  #scheduleAutoRemove(stop: boolean) {
-    if (!this.autoRemove) return
-    this.logger.trace(`%s: auto remove after ${this.autoRemove}ms`, this.name)
-    if (this.#tmAutoRemove) clearTimeout(this.#tmAutoRemove)
-    if (stop) {
-      this.#tmAutoRemove = undefined
-    } else {
-      this.#tmAutoRemove = setTimeout(() => {
-        this.#tmAutoRemove = undefined
-        DebounceManager.Instance.delete(this.name)
-      }, this.autoRemove as number)
-    }
+    this.remove()
+    await this.innerRunsProxy.dispose()
+    this.promsise = undefined
+    this.fn = undefined
   }
 }

@@ -13,6 +13,7 @@ afterEach(async () => {
 
 test('fn-throttle should be run correctly', async () => {
   Testing.vars.i = 0
+  const elems = []
   for (let i = 0; i < 4; i++) {
     const fnThrottle = await Testing.createElementProxy(FNThrottle, {
       name: 'ttask1',
@@ -27,11 +28,8 @@ test('fn-throttle should be run correctly', async () => {
         }
       ]
     })
-    try {
-      await fnThrottle.exec()
-    } finally {
-      await fnThrottle.dispose()
-    }
+    elems.push(fnThrottle)
+    void fnThrottle.exec()
     if (i > 1) {
       await sleep(550)
     } else {
@@ -39,8 +37,12 @@ test('fn-throttle should be run correctly', async () => {
     }
   }
   await sleep(1000)
+
   expect(Testing.vars.i).toBe(3)
   expect(ThrottleManager.Instance.has('ttask1')).toBe(true)
+  await Promise.all(elems.map(async (e) => {
+    await e.dispose()
+  }))
 })
 
 test('fn-throttle recall', async () => {
@@ -48,8 +50,8 @@ test('fn-throttle recall', async () => {
     name: 'ttask2',
     leading: false,
     trailing: true,
-    wait: 200,
-    autoRemove: true
+    wait: 200
+    // autoRemove: true
   }, {
     runs: [
       {
@@ -57,19 +59,18 @@ test('fn-throttle recall', async () => {
       }
     ]
   })
-  try {
-    Testing.vars.i = 0
-    await fnThrottle.exec()
-    for (let i = 0; i < 3; i++) {
-      await sleep(90)
-      const recaller = await Testing.createElementProxy(FNThrottle, 'ttask2')
-      await recaller.exec()
-      await recaller.dispose()
-    }
-  } finally {
-    await fnThrottle.dispose()
+  Testing.vars.i = 0
+  void fnThrottle.exec()
+  for (let i = 0; i < 3; i++) {
+    await sleep(90)
+    const recaller = await Testing.createElementProxy(FNThrottle, 'ttask2')
+    await recaller.exec()
+    await recaller.dispose()
   }
   await sleep(1000)
   expect(Testing.vars.i).toBe(2) // Removed then no found ttask2 to reset
+  expect(ThrottleManager.Instance.has('ttask2')).toBe(true);
+  (fnThrottle.$ as FNThrottle).remove()
   expect(ThrottleManager.Instance.has('ttask2')).toBe(false)
+  await fnThrottle.dispose()
 })

@@ -47,8 +47,8 @@ export class Get extends Head {
   responseType?: ResponseType
   saveTo?: string
 
-  #isDownload?: boolean
-  private _onDownloadProgress?: (data: any) => any
+  private isDownload?: boolean
+  private onDownloadProgress?: (data: any) => any
 
   constructor({ responseType, saveTo, ...props }: GetProps) {
     super(props)
@@ -57,12 +57,12 @@ export class Get extends Head {
 
   override async send(moreOptions: any = {}) {
     if ((!this.responseType && this.saveTo)) this.responseType = 'stream'
-    if (this.responseType === 'stream') this.#isDownload = true
-    if (this.#isDownload) {
+    if (this.responseType === 'stream') this.isDownload = true
+    if (this.isDownload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
-        this._onDownloadProgress = (data: any) => {
+        this.onDownloadProgress = (data: any) => {
           const { bytes, loaded } = data
           this.logger.trace(chalk.gray(`Downloading ${formatNumber(loaded / 1024, { maximumFractionDigits: 0 })} kbs | Rate: ${formatNumber(bytes, { maximumFractionDigits: 0 })} bytes`))
         }
@@ -111,14 +111,14 @@ export class Get extends Head {
         const bytes = chunk.length
         loaded += bytes
         await stream.asyncWrite(chunk)
-        this._onDownloadProgress?.({
+        this.onDownloadProgress?.({
           bytes,
           loaded
         })
       }
     })
     await rs.body.pipeTo(wstream, { signal: this._abortController.signal })
-    this._onDownloadProgress?.({
+    this.onDownloadProgress?.({
       bytes: 0,
       loaded
     })

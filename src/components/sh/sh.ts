@@ -45,10 +45,8 @@ export class Sh implements Element {
   private get logger() { return this.proxy.logger }
 
   script?: string
-
   path?: string
   args?: string[]
-
   timeout?: string | number
   process?: boolean
   bin: boolean | string = '/bin/sh'
@@ -56,13 +54,13 @@ export class Sh implements Element {
   exitCodes = [0]
   plainExecuteLog?: boolean
 
-  private _abortController?: AbortController
-  private get _timeout() {
+  private abortController?: AbortController
+  private filePath?: string
+  private tempFile?: FileTemp
+  private childProcess?: ChildProcess
+  private get timeoutMS() {
     return this.timeout ? formatTextToMs(this.timeout) : undefined
   }
-
-  private _filePath?: string
-  private _tempFile?: FileTemp
 
   constructor(props: ShProps) {
     if (typeof props === 'string') {
@@ -79,14 +77,14 @@ export class Sh implements Element {
       const script = await fileRemote.getTextContent()
       assert(script)
       if (fileRemote.isRemote) {
-        this._tempFile = new FileTemp()
-        this._tempFile.create(script, {
+        this.tempFile = new FileTemp()
+        this.tempFile.create(script, {
           mode: 0o775,
           flag: 'w'
         })
-        this._filePath = this._tempFile.file
+        this.filePath = this.tempFile.file
       } else {
-        this._filePath = fileRemote.uri
+        this.filePath = fileRemote.uri
       }
     } else {
       assert(this.script)
@@ -95,18 +93,22 @@ export class Sh implements Element {
     if (this.timeout) {
       this.timeout = formatTextToMs(this.timeout)
     }
-    this._abortController = new AbortController()
-    if (this.process === true) {
-      const rs = await this.execLongScript()
+    this.abortController = new AbortController()
+    try {
+      if (this.process === true) {
+        const rs = await this.execLongScript()
+        return rs
+      }
+      const rs = await this.execShortScript()
       return rs
+    } finally {
+      this.childProcess = undefined
     }
-    const rs = await this.execShortScript()
-    return rs
   }
 
   private async execLongScript() {
     const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
-    return await new Promise((resolve, reject) => {
+    const rs = await new Promise((resolve, reject) => {
       let logs: string[] | undefined
       let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
       if (this.proxy.vars) {
@@ -117,43 +119,42 @@ export class Sh implements Element {
       } else if (logger.is(LoggerLevel.error)) {
         stdio = ['pipe', 'ignore', 'pipe']
       }
-      let c: ChildProcess
       const opts = {
         stdio,
         env: process.env,
         cwd: this.proxy.curDir,
-        timeout: this._timeout,
-        signal: this._abortController?.signal,
+        timeout: this.timeoutMS,
+        signal: this.abortController?.signal,
         ...this.opts
       }
       if (this.path) {
-        c = spawn(this._filePath as string, this.args || [], opts)
+        this.childProcess = spawn(this.filePath as string, this.args || [], opts)
       } else {
-        c = spawn(this.script as string, {
+        this.childProcess = spawn(this.script as string, {
           shell: this.bin,
           ...opts
         })
       }
       if (logs || logger.is(LoggerLevel.trace)) {
-        c.stdout?.on('data', msg => {
+        this.childProcess.stdout?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
           logger.trace(msg)
         })
       }
       if (logs || logger.is(LoggerLevel.error)) {
-        c.stderr?.on('data', msg => {
+        this.childProcess.stderr?.on('data', msg => {
           msg = msg.toString().replace(/\n$/, '')
           logs?.push(msg)
           logger.error(msg)
         })
       }
-      c.on('exit', (code, signal) => {
+      this.childProcess.on('exit', (code, signal) => {
         if (code || signal) {
           this.logger.warn(`Exit code=${code}, signal=${signal}`)
         }
       })
-      c.on('close', (code: number) => {
+      this.childProcess.on('close', (code: number) => {
         if (!this.exitCodes.includes(code)) {
           const err = new Error(logs?.join(''))
           err.cause = `Closed code=${code}`
@@ -162,14 +163,14 @@ export class Sh implements Element {
         }
         resolve(logs?.join(''))
       })
-      c.on('error', (err) => {
+      this.childProcess.on('error', (err) => {
         this.logger.error(err)
       })
     })
+    return rs
   }
 
   private async execShortScript() {
-    let c: ChildProcess | undefined
     let log: string | undefined
     try {
       const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
@@ -190,21 +191,21 @@ export class Sh implements Element {
         const opts = {
           env: process.env,
           cwd: this.proxy.curDir,
-          timeout: this._timeout,
-          signal: this._abortController?.signal,
+          timeout: this.timeoutMS,
+          signal: this.abortController?.signal,
           ...this.opts
         }
         if (this.path) {
-          c = execFile(this._filePath as string, this.args || [], opts, cb)
+          this.childProcess = execFile(this.filePath as string, this.args || [], opts, cb)
         } else {
-          c = exec(this.script as string, {
+          this.childProcess = exec(this.script as string, {
             shell: this.bin as any,
             ...opts
           }, cb)
         }
       })
     } catch (err) {
-      if (!c?.exitCode || !this.exitCodes.includes(c.exitCode)) {
+      if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
         throw err
       }
     }
@@ -212,7 +213,8 @@ export class Sh implements Element {
   }
 
   dispose() {
-    this._tempFile?.remove()
-    this._abortController?.abort()
+    this.tempFile?.remove()
+    this.abortController?.abort()
+    this.childProcess?.kill()
   }
 }

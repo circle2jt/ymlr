@@ -79,13 +79,13 @@ export class FNQueue implements Element {
 
   queue = new Array<any>()
 
-  #taskCount = 0
-  #taskIndex = -1
-  #store!: StorageInterface
-  #isStoped?: boolean
-  #t?: Promise<any>
-  #resolve?: any
-  #initJobCountInStore = 0
+  private taskCount = 0
+  private taskIndex = -1
+  private store!: StorageInterface
+  private isStoped?: boolean
+  private t?: Promise<any>
+  private resolve?: any
+  private initJobCountInStore = 0
 
   get availQueue() {
     return this.queue.filter(data => data !== QUEUE_REMOVED)
@@ -110,9 +110,9 @@ export class FNQueue implements Element {
         if (!this.db.path) {
           this.db.path = join(tmpdir(), this.name)
         }
-        this.#store = new FileStorage(this.logger, this.db.path, this.db.password)
+        this.store = new FileStorage(this.logger, this.db.path, this.db.password)
       } else {
-        this.#store = new MemStorage(this.logger)
+        this.store = new MemStorage(this.logger)
       }
       this.load()
       if (this.startup) {
@@ -129,20 +129,20 @@ export class FNQueue implements Element {
     this.logger.debug('Add a job in queue "%s"\t%j', this.name, queueData)
     this.queue.push(queueData)
     this.save()
-    if (this.#isStoped === false) {
+    if (this.isStoped === false) {
       this.run()
     }
   }
 
   run() {
-    while (this.#isStoped === false && this.#taskCount < this.concurrent && this.#taskIndex < this.queue.length - 1) {
-      if (!this.#t) {
-        this.#t = new Promise((resolve) => {
-          this.#resolve = resolve
+    while (this.isStoped === false && this.taskCount < this.concurrent && this.taskIndex < this.queue.length - 1) {
+      if (!this.t) {
+        this.t = new Promise((resolve) => {
+          this.resolve = resolve
         })
       }
-      ++this.#taskCount
-      ++this.#taskIndex
+      ++this.taskCount
+      ++this.taskIndex
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setImmediate(async (queueData, queueIndex) => {
         this.logger.debug('Run a job in queue "%s"\t%j', this.name, queueData)
@@ -153,7 +153,7 @@ export class FNQueue implements Element {
             queueData,
             queueIndex,
             queueCount: this.availQueue.length,
-            queueInStore: queueIndex < this.#initJobCountInStore
+            queueInStore: queueIndex < this.initJobCountInStore
           })
         } catch (err: any) {
           err.queueData = queueData
@@ -165,39 +165,39 @@ export class FNQueue implements Element {
         } finally {
           this.queue[queueIndex] = QUEUE_REMOVED
           this.save()
-          --this.#taskCount
+          --this.taskCount
 
           if (isStop) {
             // Job error then force stop queue
-            this.#resolve()
-            this.#t = undefined
+            this.resolve()
+            this.t = undefined
             await this.stop()
-          } else if (this.#taskCount === 0 && this.availQueue.length === 0) {
+          } else if (this.taskCount === 0 && this.availQueue.length === 0) {
             // All job in queue done
-            this.#resolve()
-            this.#t = undefined
+            this.resolve()
+            this.t = undefined
           } else {
             // Job done then there are some waiting jobs in the queue
             this.run()
           }
         }
-      }, this.queue[this.#taskIndex], this.#taskIndex)
+      }, this.queue[this.taskIndex], this.taskIndex)
     }
   }
 
   private load() {
     this.logger.debug('Load queue jobs ' + this.name)
-    this.queue = this.#store.load([])
-    this.#taskIndex = -1
-    this.#taskCount = 0
-    this.#isStoped = undefined
-    this.#t = undefined
-    this.#initJobCountInStore = this.queue.length
+    this.queue = this.store.load([])
+    this.taskIndex = -1
+    this.taskCount = 0
+    this.isStoped = undefined
+    this.t = undefined
+    this.initJobCountInStore = this.queue.length
   }
 
   start() {
     this.logger.debug('Start queue ' + this.name)
-    this.#isStoped = false
+    this.isStoped = false
     this.run()
   }
 
@@ -212,16 +212,16 @@ export class FNQueue implements Element {
 
   async stop() {
     this.logger.debug('Stoped queue ' + this.name)
-    this.#isStoped = true
-    await this.#t
+    this.isStoped = true
+    await this.t
     this.queue = []
-    this.#t = undefined
+    this.t = undefined
   }
 
   async remove() {
     this.logger.debug('Removed queue ' + this.name)
     await this.stop()
-    this.#store.clean()
+    this.store.clean()
     FNQueue.Caches.delete(this.name)
   }
 
@@ -233,6 +233,6 @@ export class FNQueue implements Element {
 
   private save() {
     this.logger.debug('Saved queue ' + this.name)
-    this.#store.save(this.availQueue)
+    this.store.save(this.availQueue)
   }
 }

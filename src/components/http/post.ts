@@ -56,7 +56,7 @@ export class Post extends Get {
   type?: RequestType
   body?: any
 
-  #isUpload?: boolean
+  private isUpload?: boolean
 
   constructor({ type, body, ...props }: PostProps) {
     super(props)
@@ -65,7 +65,7 @@ export class Post extends Get {
 
   override async send(moreOptions: any = {}) {
     const body = await this.getRequestBody()
-    if (this.#isUpload) {
+    if (this.isUpload) {
       // eslint-disable-next-line no-case-declarations
       if (this.logger.is(LoggerLevel.trace)) {
         this.logger.trace(chalk.gray.dim('Connecting ...'))
@@ -100,7 +100,7 @@ export class Post extends Get {
         for (const key of Object.keys(body)) {
           // file: {path: '', name: '', }
           if (typeof body[key] === 'object') {
-            if (!this.#isUpload) this.#isUpload = true
+            if (!this.isUpload) this.isUpload = true
             const { path } = body[key] as UploadFile
             body[key] = await new FileRemote(path, this.proxy).getStream()
           }

@@ -27,7 +27,7 @@ test('delete a fn-debounce', async () => {
     ]
   })
   try {
-    await fnDebounce.exec()
+    void fnDebounce.exec()
     const fnDebounceDelete = await Testing.createElementProxy(FNDebounceDelete, 'dtaskd1')
     await fnDebounceDelete.exec()
     await fnDebounceDelete.dispose()

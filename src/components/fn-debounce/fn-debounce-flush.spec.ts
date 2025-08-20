@@ -26,8 +26,8 @@ test('flush a fn-debounce', async () => {
     ]
   })
   try {
-    await fnDebounce.exec()
-    await fnDebounce.exec()
+    void fnDebounce.exec()
+    void fnDebounce.exec()
     const fnDebounceFlush = await Testing.createElementProxy(FNDebounceFlush, 'dtask1f')
     await fnDebounceFlush.exec()
     await fnDebounceFlush.dispose()

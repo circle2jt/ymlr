@@ -9,12 +9,12 @@ import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
   static ThreadID = 'main'
-  readonly #rootSceneProxy: ElementProxy<RootScene>
+  private readonly rootSceneProxy: ElementProxy<RootScene>
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
     assert(rootSceneProps.path, 'Scene file is required')
-    this.#rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps), { tag: 'root-scene', _logger: this.logger })
-    Object.defineProperties(this.#rootSceneProxy, {
+    this.rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps), { tag: 'root-scene', _logger: this.logger })
+    Object.defineProperties(this.rootSceneProxy, {
       rootSceneProxy: {
         get() {
           return this
@@ -31,22 +31,22 @@ export class App {
         }
       }
     })
-    // this.#rootSceneProxy.scene = this.#rootSceneProxy.rootScene = this.#rootSceneProxy.element
+    // this.rootSceneProxy.scene = this.rootSceneProxy.rootScene = this.rootSceneProxy.element
   }
 
   setDirTags(dirs: string[]) {
     this.logger.debug('External sources %j', dirs)
-    this.#rootSceneProxy.element.tagsManager.tagDirs = dirs
+    this.rootSceneProxy.element.tagsManager.tagDirs = dirs
   }
 
   setTemplates(cached: Record<string, any>) {
-    Object.assign(this.#rootSceneProxy.element.templatesManager, cached)
+    Object.assign(this.rootSceneProxy.element.templatesManager, cached)
   }
 
   async exec() {
     let summary: Summary | undefined
-    const asyncConstructor = this.#rootSceneProxy.$.asyncConstructor
-    this.#rootSceneProxy.$.asyncConstructor = async function () {
+    const asyncConstructor = this.rootSceneProxy.$.asyncConstructor
+    this.rootSceneProxy.$.asyncConstructor = async function () {
       await asyncConstructor.call(this)
       if (this.proxy.logger.is(LoggerLevel.debug)) {
         const { Summary } = await import('./analystic/summary')
@@ -54,12 +54,12 @@ export class App {
       }
     }
     try {
-      await this.#rootSceneProxy.exec()
+      await this.rootSceneProxy.exec()
     } catch (err: any) {
       this.logger.fatal(err)
       setImmediate(process.exit, 1)
     } finally {
-      await this.#rootSceneProxy.dispose()
+      await this.rootSceneProxy.dispose()
       summary?.print()
       LoggerFactory.Dispose()
     }

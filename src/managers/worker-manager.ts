@@ -7,9 +7,9 @@ import { Constants } from './constants'
 import { Worker } from './worker'
 
 export class WorkerManager {
-  readonly #workers = new Array<Worker>()
+  private readonly workers = new Array<Worker>()
 
-  #allEventListener = (data: any, opts?: { toIDs?: string | string[] }) => {
+  private readonly allEventListener = (data: any, opts?: { toIDs?: string | string[] }) => {
     let toIDs: string[] | undefined
     if (opts?.toIDs !== undefined) {
       if (!Array.isArray(opts.toIDs)) {
@@ -22,27 +22,27 @@ export class WorkerManager {
   }
 
   constructor(private readonly logger: Logger) {
-    GlobalEvent.on(Constants.TO_GLOBAL_EVENT, this.#allEventListener)
+    GlobalEvent.on(Constants.TO_GLOBAL_EVENT, this.allEventListener)
   }
 
   async exec() {
-    const wks = Array.from(this.#workers)
+    const wks = Array.from(this.workers)
     await Promise.all(wks.map(async wk => {
       try {
         await wk.exec()
       } finally {
         await wk.dispose()
-        this.#workers.splice(this.#workers.indexOf(wk), 1)
+        this.workers.splice(this.workers.indexOf(wk), 1)
       }
     }))
   }
 
   async dispose() {
-    GlobalEvent.off(Constants.TO_GLOBAL_EVENT, this.#allEventListener)
-    const wks = Array.from(this.#workers)
+    GlobalEvent.off(Constants.TO_GLOBAL_EVENT, this.allEventListener)
+    const wks = Array.from(this.workers)
     await Promise.all(wks.map(async wk => {
       await wk.dispose()
-      this.#workers.splice(this.#workers.indexOf(wk), 1)
+      this.workers.splice(this.workers.indexOf(wk), 1)
     }))
   }
 
@@ -52,10 +52,10 @@ export class WorkerManager {
     templates?: Record<string, any>
   }) {
     if (!others.id) {
-      others.id = `#${this.#workers.length + 1}`
+      others.id = `#${this.workers.length + 1}`
     }
     const wk = new Worker(this, others.id, props, baseProps, env, this.logger.clone(`worker:${others.id}`), others)
-    this.#workers.push(wk)
+    this.workers.push(wk)
     return wk
   }
 
@@ -63,7 +63,7 @@ export class WorkerManager {
     if (!toIDs) {
       toIDs = [
         App.ThreadID,
-        ...this.#workers.map(wk => wk.id)
+        ...this.workers.map(wk => wk.id)
       ]
     }
     toIDs
@@ -76,7 +76,7 @@ export class WorkerManager {
             toID: workerID
           })
         } else {
-          const worker = this.#workers.find(wk => wk.id === workerID)
+          const worker = this.workers.find(wk => wk.id === workerID)
           worker?.emit('event', name, value, {
             fromID,
             toID: workerID

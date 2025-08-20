@@ -12,12 +12,12 @@ import { DebounceManager } from './debounce-manager'
 import { ThrottleManager } from './throttle-manager'
 
 export class UtilityFunctionManager {
-  static #Instance: UtilityFunctionManager
+  private static _Instance: UtilityFunctionManager
   static get Instance() {
-    if (!this.#Instance) {
-      this.#Instance = new UtilityFunctionManager()
+    if (!this._Instance) {
+      this._Instance = new UtilityFunctionManager()
     }
-    return this.#Instance
+    return this._Instance
   }
 
   /** |**  $utils.globalEvent
@@ -234,19 +234,5 @@ export class UtilityFunctionManager {
   */
   get styles() {
     return chalk
-  }
-
-  #hang?: Promise<void>
-  get hang() {
-    if (!this.#hang) {
-      this.#hang = new Promise<void>((resolve) => {
-        const tm = setTimeout(() => {
-          if (!tm?.refresh()) {
-            resolve()
-          }
-        }, 24 * 60 * 60000)
-      })
-    }
-    return this.#hang
   }
 }

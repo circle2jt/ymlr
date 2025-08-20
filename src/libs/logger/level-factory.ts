@@ -12,10 +12,10 @@ import { WarnLevel } from './level/warn-level'
 import { LoggerLevel } from './logger-level'
 
 export class LevelFactory {
-  static readonly #Instance = new Map<number | boolean, Level>()
+  private static readonly Instance = new Map<number | boolean, Level>()
 
   static GetInstance(level: LoggerLevel | boolean) {
-    let loggerLevel = this.#Instance.get(level)
+    let loggerLevel = this.Instance.get(level)
     if (loggerLevel) {
       return loggerLevel
     }
@@ -57,7 +57,7 @@ export class LevelFactory {
       default:
         throw new Error(`Invalid logger level: ${level}`)
     }
-    this.#Instance.set(level, loggerLevel)
+    this.Instance.set(level, loggerLevel)
     return loggerLevel
   }
 }

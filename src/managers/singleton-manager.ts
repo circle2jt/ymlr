@@ -1,11 +1,11 @@
-import { type FNDebounce } from 'src/components/fn-debounce/fn-debounce'
+import { type FNSingleton } from 'src/components/fn-singleton/fn-singleton'
 
-export class DebounceManager extends Map<string, FNDebounce> {
-  private static _Instance: DebounceManager
+export class SingletonManager extends Map<string, FNSingleton> {
+  private static _Instance: SingletonManager
 
   static get Instance() {
     if (!this._Instance) {
-      this._Instance = new DebounceManager()
+      this._Instance = new SingletonManager()
     }
     return this._Instance
   }
@@ -16,10 +16,6 @@ export class DebounceManager extends Map<string, FNDebounce> {
 
   cancel(name: string) {
     this.get(name)?.cancel()
-  }
-
-  flush(name: string) {
-    this.get(name)?.flush()
   }
 
   remove(name: string) {

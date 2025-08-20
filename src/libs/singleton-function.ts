@@ -29,5 +29,8 @@ export function singleton(func: (...args: any[]) => any, opts?: { trailing?: boo
     return rs
   }
   fn.onDone = undefined as unknown as () => any | any
+  fn.cancel = () => {
+    lastPrms = NO_CALL
+  }
   return fn
 }

@@ -28,8 +28,8 @@ test('delete a fn-throttle', async () => {
     ]
   })
   try {
-    await fnThrottle.exec()
-    await fnThrottle.exec()
+    void fnThrottle.exec()
+    void fnThrottle.exec()
     await sleep(200)
     const fnThrottleDelete = await Testing.createElementProxy(FNThrottleDelete, 'ttask1d')
     await fnThrottleDelete.exec()

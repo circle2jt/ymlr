@@ -36,7 +36,9 @@ export class FileStore implements Element {
   readonly ignoreEvalProps = ['data']
   readonly proxy!: ElementProxy<this>
 
-  private get logger() { return this.proxy.logger }
+  get logger() {
+    return this.proxy.logger
+  }
 
   path?: string
   initData?: any
@@ -44,7 +46,7 @@ export class FileStore implements Element {
 
   data: any
 
-  #storage?: FileStorage
+  private storage?: FileStorage
 
   constructor(props?: FileStoreProps) {
     Object.assign(this, props)
@@ -53,17 +55,17 @@ export class FileStore implements Element {
   async exec() {
     this.path = this.proxy.getPath(this.path || '')
     assert(this.path)
-    this.#storage = new FileStorage(this.logger, this.path, this.password)
+    this.storage = new FileStorage(this.logger, this.path, this.password)
     this.data = this.load()
     return this.data
   }
 
   load() {
-    return this.#storage?.load(this.initData)
+    return this.storage?.load(this.initData)
   }
 
   save() {
-    this.#storage?.save(this.data)
+    this.storage?.save(this.data)
   }
 
   dispose() { }

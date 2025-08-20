@@ -3,7 +3,6 @@ import { type ElementBaseProps } from 'src/components/element.interface'
 import { type RootSceneProps } from 'src/components/root-scene.props'
 import { type Logger } from 'src/libs/logger'
 import { Worker as WorkerThread } from 'worker_threads'
-import { UtilityFunctionManager } from './utility-function-manager'
 import { type WorkerManager } from './worker-manager'
 
 export class Worker {
@@ -58,10 +57,7 @@ export class Worker {
         this.reject = reject
       })
     }
-    await Promise.race([
-      this.proms,
-      UtilityFunctionManager.Instance.hang
-    ])
+    await this.proms
   }
 
   async dispose() {

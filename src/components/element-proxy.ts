@@ -205,6 +205,9 @@ export class ElementProxy<T extends Element> {
           restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
             max: 3
             sleep: 3s
+            sequence:                  # all of failed elements in same name will be restart sequence after sleep time
+              name: test
+              sleep: 1s
           ignore: true                 # After retry 3 time failed, it keeps playing, not exit
         js: |
           const a = 1/0
@@ -218,6 +221,10 @@ export class ElementProxy<T extends Element> {
     ignore?: boolean
     debug?: string | boolean
     restart?: {
+      sequence?: {
+        name: string
+        sleep: number
+      }
       count?: number
       max: number
       sleep: number | string
@@ -631,20 +638,20 @@ export class ElementProxy<T extends Element> {
             - params 2
     ```
   */
-  #parentState?: any
+  private _parentState?: any
   get parentState(): any {
-    const ps = this.#parentState || this._creator?.proxy.parentState
+    const ps = this._parentState || this._creator?.proxy.parentState
     if (ps) {
       return ps
     }
     if (!(this.$ instanceof RootScene) && this.rootScene) {
       this.logger.warn(`Parent state is wrong [${this.tag}]`)
     }
-    return (this.#parentState = {})
+    return (this._parentState = {})
   }
 
   set parentState(parentState: any) {
-    this.#parentState = parentState
+    this._parentState = parentState
   }
 
   _curDir?: string
@@ -762,7 +769,7 @@ export class ElementProxy<T extends Element> {
   result?: any
   error?: Error
 
-  #elementAsyncProps?: any
+  private elementAsyncProps?: any
 
   constructor(public element: T, props: any = {}) {
     Object.assign(this, props)
@@ -772,7 +779,7 @@ export class ElementProxy<T extends Element> {
       writable: false,
       value: this
     })
-    if (element.asyncConstructor) this.#elementAsyncProps = props
+    if (element.asyncConstructor) this.elementAsyncProps = props
   }
 
   setDebug(debug?: string) {
@@ -851,9 +858,8 @@ export class ElementProxy<T extends Element> {
   async exec(parentState: Record<string, any> = {}) {
     Object.assign(this.parentState, parentState)
     if (this.element.asyncConstructor) {
-      await this.element.asyncConstructor(this.#elementAsyncProps)
-      this.#elementAsyncProps = undefined
-      // this.#ignoreEvalElementProps.clear()
+      await this.element.asyncConstructor(this.elementAsyncProps)
+      this.elementAsyncProps = undefined
       this.element.asyncConstructor = undefined
     }
 
@@ -930,8 +936,8 @@ export class ElementProxy<T extends Element> {
       this._logger?.dispose()
       this._logger = null
       // Only release parentState if it's owner
-      if (this.#parentState) {
-        this.#parentState = null
+      if (this._parentState) {
+        this._parentState = null
       }
     } finally {
       GlobalEvent.emit('@app/proxy/after:dispose', this)

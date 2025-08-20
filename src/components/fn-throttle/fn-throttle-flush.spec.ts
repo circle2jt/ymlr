@@ -26,8 +26,8 @@ test('flush a fn-throttle', async () => {
     ]
   })
   try {
-    await fnThrottle.exec()
-    await fnThrottle.exec()
+    void fnThrottle.exec()
+    void fnThrottle.exec()
     const fnThrottleFlush = await Testing.createElementProxy(FNThrottleFlush, 'ttask1f')
     await fnThrottleFlush.exec()
     await fnThrottleFlush.dispose()

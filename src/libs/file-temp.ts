@@ -9,14 +9,14 @@ export class FileTemp {
     return existsSync(this.file)
   }
 
-  get #random() {
+  private get random() {
     return 'rd_' + Math.random().toString().replaceAll('.', '_')
   }
 
   constructor(private readonly ext?: string, dir?: string | true) {
     if (dir) {
       if (dir === true) {
-        this.dir = join(tmpdir(), this.#random)
+        this.dir = join(tmpdir(), this.random)
       } else {
         this.dir = dir
       }
@@ -26,7 +26,7 @@ export class FileTemp {
     } else {
       this.dir = tmpdir()
     }
-    this.file = join(this.dir, this.#random)
+    this.file = join(this.dir, this.random)
     if (ext) { this.file += ext }
   }
 

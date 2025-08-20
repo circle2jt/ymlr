@@ -7,7 +7,7 @@ export interface Element {
   readonly ignoreEvalProps?: string[]
   readonly proxy: ElementProxy<this>
   readonly innerRunsProxy?: ElementProxy<Group<GroupProps, GroupItemProps>>
-
+  overrideProxyProps?: () => any
   asyncConstructor?: (props?: any) => void | Promise<void>
   preExec?: () => boolean | Promise<boolean>
   exec: (args?: any) => any

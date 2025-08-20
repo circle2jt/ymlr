@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { singleton } from 'src/libs/singleton-function'
+import { SingletonManager } from 'src/managers/singleton-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -21,15 +22,29 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
   ```
 */
 export class FNSingleton implements Element {
-  static readonly Caches = new Map<string, (singletonData?: Record<string, any>) => any>()
-
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
+
+  overrideProxyProps() {
+    return {
+      detach: true
+    }
+  }
 
   name!: string
   trailing?: boolean
   autoRemove?: boolean
   singletonData?: any
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  private fn?: Function & { cancel: () => void, onDone?: () => any }
+  private promsise?: {
+    t: Promise<any>
+    resolve: (value?: any) => void
+    reject: (reason?: any) => void
+  }
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -38,27 +53,81 @@ export class FNSingleton implements Element {
   async exec() {
     assert(this.name)
 
-    let fn = FNSingleton.Caches.get(this.name)
-    if (!fn) {
-      fn = singleton(async (singletonData) => {
+    if (SingletonManager.Instance.has(this.name)) {
+      SingletonManager.Instance.touch(this.name, this.singletonData)
+      return
+    }
+    assert(this.proxy.runs?.length)
+
+    this.logger.trace('%s: create a new one', this.name)
+
+    const promsise = {
+      t: undefined,
+      resolve: (_value?: any) => { },
+      reject: (_reason?: any) => { }
+    }
+    const t = new Promise<any>((resolve, reject) => {
+      promsise.resolve = resolve
+      promsise.reject = reject
+    })
+    promsise.t = t as any
+    this.promsise = promsise as any
+
+    this.fn = singleton(async (singletonData) => {
+      try {
         await this.innerRunsProxy.exec({
           singletonData
         })
-      }, {
-        trailing: this.trailing
-      })
-      if (this.autoRemove) {
-        (fn as any).onDone = () => {
-          FNSingleton.Caches.delete(this.name)
-        }
+      } catch (err) {
+        this.promsise?.reject(err)
       }
-      FNSingleton.Caches.set(this.name, fn)
+    }, {
+      trailing: this.trailing
+    })
+    if (this.autoRemove) {
+      this.fn.onDone = () => {
+        this.remove()
+      }
     }
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setImmediate(fn, this.singletonData)
+    SingletonManager.Instance.set(this.name, this)
+    this.touch(this.singletonData)
+    await this.promsise?.t
   }
 
-  dispose() {
-    this.singletonData = null
+  touch(singleData?: any) {
+    if (!this.fn) return
+    this.logger.trace('%s: touch', this.name)
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setImmediate(async () => {
+      try {
+        await this.fn?.(singleData)
+      } catch (err) {
+        this.promsise?.reject(err)
+      }
+    })
+  }
+
+  cancel() {
+    if (!this.fn) return
+    this.logger.trace('%s: cancel', this.name)
+    this.fn?.cancel()
+  }
+
+  remove() {
+    if (!this.fn) return
+    this.logger.trace('%s: remove', this.name)
+    SingletonManager.Instance.delete(this.name)
+    this.cancel()
+    this.singletonData = undefined
+    this.promsise?.resolve()
+  }
+
+  async dispose() {
+    if (!this.fn) return
+    this.logger.trace('%s: dispose', this.name)
+    this.remove()
+    await this.innerRunsProxy.dispose()
+    this.promsise = undefined
+    this.fn = undefined
   }
 }

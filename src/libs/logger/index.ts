@@ -8,13 +8,13 @@ import { LoggerCoreLevel, LoggerLevel } from './logger-level'
 
 export abstract class Logger extends EventEmitter {
   protected _plainLog?: true
-  #level!: Level
+  private _level!: Level
   get level() {
-    return this.#level
+    return this._level
   }
 
   set level(level: Level) {
-    this.#level = level
+    this._level = level
     const levelsDisable = new Set<string>()
     if (!this.is(LoggerLevel.trace)) {
       if (this.is(LoggerLevel.debug)) {
@@ -88,24 +88,24 @@ export abstract class Logger extends EventEmitter {
     return this
   }
 
-  #context = ''
+  private _context = ''
   set context(ctx: string) {
-    this.#context = ctx
+    this._context = ctx
     this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
   }
 
   get context() {
-    return this.#context
+    return this._context
   }
 
-  #contextPath = ''
+  private _contextPath = ''
   set contextPath(ctx: string) {
-    this.#contextPath = ctx
+    this._contextPath = ctx
     this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
   }
 
   get contextPath() {
-    return this.#contextPath
+    return this._contextPath
   }
 
   protected fullContextPath = ''

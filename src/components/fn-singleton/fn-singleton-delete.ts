@@ -1,7 +1,7 @@
 import assert from 'assert'
+import { SingletonManager } from 'src/managers/singleton-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
-import { FNSingleton } from './fn-singleton'
 
 /** |**  fn-singleton'del
   Remove singleton function
@@ -31,7 +31,7 @@ export class FNSingletonDelete implements Element {
   async exec() {
     assert(this.name)
 
-    return FNSingleton.Caches.delete(this.name)
+    return SingletonManager.Instance.get(this.name)?.remove()
   }
 
   dispose() { }
