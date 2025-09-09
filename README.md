@@ -552,6 +552,8 @@ Example:
 ```yaml
   - failure:
       debug: warn                  # Show warning when failed
+      filterDebug: |-              # Filter error. Example: error message includes the text "ignore print error here" then not show log
+        return !error?.message?.includes('ignore print error here')
       restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
         max: 3
         sleep: 3s

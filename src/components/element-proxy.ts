@@ -1,6 +1,6 @@
 import { isAbsolute, join } from 'path'
 import { type Scene } from 'src/components/scene/scene'
-import { callFunctionScript } from 'src/libs/async-function'
+import { bindFunctionScript, callFunctionScript } from 'src/libs/async-function'
 import { type ErrorStack } from 'src/libs/error-stack'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
@@ -21,14 +21,14 @@ const REGEX_VALIDATE_VARS_NAME = /^[a-zA-Z0-9]/
 const DEFAULT_AUTO_EVAL_BASE_PROPS = new Set(['name', 'icon'])
 const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   // Injected enumerable: false by system
-  // 'proxy',
-  // 'innerRunsProxy',
+  'proxy',
+  'innerRunsProxy',
 
-  // Injected by user so neec to ignore handle them
+  // Injected by user so need to ignore handle them
   'failure',
   'hideName',
   'ignoreEvalProps',
-  'runs',
+  // 'runs',
   'errorStack'
 ])
 
@@ -202,6 +202,8 @@ export class ElementProxy<T extends Element> {
     ```yaml
       - failure:
           debug: warn                  # Show warning when failed
+          filterDebug: |-              # Filter error. Example: error message includes the text "ignore print error here" then not show log
+            return !error?.message?.includes('ignore print error here')
           restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
             max: 3
             sleep: 3s
@@ -219,6 +221,7 @@ export class ElementProxy<T extends Element> {
   */
   failure?: {
     ignore?: boolean
+    filterDebug?: string | any // ((error: any, ...prms: any) => any | Promise<any>)
     debug?: string | boolean
     restart?: {
       sequence?: {
@@ -813,6 +816,22 @@ export class ElementProxy<T extends Element> {
   }
 
   async evalPropsBeforeExec() {
+    if (this.failure?.filterDebug && typeof this.failure.filterDebug === 'string') {
+      this.failure.filterDebug = await bindFunctionScript(this.failure.filterDebug, this,
+        'error',
+        '$parentState',
+        '$ps',
+        '$vars',
+        '$v',
+        '$utils',
+        '$u',
+        '$const',
+        '$c',
+        '$env',
+        '$e'
+      )
+    }
+
     const that = this as any
     const { element } = that
     const proms = Object.keys(element)

@@ -7,7 +7,7 @@ import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { Sequence } from 'src/libs/sequence'
 import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
-import { noop } from 'src/managers/constants'
+import { Constants, noop } from 'src/managers/constants'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { Scene } from '../scene/scene'
@@ -52,7 +52,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   private static readonly SequenceRestartJob = new Map<string, Sequence>()
   readonly isRootScene?: boolean
   readonly isScene?: boolean
-  readonly ignoreEvalProps = ['isRootScene', 'isScene']
+  readonly ignoreEvalProps = ['isRootScene', 'isScene', 'runs']
   readonly proxy!: ElementProxy<this>
 
   hideName?: boolean
@@ -429,25 +429,40 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       } catch (error: any) {
         if (!baseProps.failure) throw error
 
+        const { filterDebug, ...failureProps } = baseProps.failure
+
         if (baseProps.failure.restart && elemProxy.failure?.restart) {
           baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
         }
-        const failure = await this.scene.getVars(cloneDeep(baseProps.failure), this)
+
+        const failure = await this.scene.getVars(cloneDeep(failureProps), this)
+
         if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))) {
           ++failure.restart.count
           if (baseProps.failure.restart) {
             baseProps.failure.restart.count = failure.restart.count
           }
 
-          let failureLogger: Logger
-          if (failure.debug) {
-            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
-            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
-          } else {
-            failureLogger = elemProxy.logger.clone()
+          let isLogError = true
+          if (typeof elemProxy.failure?.filterDebug === 'function') {
+            isLogError = await elemProxy.failure?.filterDebug(error)
           }
-          const title = elemProxy.name || elemProxy.contextName
-          failureLogger.error(error?.message)?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)?.trace(error)
+          if (isLogError) {
+            let failureLogger: Logger
+            if (failure.debug) {
+              const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+              failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
+            } else {
+              failureLogger = elemProxy.logger.clone()
+            }
+            if (error) {
+              const title = elemProxy.name || elemProxy.contextName
+              failureLogger
+                .error(error?.message)
+                ?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)
+                ?.trace(error)
+            }
+          }
 
           if (failure.restart.sleep) {
             await sleep(failure.restart.sleep)
@@ -470,14 +485,32 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
         if (!baseProps.failure?.ignore) throw error
 
-        let failureLogger: Logger
-        if (failure.debug) {
-          const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
-          failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
-        } else {
-          failureLogger = elemProxy.logger
+        let isLogError = true
+        if (typeof elemProxy.failure?.filterDebug === 'function') {
+          isLogError = await elemProxy.failure?.filterDebug(
+            error,
+            this.proxy.parentState,
+            this.proxy.parentState,
+            this.proxy.scene.localVars,
+            this.proxy.scene.localVars,
+            this.proxy.rootScene.globalUtils,
+            this.proxy.rootScene.globalUtils,
+            Constants,
+            Constants,
+            process.env,
+            process.env
+          )
         }
-        failureLogger.warn(error?.message)?.trace(error)
+        if (isLogError) {
+          let failureLogger: Logger
+          if (failure.debug) {
+            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
+          } else {
+            failureLogger = elemProxy.logger
+          }
+          failureLogger.warn(error?.message)?.trace(error)
+        }
       } finally {
         await elemProxy.dispose()
       }
