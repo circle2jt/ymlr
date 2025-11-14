@@ -39,10 +39,10 @@ export class Include implements Element {
   readonly proxy!: ElementProxy<this>
 
   files!: string[]
-  maxDeepLevel = 0
-  cached?: boolean
   _errorStack = true
   _isDir?: boolean
+  maxDeepLevel = 0
+  cached?: boolean
   validFilePattern: string | RegExp = /^[a-zA-Z0-9].*?\.ya?ml$/
   validDirPattern: string | RegExp = /^[a-zA-Z0-9]/
   returnType = Array
@@ -82,7 +82,7 @@ export class Include implements Element {
       return cached
     }
     const validFilePattern = this.validFilePattern instanceof RegExp ? this.validFilePattern : new RegExp(this.validFilePattern)
-    const validDirPattern = this.validDirPattern instanceof RegExp ? this.validDirPattern : new RegExp(this.validFilePattern)
+    const validDirPattern = this.validDirPattern instanceof RegExp ? this.validDirPattern : new RegExp(this.validDirPattern)
     const files: FileRemote[] = []
     for (const file of this.files) {
       const f = new FileRemote(file, this.proxy)
@@ -139,45 +139,66 @@ export class Include implements Element {
           const curDir = dirname(f.uri)
           if (Array.isArray(data)) {
             data.forEach((d: any) => {
-              Object.assign(d, {
-                _curDir: curDir,
+              Object.defineProperties(d, {
+                _curDir: {
+                  enumerable: false,
+                  writable: false,
+                  value: curDir,
+                },
                 errorStack: {
-                  sourceFile: f.uri
+                  enumerable: false,
+                  writable: false,
+                  value: {
+                    sourceFile: f.uri
+                  },
                 }
               })
             })
           } else if (data !== null && typeof data === 'object') {
-            Object.assign(data, {
-              _curDir: curDir,
+            Object.defineProperties(data, {
+              _curDir: {
+                enumerable: false,
+                writable: false,
+                value: curDir,
+              },
               errorStack: {
-                sourceFile: f.uri
+                enumerable: false,
+                writable: false,
+                value: {
+                  sourceFile: f.uri
+                },
               }
             })
           }
         }
         return data
       }))
-      const childs = this.getData(elementProxies)
-      if (Array.isArray(childs)) {
-        const includes = childs
+      if (Array.isArray(elementProxies)) {
+        const includes = elementProxies
           .map((e: any, i: number) => e.include ? { idx: i, include: e.include, _curDir: e._curDir } : undefined)
           .filter((e: any) => e)
         if (includes.length) {
           const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
             .map(async (e: any) => {
               const elemProxy = await this.proxy.scene.createAndExecuteElement(undefined, 'include', {
-                _curDir: e._curDir
-              }, e.include)
+                _curDir: e._curDir,
+              }, {
+                validFilePattern: this.validFilePattern,
+                validDirPattern: this.validDirPattern,
+                returnType: Array,
+                ...(Array.isArray(e.include) ? { files: e.include } : typeof e.include === 'string' ? { files: [e.include] } : e.include),
+              })
               return { idx: e.idx, runs: elemProxy?.result || [] }
             })
           )
           allRuns
             .reverse()
             .forEach((allRunItem) => {
-              childs.splice(allRunItem.idx, 1, ...allRunItem.runs)
+              elementProxies.splice(allRunItem.idx, 1, ...allRunItem.runs)
             })
         }
       }
+      const childs = this.getData(elementProxies)
       if (this.cached) {
         this.proxy.scene.localCaches.set(uri, childs)
       }
