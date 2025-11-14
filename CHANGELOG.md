@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.3-alpha.1.md](#1763131081820)  -  _11/14/2025, 9:38:01 PM_
 - [1.4.3-alpha.0.md](#1755681296476)  -  _8/20/2025, 4:14:56 PM_
 - [1.4.2.md](#1751368423814)  -  _7/1/2025, 6:13:43 PM_
 - [1.4.2-alpha.3.md](#1749470002288)  -  _6/9/2025, 6:53:22 PM_
@@ -125,6 +126,16 @@
 
 ## Details
 
+<a id="1763131081820"></a>
+### 1.4.3-alpha.1
+
+* fix(ci): temp remove ci:test when publish to fix jestjs for new version (f18d1e6)
+* fix(ci): yarn test cli for new nodejs version (a768ef5)
+* fix: lint (3838eb0)
+* fix(ymlr-load): load not correctly (08a349d)
+* fix: validate file before includes (8e4fd11)
+* feat: support filter error logs when executed failed (5d2272a)
+  
 <a id="1755681296476"></a>
 ### 1.4.3-alpha.0
 
