@@ -143,14 +143,14 @@ export class Include implements Element {
                 _curDir: {
                   enumerable: false,
                   writable: false,
-                  value: curDir,
+                  value: curDir
                 },
                 errorStack: {
                   enumerable: false,
                   writable: false,
                   value: {
                     sourceFile: f.uri
-                  },
+                  }
                 }
               })
             })
@@ -159,14 +159,14 @@ export class Include implements Element {
               _curDir: {
                 enumerable: false,
                 writable: false,
-                value: curDir,
+                value: curDir
               },
               errorStack: {
                 enumerable: false,
                 writable: false,
                 value: {
                   sourceFile: f.uri
-                },
+                }
               }
             })
           }
@@ -181,12 +181,12 @@ export class Include implements Element {
           const allRuns: Array<{ idx: number, runs: Array<ElementProxy<Element>> }> = await Promise.all(includes
             .map(async (e: any) => {
               const elemProxy = await this.proxy.scene.createAndExecuteElement(undefined, 'include', {
-                _curDir: e._curDir,
+                _curDir: e._curDir
               }, {
                 validFilePattern: this.validFilePattern,
                 validDirPattern: this.validDirPattern,
                 returnType: Array,
-                ...(Array.isArray(e.include) ? { files: e.include } : typeof e.include === 'string' ? { files: [e.include] } : e.include),
+                ...(Array.isArray(e.include) ? { files: e.include } : typeof e.include === 'string' ? { files: [e.include] } : e.include)
               })
               return { idx: e.idx, runs: elemProxy?.result || [] }
             })
