@@ -142,9 +142,8 @@ export class YmlrLoad implements Element {
           returnType: Object
         }) as ElementProxy<Include>
         const newData: any = await this.handle(elemProxy?.result)
-        data = merge(newData, others)
-        const rs = await this.handle(data)
-        return rs
+        data = merge(others, newData)
+        return data
       }
       const newData: any = {}
       for (const key of Object.keys(data)) {
