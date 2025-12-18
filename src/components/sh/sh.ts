@@ -38,6 +38,16 @@ import { type ShProps } from './sh.props'
           ...
       vars: log                         # !optional
   ```
+
+  Execute a execuable file
+  ```yaml
+    - name: Write a hello file
+      sh:
+        path: ffmpeg
+        args:
+          - "--version"
+      vars: log       # !optional
+  ```
 */
 export class Sh implements Element {
   readonly proxy!: ElementProxy<this>
@@ -73,18 +83,22 @@ export class Sh implements Element {
 
   async exec() {
     if (this.path) {
-      const fileRemote = new FileRemote(this.path, this.proxy)
-      const script = await fileRemote.getTextContent()
-      assert(script)
-      if (fileRemote.isRemote) {
-        this.tempFile = new FileTemp()
-        this.tempFile.create(script, {
-          mode: 0o775,
-          flag: 'w'
-        })
-        this.filePath = this.tempFile.file
+      if (this.path.includes("/") || this.path.includes("\\")) {
+        const fileRemote = new FileRemote(this.path, this.proxy)
+        const script = await fileRemote.getTextContent()
+        assert(script)
+        if (fileRemote.isRemote) {
+          this.tempFile = new FileTemp()
+          this.tempFile.create(script, {
+            mode: 0o775,
+            flag: 'w'
+          })
+          this.filePath = this.tempFile.file
+        } else {
+          this.filePath = fileRemote.uri
+        }
       } else {
-        this.filePath = fileRemote.uri
+        this.filePath = this.path
       }
     } else {
       assert(this.script)
