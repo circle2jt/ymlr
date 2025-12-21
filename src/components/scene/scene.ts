@@ -172,6 +172,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         await this.generateEncryptedFile(remoteFileProps, password)
       }
       const { name: _name, debug: _debug, vars: _vars, varsFiles: _varsFiles, ...groupProps } = remoteFileProps
+      await this.loadVars(_vars, [], [])
       const { name, debug, vars, varsFiles = [] } = await this.getVars({ name: _name, debug: _debug, vars: _vars, varsFiles: _varsFiles }, this.proxy)
       if (!this.proxy.debug && debug) this.proxy.setDebug(debug)
       if (this.name === undefined && name) this.name = name
