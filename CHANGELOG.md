@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.3.md](#1766295453318)  -  _12/21/2025, 12:37:33 PM_
 - [1.4.3-alpha.2.md](#1766291961651)  -  _12/21/2025, 11:39:21 AM_
 - [1.4.3-alpha.1.md](#1763131081820)  -  _11/14/2025, 9:38:01 PM_
 - [1.4.3-alpha.0.md](#1755681296476)  -  _8/20/2025, 4:14:56 PM_
@@ -127,6 +128,31 @@
 
 ## Details
 
+<a id="1766295453318"></a>
+### 1.4.3
+
+* fix(logger): wrong format when log object (3c2a913)
+* chore: prerelease 1.4.3-alpha.2 (1a65b2e)
+* feat(elementProxy): Support retry with event (d188861)
+* feat(logger): Support disable some values in the logs via env (f7c379b)
+* fix(scene): Support eval variable in runetime in "vars" in scene (2f57d08)
+* fix(sh): Support run an execuable file (2ad1a7b)
+* chore: prerelease 1.4.3-alpha.1 (fd0dd5b)
+* fix(ci): temp remove ci:test when publish to fix jestjs for new version (f18d1e6)
+* fix(ci): yarn test cli for new nodejs version (a768ef5)
+* fix: lint (3838eb0)
+* fix(ymlr-load): load not correctly (08a349d)
+* fix: validate file before includes (8e4fd11)
+* feat: support filter error logs when executed failed (5d2272a)
+* chore: prerelease 1.4.3-alpha.0 (c4d01c6)
+* fix: leak mem (279ffdc)
+* fix(format): replace space in format duration (1613bce)
+* fix(logger): get wrong log level from parent (df378d7)
+* fix: replace axios to skip warning utils.Array (c91cdbd)
+* fix(utils): formatDuration not format when time is long (c5041e9)
+* fix(fn-queue): not retry after error (b25a0af)
+* fix: not apply current log level when failure.restart (2bb6a9c)
+  
 <a id="1766291961651"></a>
 ### 1.4.3-alpha.2
 
