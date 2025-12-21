@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.3-alpha.2.md](#1766291961651)  -  _12/21/2025, 11:39:21 AM_
 - [1.4.3-alpha.1.md](#1763131081820)  -  _11/14/2025, 9:38:01 PM_
 - [1.4.3-alpha.0.md](#1755681296476)  -  _8/20/2025, 4:14:56 PM_
 - [1.4.2.md](#1751368423814)  -  _7/1/2025, 6:13:43 PM_
@@ -126,6 +127,14 @@
 
 ## Details
 
+<a id="1766291961651"></a>
+### 1.4.3-alpha.2
+
+* feat(elementProxy): Support retry with event (d188861)
+* feat(logger): Support disable some values in the logs via env (f7c379b)
+* fix(scene): Support eval variable in runetime in "vars" in scene (2f57d08)
+* fix(sh): Support run an execuable file (2ad1a7b)
+  
 <a id="1763131081820"></a>
 ### 1.4.3-alpha.1
 
