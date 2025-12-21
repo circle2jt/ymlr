@@ -43,7 +43,7 @@ export default class ColorfulStyle implements LogStyle {
         return
       }
       const fullContextPath = meta.fullContextPath ? `${chalk.gray.dim.italic(meta.fullContextPath)} ` : ''
-      printToConsole(`${threadID}${timestamp}${level} ${indentString}${fullContextPath}${formater.format('%o')}`, ...prms)
+      printToConsole(`${threadID}${timestamp}${level} ${indentString}${fullContextPath}${formater.format('%o')}`, msg, ...prms)
       // printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
       //   threadID,
       //   timestamp,
