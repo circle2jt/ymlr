@@ -1,11 +1,14 @@
 import chalk from 'chalk'
 import { H_SPACE, H_SPACE_0, V_SPACE, V_SPACE_0 } from './console'
 
+const disableLogIndent = process.env.DISABLE_LOG_INDENT === '1'
+
 export class Indent {
   indentString = ''
 
   private _indent = 0
   set indent(indent: number) {
+    if (disableLogIndent) return
     this._indent = indent
     this.indentString = chalk.gray.dim(new Array(indent)
       .fill(`${V_SPACE_0}${H_SPACE_0}`)

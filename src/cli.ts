@@ -141,6 +141,14 @@ export async function RunCLI() {
       Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}\t${chalk.gray.dim(`https://www.npmjs.com/package/${key}`)}`))
       return msg.length > 1 ? msg.join('\n') : ''
     })
+    .addHelpText('after', `Environment Variables
+  LOG_FORMAT=json           Output log is json format
+  DISABLE_LOG_COLOR=1       Disable color TTY in log
+  DISABLE_LOG_TIMESTAMP=1   Disable timestamp in log
+  DISABLE_LOG_CONTEXT=1     Disable context path in log
+  DISABLE_LOG_INDENT=1      Disable indent in log
+  DISABLE_LOG_THREAD=1      Disable thead id in log
+`)
     .addHelpText('after', `More:
 ✔ Github project: ${homepage}
 ✔ Npm package   : https://www.npmjs.com/package/${name}

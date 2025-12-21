@@ -34,28 +34,24 @@ export default class ColorfulStyle implements LogStyle {
     const formater = LevelFactory.GetInstance(meta.level)
     const level = this.getColorLevel(formater)
     if (!meta.plainLog) {
-      const threadID = chalk.gray.dim(meta.threadID)
-      const timestamp = chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))
-      const indentString = chalk.gray.dim(meta.indent.indentString)
-      const fullContextPath = meta.fullContextPath ? chalk.gray.dim.italic(meta.fullContextPath) : ''
+      const threadID = meta.threadID ? `${chalk.gray.dim(meta.threadID)} ` : ''
+      const timestamp = meta.timestamp ? `${chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))} ` : ''
+      const indentString = meta.indent.indentString ? `${chalk.gray.dim(meta.indent.indentString)} ` : ''
       if (typeof msg === 'string') {
-        printToConsole(`%s %s %s %s${formater.format(msg)} \t %s`,
-          threadID,
-          timestamp,
-          level,
-          indentString,
-          ...prms,
-          fullContextPath)
+        const fullContextPath = meta.fullContextPath ? ` ${chalk.gray.dim.italic(meta.fullContextPath)}` : ''
+        printToConsole(`${threadID}${timestamp}${level} ${indentString}${formater.format(msg)} \t${fullContextPath}`, ...prms)
         return
       }
-      printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
-        threadID,
-        timestamp,
-        level,
-        indentString,
-        fullContextPath,
-        msg,
-        ...prms)
+      const fullContextPath = meta.fullContextPath ? `${chalk.gray.dim.italic(meta.fullContextPath)} ` : ''
+      printToConsole(`${threadID}${timestamp}${level} ${indentString}${fullContextPath}${formater.format('%o')}`, ...prms)
+      // printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
+      //   threadID,
+      //   timestamp,
+      //   level,
+      //   indentString,
+      //   fullContextPath,
+      //   msg,
+      //   ...prms)
       return
     }
     if (typeof msg === 'string') {

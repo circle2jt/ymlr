@@ -5,7 +5,7 @@ import { type LogMetaData, type LogStyle } from './log-style'
 export default class JsonStyle implements LogStyle {
   print(printToConsole: (...args: any[]) => any, meta: LogMetaData, msg: string | any, ...prms: any) {
     const threadID = meta.threadID
-    const timestamp = meta.timestamp.getTime()
+    const timestamp = meta.timestamp?.getTime()
     const level = LevelFactory.GetInstance(meta.level).name
     const contextPath = meta.fullContextPath
     const result: Record<string, any> = { threadID, timestamp, level, contextPath }

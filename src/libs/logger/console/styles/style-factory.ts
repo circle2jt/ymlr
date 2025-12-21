@@ -6,6 +6,11 @@ export class StyleFactory {
   static Instance = this.GetStyle('colorful')
 
   static SetLogStyle(name?: 'color0' | 'color16' | 'color256' | 'color16M' | 'json') {
+    if (process.env.LOG_FORMAT === 'json') {
+      name = 'json'
+    } else if (process.env.DISABLE_LOG_COLOR === '1') {
+      name = 'color0'
+    }
     this.Instance = this.GetStyle(name)
   }
 

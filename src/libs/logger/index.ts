@@ -91,7 +91,11 @@ export abstract class Logger extends EventEmitter {
   private _context = ''
   set context(ctx: string) {
     this._context = ctx
-    this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
+    this.fullContextPath = this.contextPath
+    if (this.context) {
+      this.fullContextPath += '/' + this.context
+    }
+    this.fullContextPath = this.fullContextPath.replace(/\/@[^/]+/g, '')
   }
 
   get context() {
@@ -101,7 +105,11 @@ export abstract class Logger extends EventEmitter {
   private _contextPath = ''
   set contextPath(ctx: string) {
     this._contextPath = ctx
-    this.fullContextPath = (this.contextPath + '/' + this.context).replace(/\/@[^/]+/g, '')
+    this.fullContextPath = this.contextPath
+    if (this.context) {
+      this.fullContextPath += '/' + this.context
+    }
+    this.fullContextPath = this.fullContextPath.replace(/\/@[^/]+/g, '')
   }
 
   get contextPath() {

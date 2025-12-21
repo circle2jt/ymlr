@@ -14,6 +14,10 @@ export const H_SPACE_0 = '  '
 export class ConsoleLogger extends Logger {
   indent = new Indent()
 
+  private readonly disableLogTimestamp = true
+  private readonly disableLogContext = true
+  private readonly appID?: string
+
   constructor(level: LoggerLevel | Level | boolean = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, parent?: Logger) {
     super(level, context, errorStack, parent)
     this
@@ -23,15 +27,19 @@ export class ConsoleLogger extends Logger {
       .on('removeIndent', (indent = 1) => {
         this.indent.add(indent * -1)
       })
+
+    this.disableLogTimestamp = process.env.DISABLE_LOG_TIMESTAMP === '1'
+    this.disableLogContext = process.env.DISABLE_LOG_CONTEXT === '1'
+    this.appID = process.env.DISABLE_LOG_THREAD !== '1' ? App.ThreadID : undefined
   }
 
   override trace(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.debug, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.trace,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -39,11 +47,11 @@ export class ConsoleLogger extends Logger {
 
   override debug(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.debug, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.debug,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -51,11 +59,11 @@ export class ConsoleLogger extends Logger {
 
   override info(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.info, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.info,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -63,11 +71,11 @@ export class ConsoleLogger extends Logger {
 
   override pass(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.info, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.pass,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -75,11 +83,11 @@ export class ConsoleLogger extends Logger {
 
   override warn(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.warn, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.warn,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -87,11 +95,11 @@ export class ConsoleLogger extends Logger {
 
   override fail(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.error, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.fail,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -99,11 +107,11 @@ export class ConsoleLogger extends Logger {
 
   override error(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.error, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.error,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -111,11 +119,11 @@ export class ConsoleLogger extends Logger {
 
   override secret(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.log, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.secret,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     return this
@@ -123,11 +131,11 @@ export class ConsoleLogger extends Logger {
 
   override fatal(msg: any, ...prms: any) {
     StyleFactory.Instance.print(console.error, {
-      threadID: App.ThreadID,
-      timestamp: new Date(),
+      threadID: this.appID,
+      timestamp: !this.disableLogTimestamp ? new Date() : undefined,
       level: LoggerLevel.fatal,
       indent: this.indent,
-      fullContextPath: this.fullContextPath,
+      fullContextPath: !this.disableLogContext ? this.fullContextPath : undefined,
       plainLog: this._plainLog
     }, msg, ...prms)
     if (this.errorStack) {
@@ -137,7 +145,8 @@ export class ConsoleLogger extends Logger {
   }
 
   override clone(context?: string, level?: LoggerLevel | boolean, errorStack?: ErrorStack): Logger {
-    const logger = new ConsoleLogger(level || this.level.level, context || this.context, { ...this.errorStack, ...errorStack }, this)
+    // const logger = new ConsoleLogger(level || this.level.level, context || this.context, { ...this.errorStack, ...errorStack }, this)
+    const logger = new ConsoleLogger(level || this.level.level, context, { ...this.errorStack, ...errorStack }, this)
     logger.contextPath = this.fullContextPath
     logger.emit('addIndent', this.indent.indent)
     return logger
