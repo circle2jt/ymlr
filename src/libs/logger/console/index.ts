@@ -14,8 +14,8 @@ export const H_SPACE_0 = '  '
 export class ConsoleLogger extends Logger {
   indent = new Indent()
 
-  private readonly disableLogTimestamp = true
-  private readonly disableLogContext = true
+  private readonly disableLogTimestamp: boolean = true
+  private readonly disableLogContext: boolean = true
   private readonly appID?: string
 
   constructor(level: LoggerLevel | Level | boolean = LoggerLevel.info, context = '', errorStack: ErrorStack | undefined, parent?: Logger) {

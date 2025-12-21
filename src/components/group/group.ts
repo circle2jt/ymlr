@@ -1,4 +1,5 @@
 import assert from 'assert'
+import chalk from 'chalk'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
@@ -427,7 +428,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       try {
         await elemProxy.exec()
       } catch (error: any) {
-        if (!baseProps.failure) throw error
+        if (!baseProps.failure) {
+          elemProxy.logger.error(error?.message)
+          throw error
+        }
 
         const { filterDebug, ...failureProps } = baseProps.failure
 
@@ -436,8 +440,21 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         }
 
         const failure = await this.scene.getVars(cloneDeep(failureProps), this)
+        let canRestart = failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))
+        let waitRetry: Promise<any> | undefined
+        if (!canRestart && failure.retryEvent) {
+          const retryEvent = failure.retryEvent
+          this.logger.debug(`Waiting retry event "${retryEvent}"`)
+          waitRetry = new Promise((resolve) => {
+            this.rootScene.globalUtils.globalEvent.once(retryEvent, () => {
+              resolve(true)
+            })
+          })
+          canRestart = true
+          this.logger.debug(`Received retry event "${retryEvent}"`)
+        }
 
-        if (failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))) {
+        if (canRestart) {
           ++failure.restart.count
           if (baseProps.failure.restart) {
             baseProps.failure.restart.count = failure.restart.count
@@ -456,26 +473,31 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               failureLogger = elemProxy.logger.clone()
             }
             if (error) {
-              const title = elemProxy.name || elemProxy.contextName
+              const title = elemProxy.name ? chalk.gray(`(${elemProxy.name})`) : ''
               failureLogger
-                .error(error?.message)
-                ?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title || ''}`)
+                // .error(error?.message)
+                ?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title}`)
                 ?.trace(error)
             }
           }
 
-          if (failure.restart.sleep) {
-            await sleep(failure.restart.sleep)
-          }
-          let sequence: Sequence | undefined
-          if (failure.restart.sequence) {
-            sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
-            if (!sequence) {
-              sequence = new Sequence(failure.restart.sequence.sleep)
-              Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
+          if (!waitRetry) {
+            if (failure.restart.sleep) {
+              await sleep(failure.restart.sleep)
             }
+            let sequence: Sequence | undefined
+            if (failure.restart.sequence) {
+              sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
+              if (!sequence) {
+                sequence = new Sequence(failure.restart.sequence.sleep)
+                Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
+              }
+            }
+            await sequence?.wait(this)
+          } else {
+            await waitRetry
           }
-          await sequence?.wait(this)
+
           if (baseProps.async) baseProps.async = false
           if (baseProps.detach) baseProps.detach = false
           if (!restartor) throw new Error('Why restartor is null ???')

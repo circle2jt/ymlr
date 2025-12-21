@@ -206,10 +206,11 @@ export class ElementProxy<T extends Element> {
             return !error?.message?.includes('ignore print error here')
           restart:                     # Try to restart 3 time before exit app. Each of retry, it will be sleep 3s before restart
             max: 3
-            sleep: 3s
+            sleep: 3s                  # wait 3s before retry
             sequence:                  # all of failed elements in same name will be restart sequence after sleep time
               name: test
               sleep: 1s
+          retryEvent: retryIt          # After could not restart (reach of limit restart) then it wait event "retryIt" then retry. (Use "event'emit" for the trigger)
           ignore: true                 # After retry 3 time failed, it keeps playing, not exit
         js: |
           const a = 1/0
@@ -230,8 +231,9 @@ export class ElementProxy<T extends Element> {
       }
       count?: number
       max: number
-      sleep: number | string
+      sleep?: number | string
     }
+    retryEvent?: string
   }
 
   /** |**  context

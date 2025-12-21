@@ -83,7 +83,7 @@ export class Sh implements Element {
 
   async exec() {
     if (this.path) {
-      if (this.path.includes("/") || this.path.includes("\\")) {
+      if (this.path.includes('/') || this.path.includes('\\')) {
         const fileRemote = new FileRemote(this.path, this.proxy)
         const script = await fileRemote.getTextContent()
         assert(script)
