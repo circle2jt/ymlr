@@ -61,7 +61,7 @@ export class Sh implements Element {
   process?: boolean
   bin: boolean | string = '/bin/sh'
   opts?: SpawnOptionsWithoutStdio | ExecFileOptions
-  exitCodes = [0]
+  exitCodes = [0, null, undefined]
   plainExecuteLog?: boolean
 
   private abortController?: AbortController
