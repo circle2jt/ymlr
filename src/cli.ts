@@ -9,6 +9,7 @@ import { Env } from './libs/env'
 import { FileRemote } from './libs/file-remote'
 import { StyleFactory } from './libs/logger/console/styles/style-factory'
 import { LoggerLevel } from './libs/logger/logger-level'
+import { PackagesManagerFactory } from './managers/packages-manager-factory'
 
 export async function RunCLI() {
   let t = Promise.resolve()
@@ -136,19 +137,23 @@ export async function RunCLI() {
     )
     .addHelpText('after', () => {
       const { dependencies = {} } = require('./package.json')
+      const packageManagement = PackagesManagerFactory.GetInstance(LoggerFactory.NewLogger(LoggerLevel.silent))
       const msg = []
-      msg.push(`Installed tags of ${chalk.green(name)}${chalk.gray(`@${version}`)}`)
-      Object.keys(dependencies).forEach(key => msg.push(`- ${chalk.green(key)}${chalk.gray(dependencies[key])}\t${chalk.gray.dim(`https://www.npmjs.com/package/${key}`)}`))
-      return msg.length > 1 ? msg.join('\n') : ''
+      msg.push(`Installed tags of ${chalk.green(name)}${chalk.gray(`@${version}`)} via ${chalk.cyan(packageManagement.name)}`)
+      Object.keys(dependencies)
+        .forEach((key) => msg.push(`  ${chalk.green(key)}${chalk.gray(dependencies[key])}\t${chalk.gray.dim(`https://www.npmjs.com/package/${key}`)}`))
+      if (msg.length === 1) {
+        msg.push(chalk.gray('  No tags'))
+      }
+      return msg.join('\n')
     })
-    .addHelpText('after', `Environment Variables
+    .addHelpText('after', `Configurable environment variables
   LOG_FORMAT=json           Output log is json format
   DISABLE_LOG_COLOR=1       Disable color TTY in log
   DISABLE_LOG_TIMESTAMP=1   Disable timestamp in log
   DISABLE_LOG_CONTEXT=1     Disable context path in log
   DISABLE_LOG_INDENT=1      Disable indent in log
-  DISABLE_LOG_THREAD=1      Disable thead id in log
-`)
+  DISABLE_LOG_THREAD=1      Disable thead id in log`)
     .addHelpText('after', `More:
 ✔ Github project: ${homepage}
 ✔ Npm package   : https://www.npmjs.com/package/${name}

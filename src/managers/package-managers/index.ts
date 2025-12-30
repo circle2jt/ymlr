@@ -9,6 +9,10 @@ import { nodeModulesDir } from '../modules-manager'
 
 export abstract class PM {
   protected readonly logger: Logger
+  get name() {
+    return this.constructor.name
+  }
+
   protected get cmdInstall() {
     return [] as string[]
   }
@@ -27,7 +31,7 @@ export abstract class PM {
   }
 
   constructor(logger: Logger) {
-    this.logger = logger.clone(this.constructor.name)
+    this.logger = logger.clone(this.name)
   }
 
   async install(...packages: string[]) {
