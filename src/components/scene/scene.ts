@@ -317,8 +317,8 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
   export(tagName: string | undefined, allProps: any, id: string) {
     if (!id) return
-    // No clone erroStask, condition...
-    const { errorStack, if: condition, elseif: elseIfCondition, else: elseCondition, template, ...props } = allProps
+    // No clone erroStask...
+    const { errorStack, elseif: elseIfCondition, else: elseCondition, template, ...props } = allProps
     const newOne = cloneDeep(props)
     if (tagName) {
       newOne.tagName = tagName
