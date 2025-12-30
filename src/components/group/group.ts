@@ -349,7 +349,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return { isTemplate: true }
     }
 
-    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context } = eProps
+    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context, placeholder } = eProps
 
     if (elseCondition === null) {
       elseIfCondition = true
@@ -389,6 +389,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       async,
       loop,
       context,
+      placeholder,
       skipNext,
       _curDir,
       errorStack: {

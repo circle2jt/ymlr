@@ -140,7 +140,7 @@ export class ElementProxy<T extends Element> {
           url: /items
     ```
   */
-  template?: any
+  template?: boolean
   /** |**  skip
     No run this
     @position top
@@ -308,7 +308,27 @@ export class ElementProxy<T extends Element> {
     ```
   */
   // _name?: string
+  /** |**  placeholder
+    It store values which are overrided when inherit a template
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - ->: printMyLog
+        placeholder:
+          name: ""
+        ;js: this.logger("[MyLog] %s", this.placeholder.name)
 
+      - <-: printMyLog        # expected print to "[MyLog] Test 1"
+        placeholder:
+          name: Test 1
+
+      - <-: printMyLog        # expected print to "[MyLog] Test 2"
+        placeholder:
+          name: Test 2
+    ```
+  */
+  placeholder?: any
   /** |**  debug
     How to print log details for each of item.
     Default is `info`
