@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.4-alpha.1.md](#1767160344112)  -  _12/31/2025, 12:52:24 PM_
 - [1.4.4-alpha.0.md](#1767149129867)  -  _12/31/2025, 9:45:29 AM_
 - [1.4.3.md](#1766295453318)  -  _12/21/2025, 12:37:33 PM_
 - [1.4.3-alpha.2.md](#1766291961651)  -  _12/21/2025, 11:39:21 AM_
@@ -129,6 +130,13 @@
 
 ## Details
 
+<a id="1767160344112"></a>
+### 1.4.4-alpha.1
+
+* feat: add sumary to rootScene (0165160)
+* feat(js): support tag is a string then it auto detected to js code (458780f)
+* feat: add globalEvent in element proxy (b464dd2)
+  
 <a id="1767149129867"></a>
 ### 1.4.4-alpha.0
 

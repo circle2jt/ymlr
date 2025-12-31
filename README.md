@@ -281,6 +281,7 @@ Example:
 ```yaml
   name: Scene name                  # Scene name
   description: Scene description    # Scene description
+  summary: true                     # Show log result after finished
   debug: info                       # Show log when run. Default is info. [silent, error, warn, info, debug, trace, all]
   password:                         # Encrypted this file with the password. To run this file, need to provides a password in the command line
   vars:                             # Declare global variables which are used in the program.
@@ -2800,12 +2801,12 @@ Example:
 
 ```yaml
   - js: |
-      $utils.globalEvent.on('say', (name) => {
+      this.globalEvent.on('say', (name) => {
         this.logger.info('Hello', name)
       })
 
   - js: |
-      $utils.globalEvent.emit('say', 'Thanh 01')
+      this.globalEvent.emit('say', 'Thanh 01')
 ```  
 
 
