@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.4-alpha.3.md](#1767169194617)  -  _12/31/2025, 3:19:54 PM_
 - [1.4.4-alpha.2.md](#1767161432947)  -  _12/31/2025, 1:10:32 PM_
 - [1.4.4-alpha.1.md](#1767160344112)  -  _12/31/2025, 12:52:24 PM_
 - [1.4.4-alpha.0.md](#1767149129867)  -  _12/31/2025, 9:45:29 AM_
@@ -131,6 +132,12 @@
 
 ## Details
 
+<a id="1767169194617"></a>
+### 1.4.4-alpha.3
+
+* fix(placeholder): placeholder not eval in conditional (ba5a28a)
+* feat: Allow disable auto install lack packages (bcca973)
+  
 <a id="1767161432947"></a>
 ### 1.4.4-alpha.2
 
