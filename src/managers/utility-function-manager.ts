@@ -27,12 +27,12 @@ export class UtilityFunctionManager {
     @example
     ```yaml
       - js: |
-          $utils.globalEvent.on('say', (name) => {
+          this.globalEvent.on('say', (name) => {
             this.logger.info('Hello', name)
           })
 
       - js: |
-          $utils.globalEvent.emit('say', 'Thanh 01')
+          this.globalEvent.emit('say', 'Thanh 01')
     ```
   */
   get globalEvent(): EventEmitter {

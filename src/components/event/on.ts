@@ -1,5 +1,4 @@
 import assert from 'assert'
-import { GlobalEvent } from 'src/libs/global-event'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -78,7 +77,7 @@ export class EventOn implements Element {
           this.reject?.(err as Error)
         }
       }
-      GlobalEvent.on(name, this.handlers[i])
+      this.proxy.globalEvent.on(name, this.handlers[i])
     })
 
     this.t = new Promise((resolve, reject) => {
@@ -92,7 +91,7 @@ export class EventOn implements Element {
     if (this.t) {
       this.names.forEach((name, i) => {
         this.proxy.logger.trace('Off %s', name)
-        GlobalEvent.off(name, this.handlers[i])
+        this.proxy.off(name, this.handlers[i])
       })
       this.resolve?.(undefined)
       this.handlers = []

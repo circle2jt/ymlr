@@ -33,6 +33,8 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
 ])
 
 export class ElementProxy<T extends Element> {
+  static DEBUG_LIFE_CIRCLE = false
+
   /** |**  id
     ID Reference to element object in the $vars
     @position top
@@ -735,6 +737,10 @@ export class ElementProxy<T extends Element> {
     return this.loopObject?.loopValue
   }
 
+  get globalEvent() {
+    return GlobalEvent
+  }
+
   readonly parent?: Element
   errorStack?: ErrorStack
 
@@ -904,7 +910,7 @@ export class ElementProxy<T extends Element> {
       this.element.asyncConstructor = undefined
     }
 
-    GlobalEvent.emit('@app/proxy/before:exec:exec', this)
+    ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:exec.0', this)
 
     const isAddIndent = this.parentProxy?.logger.meta?.printedName
     if (isAddIndent) this.logger.emit('addIndent')
@@ -940,7 +946,7 @@ export class ElementProxy<T extends Element> {
       await this.setVarsAfterExec()
     } finally {
       if (isAddIndent) this.logger.emit('removeIndent')
-      GlobalEvent.emit('@app/proxy/after:exec', this)
+      ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:exec.1', this)
     }
     return this.result
   }
@@ -970,7 +976,7 @@ export class ElementProxy<T extends Element> {
 
   async dispose() {
     if (this._logger === null) return
-    GlobalEvent.emit('@app/proxy/before:exec:dispose', this)
+    ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:dispose.0', this)
     try {
       await this.element.innerRunsProxy?.dispose()
       await this.element.dispose?.()
@@ -981,7 +987,7 @@ export class ElementProxy<T extends Element> {
         this._parentState = null
       }
     } finally {
-      GlobalEvent.emit('@app/proxy/after:dispose', this)
+      ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:dispose.1', this)
     }
   }
 }

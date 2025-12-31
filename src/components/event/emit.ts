@@ -1,5 +1,4 @@
 import assert from 'assert'
-import { GlobalEvent } from 'src/libs/global-event'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 
@@ -51,7 +50,7 @@ export class EventEmiter implements Element {
     const opts = Array.isArray(this.opts) ? this.opts : (this.opts ? [this.opts] : [])
     this.names.forEach(name => {
       this.proxy.logger.trace('Emited to event "%s": %j', name, this.data)
-      GlobalEvent.emit(name, this.data, ...opts)
+      this.proxy.globalEvent.emit(name, this.data, ...opts)
     })
   }
 

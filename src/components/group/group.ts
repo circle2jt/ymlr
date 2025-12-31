@@ -447,9 +447,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           const retryEvent = failure.retryEvent
           this.logger.debug(`Waiting retry event "${retryEvent}"`)
           waitRetry = new Promise((resolve) => {
-            this.rootScene.globalUtils.globalEvent.once(retryEvent, () => {
-              resolve(true)
-            })
+            this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
           })
           canRestart = true
           this.logger.debug(`Received retry event "${retryEvent}"`)

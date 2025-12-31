@@ -13,6 +13,7 @@ export class App {
 
   constructor(public logger: Logger, rootSceneProps: RootSceneProps) {
     assert(rootSceneProps.path, 'Scene file is required')
+    ElementProxy.DEBUG_LIFE_CIRCLE = true
     this.rootSceneProxy = new ElementProxy(new RootScene(rootSceneProps), { tag: 'root-scene', _logger: this.logger })
     Object.defineProperties(this.rootSceneProxy, {
       rootSceneProxy: {

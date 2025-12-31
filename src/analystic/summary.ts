@@ -20,14 +20,14 @@ export class Summary {
   constructor(private readonly rootSceneProxy: ElementProxy<RootScene>) {
     this.logger = this.rootSceneProxy.logger.clone('Summary')
     GlobalEvent
-      .on('@app/proxy/before:exec:exec', (proxy: ElementProxy<Element>) => {
+      .on('@elementProxy:exec.0', (proxy: ElementProxy<Element>) => {
         if (proxy instanceof RootScene) {
           this.time.execution = Date.now()
         } else {
           this.count.exec++
         }
       })
-      .on('@app/proxy/after:dispose', (proxy: ElementProxy<Element>) => {
+      .on('@elementProxy:dispose.1', (proxy: ElementProxy<Element>) => {
         if (proxy instanceof RootScene) {
           this.time.execution = Date.now() - this.time.execution
         } else {
