@@ -266,8 +266,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (Array.isArray(loopCondition)) {
           for (let i = 0; i < loopCondition.length; ++i) {
             const newProps = cloneDeep(elemProps)
+            const newBaseProps = cloneDeep(baseProps)
             const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...baseProps,
+              ...newBaseProps,
               _loopObject: {
                 loopKey: i,
                 loopValue: loopCondition[i]
@@ -282,8 +283,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           for (let i = 0; i < keys.length; ++i) {
             const key = keys[i]
             const newProps = cloneDeep(elemProps)
+            const newBaseProps = cloneDeep(baseProps)
             const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...baseProps,
+              ...newBaseProps,
               _loopObject: {
                 loopKey: key,
                 loopValue: loopCondition[key]
@@ -296,8 +298,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         } else if (loopCondition === true) {
           do {
             const newProps = cloneDeep(elemProps)
+            const newBaseProps = cloneDeep(baseProps)
             const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...baseProps,
+              ...newBaseProps,
               _loopObject: {
                 loopValue: loopCondition
               }
