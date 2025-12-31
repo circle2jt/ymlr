@@ -2,6 +2,8 @@ import { GetLoggerLevel, type LoggerLevel } from '../logger-level'
 
 export abstract class Level {
   abstract readonly icon: string
+  abstract readonly iconColor: string
+
   get name() {
     return GetLoggerLevel(this.level)
   }

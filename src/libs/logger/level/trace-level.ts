@@ -4,6 +4,7 @@ import { LoggerLevel } from '../logger-level'
 
 export class TraceLevel extends Level {
   readonly icon = 'trac'
+  readonly iconColor = chalk.magenta(this.icon)
 
   constructor() {
     super(LoggerLevel.trace)

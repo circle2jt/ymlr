@@ -4,6 +4,7 @@ import { LoggerLevel } from '../logger-level'
 
 export class PassLevel extends Level {
   readonly icon = 'pass'
+  readonly iconColor = chalk.green(this.icon)
 
   constructor() {
     super(LoggerLevel.info)
