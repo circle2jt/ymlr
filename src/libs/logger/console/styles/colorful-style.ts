@@ -8,25 +8,25 @@ export default class ColorfulStyle implements LogStyle {
   private getColorLevel(level: Level) {
     switch (level.name.toString()) {
       case 'trace':
-        return chalk.magenta(level.icon)
+        return level.iconColor
       case 'debug':
-        return chalk.gray(level.icon)
+        return level.iconColor
       case 'info':
-        return chalk.green(level.icon)
+        return level.iconColor
       case 'pass':
-        return chalk.green(level.icon)
+        return level.iconColor
       case 'warn':
-        return chalk.yellow(level.icon)
+        return level.iconColor
       case 'fail':
-        return chalk.red(level.icon)
+        return level.iconColor
       case 'error':
-        return chalk.red(level.icon)
+        return level.iconColor
       case 'fatal':
-        return chalk.bgRed(level.icon)
+        return level.iconColor
       case 'secret':
-        return chalk.cyan(level.icon)
+        return level.iconColor
       default:
-        return level.icon
+        return level.iconColor
     }
   }
 
@@ -36,14 +36,14 @@ export default class ColorfulStyle implements LogStyle {
     if (!meta.plainLog) {
       const threadID = meta.threadID ? `${chalk.gray.dim(meta.threadID)} ` : ''
       const timestamp = meta.timestamp ? `${chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))} ` : ''
-      const indentString = meta.indent.indentString ? `${chalk.gray.dim(meta.indent.indentString)} ` : ''
-      if (typeof msg === 'string') {
+      const indentString = meta.indent.indentString ? `${chalk.gray.dim(meta.indent.indentString)}` : ''
+      if (typeof msg !== 'object') {
         const fullContextPath = meta.fullContextPath ? ` ${chalk.gray.dim.italic(meta.fullContextPath)}` : ''
-        printToConsole(`${threadID}${timestamp}${level} ${indentString}${formater.format(msg)} \t${fullContextPath}`, ...prms)
+        printToConsole(`${threadID}${timestamp}${level} ${indentString}${formater.format(msg)}`, ...prms, `\t${fullContextPath}`)
         return
       }
-      const fullContextPath = meta.fullContextPath ? `${chalk.gray.dim.italic(meta.fullContextPath)} ` : ''
-      printToConsole(`${threadID}${timestamp}${level} ${indentString}${fullContextPath}${formater.format('%o')}`, msg, ...prms)
+      const fullContextPath = meta.fullContextPath ? `${chalk.gray.dim.italic(meta.fullContextPath)}` : ''
+      printToConsole(`${threadID}${timestamp}${level} ${indentString}${formater.format('%o')}`, msg, ...prms, `\t${fullContextPath}`)
       // printToConsole(`%s %s %s %s \t %s\n${formater.format('%o')}`,
       //   threadID,
       //   timestamp,

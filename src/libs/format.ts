@@ -62,10 +62,6 @@ export function formatTextToMs(time: string | number) {
   return new Function(`return (${evalString})`)() as number
 }
 
-export function undefinedToNull(vl: any) {
-  return vl !== undefined ? vl : null
-}
-
 export function tryToParseObject(str: any) {
   try {
     return str && JSON.parse(str)

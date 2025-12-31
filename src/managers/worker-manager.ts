@@ -11,7 +11,7 @@ export class WorkerManager {
 
   private readonly allEventListener = (data: any, opts?: { toIDs?: string | string[] }) => {
     let toIDs: string[] | undefined
-    if (opts?.toIDs !== undefined) {
+    if (opts?.toIDs != null) {
       if (!Array.isArray(opts.toIDs)) {
         toIDs = [opts.toIDs]
       } else {

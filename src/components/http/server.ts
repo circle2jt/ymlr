@@ -233,7 +233,7 @@ export class HttpServer implements Element {
           }
         }
         const resData = response.data
-        if (resData !== undefined && resData !== null) {
+        if (resData != null) {
           if (!response.status) {
             res.statusCode = 200
           }

@@ -12,7 +12,7 @@ export class FileStorage implements StorageInterface {
 
   load(defaultData?: any) {
     if (!existsSync(this.file)) {
-      if (defaultData !== undefined && defaultData !== null) {
+      if (defaultData != null) {
         this.save(defaultData)
       }
       return defaultData

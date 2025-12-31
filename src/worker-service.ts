@@ -13,7 +13,7 @@ void (async () => {
     const appLogger = LoggerFactory.NewLogger(baseProps.debug || LoggerFactory.DEBUG?.level, undefined, baseProps.errorStack)
     allEventListener = (data: any, opts?: { toIDs?: string[] | string }) => {
       let toIDs: string[] | undefined
-      if (opts?.toIDs !== undefined) {
+      if (opts?.toIDs != null) {
         if (!Array.isArray(opts.toIDs)) {
           toIDs = [opts.toIDs]
         } else {

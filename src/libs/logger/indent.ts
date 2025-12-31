@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { H_SPACE, H_SPACE_0, V_SPACE, V_SPACE_0 } from './console'
+import { H_SPACE, H_SPACE_0, V_SPACE_0 } from './console'
 
 const disableLogIndent = process.env.DISABLE_LOG_INDENT === '1'
 
@@ -14,7 +14,9 @@ export class Indent {
       .fill(`${V_SPACE_0}${H_SPACE_0}`)
       .map((vl, i) => {
         if (i === indent - 1) {
-          return vl.replace(V_SPACE_0, V_SPACE).replace(H_SPACE_0, H_SPACE)
+          return vl
+            .replace(H_SPACE_0, H_SPACE)
+          // .replace(V_SPACE_0, V_SPACE)
         }
         return vl
       })

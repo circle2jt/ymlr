@@ -97,7 +97,7 @@ export class Head implements Element {
       if (!this.response) {
         await this.send()
       } else {
-        const isGotData = this.response.data !== null && this.response.data !== undefined
+        const isGotData = this.response.data != null
         this.response.status = isGotData ? 200 : 204
         if (!this.response.headers) this.response.headers = {}
         if (!this.response.headers['content-type']) this.response.headers['content-type'] = 'application/json'
@@ -107,7 +107,7 @@ export class Head implements Element {
       this.prehandleResponseData()
       if (this.response && this.response.ok === undefined) this.response.ok = true
     } catch (err: any) {
-      if (err instanceof AxiosError && err.response?.status !== undefined) {
+      if (err instanceof AxiosError && err.response?.status != null) {
         if (!this.response) this.response = {}
         this.response.status = err.response?.status
         this.response.statusText = err.response?.statusText

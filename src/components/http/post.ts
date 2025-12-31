@@ -85,7 +85,7 @@ export class Post extends Get {
   protected async getRequestBody() {
     if (!this.type) this.type = 'json'
     let body = this.body
-    const hasBody = this.body !== null && this.body !== undefined
+    const hasBody = this.body != null
     this.logger.debug('%s\t%j', chalk.gray('‣ Body   '), body)
     if (this.type === 'json') {
       this.setHeader('content-type', 'application/json')
