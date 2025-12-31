@@ -35,7 +35,7 @@ export async function getVars(exp: any, ctx: any, others: any) {
     let vl = exp
     let numOfEval = 0
     do {
-      if (++numOfEval === 3) {
+      if (++numOfEval === 10) {
         const err = new Error('variable.getVars() is loop forever ???')
         err.cause = `exp=${exp}, vl=${vl}`
         throw err
