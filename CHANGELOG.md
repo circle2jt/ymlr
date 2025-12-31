@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.4-alpha.0.md](#1767149129867)  -  _12/31/2025, 9:45:29 AM_
 - [1.4.3.md](#1766295453318)  -  _12/21/2025, 12:37:33 PM_
 - [1.4.3-alpha.2.md](#1766291961651)  -  _12/21/2025, 11:39:21 AM_
 - [1.4.3-alpha.1.md](#1763131081820)  -  _11/14/2025, 9:38:01 PM_
@@ -128,6 +129,17 @@
 
 ## Details
 
+<a id="1767149129867"></a>
+### 1.4.4-alpha.0
+
+* fix: sometime hangup (addb512)
+* chore(logger): store icon color in cache (7ee61ca)
+* chore: update check null or undefined (b1103fc)
+* fix!: allow inherit condition "if" (da7e103)
+* fix(sh): Handle error when exit code is null or undefined (3affda1)
+* feat: add new props "placeholder" (5f384b1)
+* fix(cli): Update guide line (0e85449)
+  
 <a id="1766295453318"></a>
 ### 1.4.3
 

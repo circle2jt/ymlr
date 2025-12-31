@@ -787,6 +787,28 @@ Acess $parentState incursive
 ```  
 
 
+## <a id="placeholder"></a>placeholder  
+`It's a property in a tag`  
+It store values which are overrided when inherit a template  
+
+Example:  
+
+```yaml
+  - ->: printMyLog
+    placeholder:
+      name: ""
+    ;js: this.logger("[MyLog] %s", this.placeholder.name)
+
+  - <-: printMyLog        # expected print to "[MyLog] Test 1"
+    placeholder:
+      name: Test 1
+
+  - <-: printMyLog        # expected print to "[MyLog] Test 2"
+    placeholder:
+      name: Test 2
+```  
+
+
 ## <a id="Prefix path"></a>Prefix path  
 `Global Notes`  
 Prefix path which is support in all of tags.
