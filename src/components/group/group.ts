@@ -224,9 +224,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     const parentProxy = this instanceof InnerGroup ? this.owner?.proxy : this.proxy
 
     // Loop to execute each of tags
-    for (const run of this.proxy.runs) {
+    for (const runProps of this.proxy.runs) {
       if (parentProxy._forceStop) {
         break
+      }
+
+      let run: GroupItemProps
+      if (typeof runProps === 'string') {
+        run = { js: runProps } as any
+      } else {
+        run = runProps
       }
 
       const props = cloneDeep(run)
