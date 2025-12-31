@@ -1,3 +1,4 @@
+import ENVGlobal from 'src/env-global'
 import { FileTemp } from 'src/libs/file-temp'
 import { Testing } from 'src/testing'
 import { PackagesManagerFactory } from './packages-manager-factory'
@@ -10,9 +11,23 @@ afterEach(async () => {
 
 })
 
+test('disable auto install external tags', async () => {
+  const tagsManager = Testing.rootScene.tagsManager
+  const packagesManager = PackagesManagerFactory.GetInstance(Testing.logger)
+  try {
+    const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene.proxy)
+    expect(newClass).toBeDefined()
+  } catch (err) {
+    expect(err).toBeDefined()
+  } finally {
+    await packagesManager.uninstall('lodash')
+  }
+})
+
 test('auto install external tags', async () => {
   const tagsManager = Testing.rootScene.tagsManager
   const packagesManager = PackagesManagerFactory.GetInstance(Testing.logger)
+  ENVGlobal.AUTO_INSTALL = '1'
   try {
     const newClass = await tagsManager.loadElementClass('lodash', Testing.rootScene.proxy)
     expect(newClass).toBeDefined()
@@ -21,6 +36,7 @@ test('auto install external tags', async () => {
     expect(isInstalled).toBeTruthy()
   } finally {
     await packagesManager.uninstall('lodash')
+    ENVGlobal.AUTO_INSTALL = ''
   }
 })
 

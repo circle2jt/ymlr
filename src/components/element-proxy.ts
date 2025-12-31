@@ -25,6 +25,7 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   'innerRunsProxy',
 
   // Injected by user so need to ignore handle them
+  'placeholder',
   'failure',
   'hideName',
   'ignoreEvalProps',
@@ -955,6 +956,7 @@ export class ElementProxy<T extends Element> {
   }
 
   async isValid() {
+    this.placeholder && await this.scene.getVars(this.placeholder, this)
     const condition = this.elseif ?? this.if
     const isValid = (condition === undefined) || await this.scene.getVars(condition, this)
     if (isValid && this.id) {
