@@ -29,6 +29,7 @@ export async function RunCLI() {
   "color256" : Pretty format with 256 color support
   "color16M" : Pretty format with Truecolor support (16 million colors)
       `)
+    .option('-a, --auto-install', 'auto install lack packages in the running. Default is not auto install')
     .option('-f, --flow', 'display flows in the application')
     .option('-d, --debug [log_level]', 'set debug log level ("all", "trace", "debug", "info", "warn", "error", "fatal", "silent", "secret"). Default is "debug"')
     .option('-df, --debug-context-filter [context_path]', 'allow filter message by context path. It\'s regex pattern. Example: @group/')
@@ -39,7 +40,7 @@ export async function RunCLI() {
       // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
       t = new Promise(async (resolve, reject) => {
         try {
-          const { debug, style = 'color16', flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
+          const { debug, autoInstall, style = 'color16', flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
           if (envFile.length) {
             for (const efile of envFile) {
               const fileRemote = new FileRemote(efile, null)
@@ -56,6 +57,7 @@ export async function RunCLI() {
           })
           if (debug) ENVGlobal.DEBUG = debug
           if (flow) ENVGlobal.MODE = 'flow'
+          if (autoInstall) ENVGlobal.AUTO_INSTALL = '1'
           if (debugContextFilter) ENVGlobal.DEBUG_CONTEXT_FILTER = debugContextFilter
 
           LoggerFactory.LoadFromEnv()
@@ -148,12 +150,16 @@ export async function RunCLI() {
       return msg.join('\n')
     })
     .addHelpText('after', `Configurable environment variables
-  LOG_FORMAT=json           Output log is json format
-  DISABLE_LOG_COLOR=1       Disable color TTY in log
-  DISABLE_LOG_TIMESTAMP=1   Disable timestamp in log
-  DISABLE_LOG_CONTEXT=1     Disable context path in log
-  DISABLE_LOG_INDENT=1      Disable indent in log
-  DISABLE_LOG_THREAD=1      Disable thead id in log`)
+  LOG_FORMAT=json                   Output log is json format
+  DISABLE_LOG_COLOR=1               Disable color TTY in log
+  DISABLE_LOG_TIMESTAMP=1           Disable timestamp in log
+  DISABLE_LOG_CONTEXT=1             Disable context path in log
+  DISABLE_LOG_INDENT=1              Disable indent in log
+  DISABLE_LOG_THREAD=1              Disable thead id in log
+  AUTO_INSTALL=1                    Auto install lack packages in the running
+  SAND_SCENE_PASSWORD=...           Custom password when use encrypted scene file
+  PACKAGE_MANAGERS=npm,yarn,pnpm    Manual use package manager (npm, yarn, pnpm). It's will try another when install failed
+  `)
     .addHelpText('after', `More:
 ✔ Github project: ${homepage}
 ✔ Npm package   : https://www.npmjs.com/package/${name}

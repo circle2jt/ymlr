@@ -3,6 +3,7 @@ import { join } from 'path'
 import { type ElementProxy } from 'src/components/element-proxy'
 import { type Element, type ElementClass } from 'src/components/element.interface'
 import { type RootScene } from 'src/components/root-scene'
+import ENVGlobal from 'src/env-global'
 
 export const ClassInFileCharacter = "'"
 
@@ -59,7 +60,7 @@ export class TagsManager {
     let tagName: string | undefined
     let ElementModule = this.caches.get(path)
     if (!ElementModule) {
-      let triedToInstall: true | undefined
+      let triedToInstall = ENVGlobal.AUTO_INSTALL !== '1'
       do {
         const errors = []
         // Load from native

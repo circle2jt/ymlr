@@ -7,6 +7,14 @@ const ENVGlobal = {
     process.env.MODE = value
   },
 
+  get AUTO_INSTALL() {
+    // auto-install => auto install lack package in the running
+    return process.env.AUTO_INSTALL
+  },
+  set AUTO_INSTALL(value) {
+    process.env.AUTO_INSTALL = value ? '1' : undefined
+  },
+
   get SAND_SCENE_PASSWORD() {
     return process.env.SAND_SCENE_PASSWORD || '8af44bb050ddcd669e902147f44c1434'
   },
