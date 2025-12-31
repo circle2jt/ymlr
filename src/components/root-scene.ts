@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import { Summary } from 'src/analystic/summary'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { GlobalEvent } from 'src/libs/global-event'
@@ -20,6 +21,7 @@ Root scene file includes all of steps to run
 ```yaml
   name: Scene name                  # Scene name
   description: Scene description    # Scene description
+  summary: true                     # Show log result after finished
   debug: info                       # Show log when run. Default is info. [silent, error, warn, info, debug, trace, all]
   password:                         # Encrypted this file with the password. To run this file, need to provides a password in the command line
   vars:                             # Declare global variables which are used in the program.
@@ -58,6 +60,10 @@ export class RootScene extends Scene {
   readonly onAppExit = new Array<AppEvent>()
   readonly runDir = process.cwd()
 
+  summary?: boolean
+
+  #summary?: Summary
+
   #localVars!: Record<string, any>
   override set localVars(vars: Record<string, any>) {
     this.#localVars = vars
@@ -78,7 +84,7 @@ export class RootScene extends Scene {
     return this
   }
 
-  constructor({ globalVars, ...props }: RootSceneProps) {
+  constructor({ globalVars, summary, ...props }: RootSceneProps) {
     super(props)
     if (globalVars) {
       this.localVars = globalVars
@@ -92,12 +98,17 @@ export class RootScene extends Scene {
     logger.secret('Environments', [
       'DEBUG',
       'DEBUG_CONTEXT_FILTER',
-      'FORCE_COLOR',
       'DEBUG_SECRET',
       'MODE',
       'DEBUG_GROUP_RESULT',
       'SAND_SCENE_PASSWORD',
-      'PACKAGE_MANAGERS'
+      'PACKAGE_MANAGERS',
+      'LOG_FORMAT',
+      'DISABLE_LOG_COLOR',
+      'DISABLE_LOG_TIMESTAMP',
+      'DISABLE_LOG_CONTEXT',
+      'DISABLE_LOG_INDENT',
+      'DISABLE_LOG_THREAD'
     ].reduce((obj: Record<string, any>, k) => {
       obj[k] = process.env[k]
       return obj
@@ -113,6 +124,9 @@ export class RootScene extends Scene {
       SAND_SCENE_PASSWORD: ENVGlobal.SAND_SCENE_PASSWORD,
       PACKAGE_MANAGERS: ENVGlobal.PACKAGE_MANAGERS
     })
+    if (this.summary) {
+      this.#summary = new Summary(this.proxy)
+    }
   }
 
   pushToBackgroundJob(task: Promise<any>) {
@@ -139,6 +153,7 @@ export class RootScene extends Scene {
     } finally {
       GlobalEvent.removeAllListeners()
     }
+    await this.#summary?.print()
   }
 
   getTagName(props: any) {

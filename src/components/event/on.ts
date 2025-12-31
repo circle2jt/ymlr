@@ -91,7 +91,7 @@ export class EventOn implements Element {
     if (this.t) {
       this.names.forEach((name, i) => {
         this.proxy.logger.trace('Off %s', name)
-        this.proxy.off(name, this.handlers[i])
+        this.proxy.globalEvent.off(name, this.handlers[i])
       })
       this.resolve?.(undefined)
       this.handlers = []

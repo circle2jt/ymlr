@@ -1,11 +1,9 @@
 import assert from 'assert'
 import { RootScene } from 'src/components/root-scene'
-import { type Summary } from './analystic/summary'
 import { ElementProxy } from './components/element-proxy'
 import { type RootSceneProps } from './components/root-scene.props'
 import { type Logger } from './libs/logger'
 import { LoggerFactory } from './libs/logger/logger-factory'
-import { LoggerLevel } from './libs/logger/logger-level'
 
 export class App {
   static ThreadID = 'main'
@@ -45,14 +43,9 @@ export class App {
   }
 
   async exec() {
-    let summary: Summary | undefined
     const asyncConstructor = this.rootSceneProxy.$.asyncConstructor
     this.rootSceneProxy.$.asyncConstructor = async function () {
       await asyncConstructor.call(this)
-      if (this.proxy.logger.is(LoggerLevel.debug)) {
-        const { Summary } = await import('./analystic/summary')
-        summary = new Summary(this.proxy)
-      }
     }
     try {
       await this.rootSceneProxy.exec()
@@ -61,7 +54,6 @@ export class App {
       setImmediate(process.exit, 1)
     } finally {
       await this.rootSceneProxy.dispose()
-      summary?.print()
       LoggerFactory.Dispose()
     }
   }

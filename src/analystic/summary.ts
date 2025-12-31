@@ -5,12 +5,15 @@ import { RootScene } from 'src/components/root-scene'
 import { formatDuration } from 'src/libs/format'
 import { GlobalEvent } from 'src/libs/global-event'
 import { type Logger } from 'src/libs/logger'
+import { sleep } from 'src/libs/time'
 
 export class Summary {
   private readonly logger: Logger
   private readonly count = {
-    exec: 0,
-    dispose: 0
+    allExec: 0,
+    done: 0,
+    failed: 0,
+    allDispose: 0
   }
 
   private readonly time = {
@@ -21,27 +24,36 @@ export class Summary {
     this.logger = this.rootSceneProxy.logger.clone('Summary')
     GlobalEvent
       .on('@elementProxy:exec.0', (proxy: ElementProxy<Element>) => {
-        if (proxy instanceof RootScene) {
+        if (this.time.execution) {
+          ++this.count.allExec
+          return
+        }
+        if (proxy.$ instanceof RootScene) {
           this.time.execution = Date.now()
-        } else {
-          this.count.exec++
+        }
+      })
+      .on('@elementProxy:exec.1', (proxy: ElementProxy<Element>, err?: Error) => {
+        if (!(proxy.$ instanceof RootScene)) {
+          err ? ++this.count.failed : ++this.count.done
         }
       })
       .on('@elementProxy:dispose.1', (proxy: ElementProxy<Element>) => {
-        if (proxy instanceof RootScene) {
-          this.time.execution = Date.now() - this.time.execution
-        } else {
-          this.count.dispose++
+        if (!(proxy.$ instanceof RootScene)) {
+          ++this.count.allDispose
+          return
         }
+        this.time.execution = Date.now() - this.time.execution
       })
   }
 
-  print() {
-    this.logger.debug(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
-    this.logger.debug('%s\t%s', 'Duration', `${formatDuration(this.time.execution)}`)
-    this.logger.debug('%s\t%s', 'Runs    ', `${this.count.exec}(items)`)
-    this.logger.debug(chalk.gray('          \t ↳ %s\t%d(items)'), 'executed', this.count.exec)
-    this.logger.debug(chalk.gray('          \t ↳ %s\t%d(items)'), 'disposed', this.count.dispose)
-    this.logger.debug(chalk.gray('«««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««'))
+  async print() {
+    await sleep(500)
+    this.logger.info(chalk.gray('»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»'))
+    this.logger.info('%s\t%s', 'Duration', `${formatDuration(this.time.execution)}`)
+    this.logger.info('%s\t%s', 'Runs    ', `${this.count.allExec}(steps)`)
+    this.logger.info(chalk.gray('          \t ↳ %s\t%s/%d'), 'done  ', chalk.green(this.count.done), this.count.allExec)
+    this.logger.info(chalk.gray('          \t ↳ %s\t%s/%d'), 'failed', chalk.red(this.count.failed), this.count.allExec)
+    this.logger.info(chalk.gray('          \t ↳ %s\t%s/%d'), 'disposed', chalk.yellow(this.count.allDispose), this.count.allExec)
+    this.logger.info(chalk.gray('«««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««'))
   }
 }

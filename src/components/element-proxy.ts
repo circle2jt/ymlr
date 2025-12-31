@@ -944,6 +944,9 @@ export class ElementProxy<T extends Element> {
         throw err
       }
       await this.setVarsAfterExec()
+    } catch (err) {
+      ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:exec.1', this, err)
+      throw err
     } finally {
       if (isAddIndent) this.logger.emit('removeIndent')
       ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:exec.1', this)
