@@ -33,9 +33,15 @@ export async function getVars(exp: any, ctx: any, others: any) {
 
   if (evalExp === String) {
     let vl = exp
+    let numOfEval = 0
     do {
+      if (++numOfEval === 3) {
+        const err = new Error('variable.getVars() is loop forever ???')
+        err.cause = `exp=${exp}, vl=${vl}`
+        throw err
+      }
       if (PATTERN_JS_CODE_BLOCK.test(vl)) {
-        const str = exp.replace(PATTERN_JS_CODE_BLOCK, '$1')
+        const str = vl.replace(PATTERN_JS_CODE_BLOCK, '$1')
         try {
           vl = await callFunctionScript('return (' + str + ')', ctx, others)
         } catch {
