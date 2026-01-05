@@ -26,6 +26,7 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
 
   // Injected by user so need to ignore handle them
   'placeholder',
+  'context',
   'failure',
   'hideName',
   'ignoreEvalProps',
@@ -959,8 +960,15 @@ export class ElementProxy<T extends Element> {
     this.placeholder && await this.scene.getVars(this.placeholder, this)
     const condition = this.elseif ?? this.if
     const isValid = (condition === undefined) || await this.scene.getVars(condition, this)
-    if (isValid && this.id) {
+    if (!isValid) {
+      return isValid
+    }
+    if (this.id) {
+      this.id = await this.scene.getVars(this.id, this)
       await this.scene.setVars(this.id, this)
+    }
+    if (this.context) {
+      this.context = await this.scene.getVars(this.context, this)
     }
     return isValid
   }
