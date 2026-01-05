@@ -35,7 +35,7 @@ export default class ColorfulStyle implements LogStyle {
     const level = this.getColorLevel(formater)
     if (!meta.plainLog) {
       const threadID = meta.threadID ? `${chalk.gray.dim(meta.threadID)} ` : ''
-      const timestamp = meta.timestamp ? `${chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'hh:mm:ss.ms'))} ` : ''
+      const timestamp = meta.timestamp ? `${chalk.gray(UtilityFunctionManager.Instance.format.date(meta.timestamp, 'YYYYMMDD hh:mm:ss.ms'))} ` : ''
       const indentString = meta.indent.indentString ? `${chalk.gray.dim(meta.indent.indentString)}` : ''
       if (typeof msg !== 'object') {
         const fullContextPath = meta.fullContextPath ? ` ${chalk.gray.dim.italic(meta.fullContextPath)}` : ''
