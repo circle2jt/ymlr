@@ -18,7 +18,10 @@ import { type ShProps } from './sh.props'
         path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
         args:
           - world
-      vars: log       # !optional
+      vars:
+        log: ${ this.result }
+        exitCode: ${ this.$.resultCode }
+        exitSignal: ${ this.$.resultSignal }
   ```
 
   Execute a bash script
@@ -64,10 +67,13 @@ export class Sh implements Element {
   exitCodes = [0, null, undefined]
   plainExecuteLog?: boolean
 
+  public resultCode?: number | null
+  public resultSignal?: NodeJS.Signals | null
+
   private abortController?: AbortController
   private filePath?: string
   private tempFile?: FileTemp
-  private childProcess?: ChildProcess
+  childProcess?: ChildProcess
   private get timeoutMS() {
     return this.timeout ? formatTextToMs(this.timeout) : undefined
   }
@@ -108,80 +114,85 @@ export class Sh implements Element {
       this.timeout = formatTextToMs(this.timeout)
     }
     this.abortController = new AbortController()
-    try {
-      if (this.process === true) {
-        const rs = await this.execLongScript()
-        return rs
-      }
-      const rs = await this.execShortScript()
+    if (this.process === true) {
+      const rs = await this.execLongScript()
       return rs
-    } finally {
-      this.childProcess = undefined
     }
+    const rs = await this.execShortScript()
+    return rs
   }
 
   private async execLongScript() {
     const logger = this.plainExecuteLog ? this.logger.clone().plainLog() : this.logger
-    const rs = await new Promise((resolve, reject) => {
-      let logs: string[] | undefined
-      let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
-      if (this.proxy.vars) {
-        stdio = 'pipe'
-        logs = []
-      } else if (logger.is(LoggerLevel.trace)) {
-        stdio = 'pipe'
-      } else if (logger.is(LoggerLevel.error)) {
-        stdio = ['pipe', 'ignore', 'pipe']
-      }
-      const opts = {
-        stdio,
-        env: process.env,
-        cwd: this.proxy.curDir,
-        timeout: this.timeoutMS,
-        signal: this.abortController?.signal,
-        ...this.opts
-      }
-      if (this.path) {
-        this.childProcess = spawn(this.filePath as string, this.args || [], opts)
-      } else {
-        this.childProcess = spawn(this.script as string, {
-          shell: this.bin,
-          ...opts
-        })
-      }
-      if (logs || logger.is(LoggerLevel.trace)) {
-        this.childProcess.stdout?.on('data', msg => {
-          msg = msg.toString().replace(/\n$/, '')
-          logs?.push(msg)
-          logger.trace(msg)
-        })
-      }
-      if (logs || logger.is(LoggerLevel.error)) {
-        this.childProcess.stderr?.on('data', msg => {
-          msg = msg.toString().replace(/\n$/, '')
-          logs?.push(msg)
-          logger.error(msg)
-        })
-      }
-      this.childProcess.on('exit', (code, signal) => {
-        if (code || signal) {
-          this.logger.warn(`Exit code=${code}, signal=${signal}`)
+    try {
+      const rs = await new Promise((resolve, reject) => {
+        let logs: string[] | undefined
+        let stdio: StdioOptions = ['pipe', 'ignore', 'ignore']
+        if (this.proxy.vars) {
+          stdio = 'pipe'
+          logs = []
+        } else if (logger.is(LoggerLevel.trace)) {
+          stdio = 'pipe'
+        } else if (logger.is(LoggerLevel.error)) {
+          stdio = ['pipe', 'ignore', 'pipe']
         }
-      })
-      this.childProcess.on('close', (code: number) => {
-        if (!this.exitCodes.includes(code)) {
-          const err = new Error(logs?.join(''))
-          err.cause = `Closed code=${code}`
-          reject(err)
-          return
+        const opts = {
+          stdio,
+          env: process.env,
+          cwd: this.proxy.curDir,
+          timeout: this.timeoutMS,
+          signal: this.abortController?.signal,
+          ...this.opts
         }
-        resolve(logs?.join(''))
+        if (this.path) {
+          this.childProcess = spawn(this.filePath as string, this.args || [], opts)
+        } else {
+          this.childProcess = spawn(this.script as string, {
+            shell: this.bin,
+            ...opts
+          })
+        }
+        if (logs || logger.is(LoggerLevel.trace)) {
+          this.childProcess.stdout?.on('data', msg => {
+            msg = msg.toString().replace(/\n$/, '')
+            logs?.push(msg)
+            logger.trace(msg)
+          })
+        }
+        if (logs || logger.is(LoggerLevel.error)) {
+          this.childProcess.stderr?.on('data', msg => {
+            msg = msg.toString().replace(/\n$/, '')
+            logs?.push(msg)
+            logger.error(msg)
+          })
+        }
+        this.childProcess.on('exit', (code: any, signal) => {
+          if (code || signal) {
+            this.logger.warn(`Exit code=${code}, signal=${signal}`)
+          }
+        })
+        this.childProcess.on('close', (code: number) => {
+          if (!this.exitCodes.includes(code)) {
+            const err = new Error(logs?.join(''))
+            err.cause = `Closed code=${code}`
+            reject(err)
+            return
+          }
+          resolve(logs?.join(''))
+        })
+        this.childProcess.on('error', (err) => {
+          this.logger.error(err)
+        })
       })
-      this.childProcess.on('error', (err) => {
-        this.logger.error(err)
-      })
-    })
-    return rs
+      return rs
+    } catch (err) {
+      if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
+        throw err
+      }
+    } finally {
+      this.resultCode = this.childProcess?.exitCode
+      this.resultSignal = this.childProcess?.signalCode
+    }
   }
 
   private async execShortScript() {
@@ -222,13 +233,23 @@ export class Sh implements Element {
       if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
         throw err
       }
+    } finally {
+      this.resultCode = this.childProcess?.exitCode
+      this.resultSignal = this.childProcess?.signalCode
     }
     return log
   }
 
-  dispose() {
+  async stop(code: NodeJS.Signals = 'SIGKILL') {
+    this.childProcess?.kill(code)
+  }
+
+  async dispose() {
     this.tempFile?.remove()
     this.abortController?.abort()
-    this.childProcess?.kill()
+    await this.stop()
+    this.resultCode = this.childProcess?.exitCode
+    this.resultSignal = this.childProcess?.signalCode
+    this.childProcess = undefined
   }
 }
