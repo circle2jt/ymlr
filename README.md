@@ -417,6 +417,23 @@ Example:
 ```  
 
 
+## <a id="catch"></a>catch  
+`It's a property in a tag`  
+After retried and keep failing, it will execute steps in this block and ignore throw error.
+If you want throw error, you need throw in catch  
+
+Example:  
+
+```yaml
+  - js: throw new Error('Should error here')
+    failure:
+      restart: 2
+    catch:
+      - name: Print the rror is ${ $ps.error.message } after retried 2 times    # => Should error here
+        js: throw $ps.error                                                     # Throw error
+```  
+
+
 ## <a id="context"></a>context  
 `It's a property in a tag`  
 Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"  
@@ -569,6 +586,24 @@ Example:
       ignore: true                 # Ignore error then play the next
     js: |
       const a = 1/0
+```  
+
+
+## <a id="finally"></a>finally  
+`It's a property in a tag`  
+Always run this block when finish success or error  
+
+Example:  
+
+```yaml
+  - js: throw new Error('Should error here')
+    failure:
+      restart: 2
+    catch:
+      - name: Print the error is ${ $ps.error.message } after retried 2 times     # => Should error here
+        js: throw new Error('Error in catch')
+    finally:
+      - name: Should show error in catch is ${ $ps.error.message }                # => Error in catch
 ```  
 
 
@@ -2497,7 +2532,10 @@ Execute a sh file
       path: /sayHello.sh              # Path of sh file (Use only "path" OR "script")
       args:
         - world
-    vars: log       # !optional
+    vars:
+      log: ${ this.result }
+      exitCode: ${ this.$.resultCode }
+      exitSignal: ${ this.$.resultSignal }
 ```
 
 Execute a bash script

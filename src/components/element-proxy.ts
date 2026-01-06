@@ -9,7 +9,7 @@ import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants } from 'src/managers/constants'
 import { type Element } from './element.interface'
-import { type GroupItemProps } from './group/group.props'
+import { type GroupItemProps, type GroupProps } from './group/group.props'
 import { RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
@@ -30,6 +30,8 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   'failure',
   'hideName',
   'ignoreEvalProps',
+  'catch',
+  'finally',
   // 'runs',
   'errorStack'
 ])
@@ -239,6 +241,41 @@ export class ElementProxy<T extends Element> {
     }
     retryEvent?: string
   }
+
+  /** |**  catch
+    After retried and keep failing, it will execute steps in this block and ignore throw error.
+    If you want throw error, you need throw in catch
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - js: throw new Error('Should error here')
+        failure:
+          restart: 2
+        catch:
+          - name: Print the rror is ${ $ps.error.message } after retried 2 times    # => Should error here
+            js: throw $ps.error                                                     # Throw error
+    ```
+  */
+
+  catch?: Array<GroupProps | GroupItemProps>
+  /** |**  finally
+    Always run this block when finish success or error
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - js: throw new Error('Should error here')
+        failure:
+          restart: 2
+        catch:
+          - name: Print the error is ${ $ps.error.message } after retried 2 times     # => Should error here
+            js: throw new Error('Error in catch')
+        finally:
+          - name: Should show error in catch is ${ $ps.error.message }                # => Error in catch
+    ```
+  */
+  finally?: Array<GroupProps | GroupItemProps>
 
   /** |**  context
   Context logger name which is allow filter log by cli "ymlr --debug-context context_name=level --"

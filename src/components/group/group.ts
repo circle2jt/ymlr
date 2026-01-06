@@ -3,7 +3,6 @@ import chalk from 'chalk'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
-import { type Logger } from 'src/libs/logger'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { Sequence } from 'src/libs/sequence'
 import { sleep } from 'src/libs/time'
@@ -13,6 +12,11 @@ import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { Scene } from '../scene/scene'
 import { type GroupItemProps, type GroupProps } from './group.props'
+
+enum ExecReturnCode {
+  CONTINUE = 1,
+  BREAK = 2,
+}
 
 export class Restartor {
   private isStop?: boolean
@@ -219,7 +223,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
     const asyncJobs = new Array<Promise<any>>()
     const result = ENVGlobal.DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
-    let isPassedCondition = false
+    const isPassedCondition = false
 
     const parentProxy = this instanceof InnerGroup ? this.owner?.proxy : this.proxy
 
@@ -228,88 +232,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (parentProxy._forceStop) {
         break
       }
-
-      let run: GroupItemProps
-      if (typeof runProps === 'string') {
-        run = { js: runProps } as any
-      } else {
-        run = runProps
-      }
-
-      const props = cloneDeep(run)
-      // when the previous step was passed valid condition
-      if (isPassedCondition) {
-        if (props.elseif || props.else === null) continue
-        isPassedCondition = false
-      }
-
-      const { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
-
-      if (isTemplate) continue
-
-      if (!tagName) throw new Error('Could not found tag name')
-
-      const { loop } = baseProps
-
-      // Execute
-      if (loop === undefined) {
-        const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps)
-        if (elemProxy) {
-          isPassedCondition = !!baseProps.if || !!baseProps.elseif
-          result?.push(elemProxy)
-          if (elemProxy.isSkipNext) break
-        }
+      const resultCode = await this.execElement(runProps, asyncJobs, result, isPassedCondition)
+      if (resultCode === ExecReturnCode.CONTINUE) {
         continue
       }
-      let loopCondition = await this.innerScene.getVars(loop, this.proxy)
-      if (loopCondition) {
-        if (Array.isArray(loopCondition)) {
-          for (let i = 0; i < loopCondition.length; ++i) {
-            const newProps = cloneDeep(elemProps)
-            const newBaseProps = cloneDeep(baseProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...newBaseProps,
-              _loopObject: {
-                loopKey: i,
-                loopValue: loopCondition[i]
-              }
-            }, newProps)
-            if (elemProxy) {
-              result?.push(elemProxy)
-            }
-          }
-        } else if (typeof loopCondition === 'object') {
-          const keys = Object.keys(loopCondition)
-          for (let i = 0; i < keys.length; ++i) {
-            const key = keys[i]
-            const newProps = cloneDeep(elemProps)
-            const newBaseProps = cloneDeep(baseProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...newBaseProps,
-              _loopObject: {
-                loopKey: key,
-                loopValue: loopCondition[key]
-              }
-            }, newProps)
-            if (elemProxy) {
-              result?.push(elemProxy)
-            }
-          }
-        } else if (loopCondition === true) {
-          do {
-            const newProps = cloneDeep(elemProps)
-            const newBaseProps = cloneDeep(baseProps)
-            const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
-              ...newBaseProps,
-              _loopObject: {
-                loopValue: loopCondition
-              }
-            }, newProps)
-            if (elemProxy) {
-              result?.push(elemProxy)
-            }
-          } while ((loopCondition = await this.innerScene.getVars(loop, this.proxy)))
-        }
+      if (resultCode === ExecReturnCode.BREAK) {
+        break
       }
     }
     if (asyncJobs.length) {
@@ -327,6 +255,99 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       props.runs = props['~runs']
       props['~runs'] = undefined
       props.async = true
+    }
+  }
+
+  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>>, result: Array<ElementProxy<Element>> | undefined, isPassedCondition: boolean, parentState?: any) {
+    let run: GroupItemProps
+    if (typeof runProps === 'string') {
+      run = { js: runProps } as any
+    } else {
+      run = runProps
+    }
+
+    const props = cloneDeep(run)
+    // when the previous step was passed valid condition
+    if (isPassedCondition) {
+      if (props.elseif || props.else === null) {
+        return ExecReturnCode.CONTINUE
+      }
+      isPassedCondition = false
+    }
+
+    const { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
+
+    if (isTemplate) {
+      return ExecReturnCode.CONTINUE
+    }
+
+    if (!tagName) {
+      throw new Error('Could not found tag name')
+    }
+
+    const { loop } = baseProps
+
+    // Execute
+    if (loop === undefined) {
+      const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps, undefined, parentState)
+      if (elemProxy) {
+        isPassedCondition = !!baseProps.if || !!baseProps.elseif
+        result?.push(elemProxy)
+        if (elemProxy.isSkipNext) {
+          return ExecReturnCode.BREAK
+        }
+      }
+      return ExecReturnCode.CONTINUE
+    }
+    let loopCondition = await this.innerScene.getVars(loop, this.proxy)
+    if (loopCondition) {
+      if (Array.isArray(loopCondition)) {
+        for (let i = 0; i < loopCondition.length; ++i) {
+          const newProps = cloneDeep(elemProps)
+          const newBaseProps = cloneDeep(baseProps)
+          const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+            ...newBaseProps,
+            _loopObject: {
+              loopKey: i,
+              loopValue: loopCondition[i]
+            }
+          }, newProps, undefined, parentState)
+          if (elemProxy) {
+            result?.push(elemProxy)
+          }
+        }
+      } else if (typeof loopCondition === 'object') {
+        const keys = Object.keys(loopCondition)
+        for (let i = 0; i < keys.length; ++i) {
+          const key = keys[i]
+          const newProps = cloneDeep(elemProps)
+          const newBaseProps = cloneDeep(baseProps)
+          const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+            ...newBaseProps,
+            _loopObject: {
+              loopKey: key,
+              loopValue: loopCondition[key]
+            }
+          }, newProps, undefined, parentState)
+          if (elemProxy) {
+            result?.push(elemProxy)
+          }
+        }
+      } else if (loopCondition === true) {
+        do {
+          const newProps = cloneDeep(elemProps)
+          const newBaseProps = cloneDeep(baseProps)
+          const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, {
+            ...newBaseProps,
+            _loopObject: {
+              loopValue: loopCondition
+            }
+          }, newProps, undefined, parentState)
+          if (elemProxy) {
+            result?.push(elemProxy)
+          }
+        } while ((loopCondition = await this.innerScene.getVars(loop, this.proxy)))
+      }
     }
   }
 
@@ -359,7 +380,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return { isTemplate: true }
     }
 
-    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context, placeholder } = eProps
+    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context, placeholder, catch: catchHandler, finally: finallyHandler } = eProps
 
     if (elseCondition === null) {
       elseIfCondition = true
@@ -391,6 +412,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       icon,
       if: condition,
       elseif: elseIfCondition,
+      catch: catchHandler,
+      finally: finallyHandler,
       failure,
       debug,
       vars,
@@ -421,7 +444,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     return { elemProps, baseProps, tagName }
   }
 
-  public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any, restartor?: Restartor) {
+  public async createAndExecuteElement(asyncJobs: Array<Promise<any>> | undefined, name: string, baseProps: ElementBaseProps & { _loopObject?: { loopKey?: string | number, loopValue?: any } }, props: any, restartor?: Restartor, parentState?: any) {
     const elemProxy = await this.newElementProxy(name, props, baseProps)
     const [isAsync, isDetach] = await Promise.all([
       elemProxy.isAsync(),
@@ -436,106 +459,120 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (!isContinue) return undefined
 
     const t = (async () => {
+      let globalError: any
       try {
-        await elemProxy.exec()
+        await elemProxy.exec(parentState)
       } catch (error: any) {
-        if (!baseProps.failure) {
-          elemProxy.logger.error(error?.message)
-          throw error
-        }
+        let failureLogger = elemProxy.logger.clone()
 
-        const { filterDebug, ...failureProps } = baseProps.failure
+        if (baseProps.failure) {
+          const { filterDebug, ...failureProps } = baseProps.failure
 
-        if (baseProps.failure.restart && elemProxy.failure?.restart) {
-          baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
-        }
-
-        const failure = await this.scene.getVars(cloneDeep(failureProps), this)
-        let canRestart = failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))
-        let waitRetry: Promise<any> | undefined
-        if (!canRestart && failure.retryEvent) {
-          const retryEvent = failure.retryEvent
-          this.logger.debug(`Waiting retry event "${retryEvent}"`)
-          waitRetry = new Promise((resolve) => {
-            this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
-          })
-          canRestart = true
-          this.logger.debug(`Received retry event "${retryEvent}"`)
-        }
-
-        if (canRestart) {
-          ++failure.restart.count
-          if (baseProps.failure.restart) {
-            baseProps.failure.restart.count = failure.restart.count
+          if (baseProps.failure.restart && elemProxy.failure?.restart) {
+            baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
           }
 
-          let isLogError = true
-          if (typeof elemProxy.failure?.filterDebug === 'function') {
-            isLogError = await elemProxy.failure?.filterDebug(error)
+          const failure = await this.scene.getVars(cloneDeep(failureProps), this)
+          if (failure.debug) {
+            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
           }
-          if (isLogError) {
-            let failureLogger: Logger
-            if (failure.debug) {
-              const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
-              failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
-            } else {
-              failureLogger = elemProxy.logger.clone()
+          let canRestart = failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))
+          let waitRetry: Promise<any> | undefined
+          if (!canRestart && failure.retryEvent) {
+            const retryEvent = failure.retryEvent
+            this.logger.debug(`Waiting retry event "${retryEvent}"`)
+            waitRetry = new Promise((resolve) => {
+              this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
+            })
+            canRestart = true
+            this.logger.debug(`Received retry event "${retryEvent}"`)
+          }
+
+          if (canRestart) {
+            ++failure.restart.count
+            if (baseProps.failure.restart) {
+              baseProps.failure.restart.count = failure.restart.count
             }
-            if (error) {
+
+            const isLogError = filterDebug && await filterDebug(
+              error,
+              this.proxy.parentState,
+              this.proxy.parentState,
+              this.proxy.scene.localVars,
+              this.proxy.scene.localVars,
+              this.proxy.rootScene.globalUtils,
+              this.proxy.rootScene.globalUtils,
+              Constants,
+              Constants,
+              process.env,
+              process.env)
+            if (isLogError && error) {
               const title = elemProxy.name ? chalk.gray(`(${elemProxy.name})`) : ''
               failureLogger
                 // .error(error?.message)
                 ?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title}`)
                 ?.trace(error)
             }
-          }
 
-          if (!waitRetry) {
-            if (failure.restart.sleep) {
-              await sleep(failure.restart.sleep)
-            }
-            let sequence: Sequence | undefined
-            if (failure.restart.sequence) {
-              sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
-              if (!sequence) {
-                sequence = new Sequence(failure.restart.sequence.sleep)
-                Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
+            if (!waitRetry) {
+              if (failure.restart.sleep) {
+                await sleep(failure.restart.sleep)
               }
+              let sequence: Sequence | undefined
+              if (failure.restart.sequence) {
+                sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
+                if (!sequence) {
+                  sequence = new Sequence(failure.restart.sequence.sleep)
+                  Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
+                }
+              }
+              await sequence?.wait(this)
+            } else {
+              await waitRetry
             }
-            await sequence?.wait(this)
-          } else {
-            await waitRetry
-          }
 
-          if (baseProps.async) baseProps.async = false
-          if (baseProps.detach) baseProps.detach = false
-          if (!restartor) throw new Error('Why restartor is null ???')
-          restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor)
+            if (baseProps.async) baseProps.async = false
+            if (baseProps.detach) baseProps.detach = false
+            if (!restartor) throw new Error('Why restartor is null ???')
+            restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
+            return
+          }
+        }
+        if (!baseProps.failure?.ignore) {
+          globalError = error
+          if (!baseProps.catch?.length) {
+            failureLogger.error(globalError?.message)
+            throw globalError
+          }
+          try {
+            await this.execElement({
+              runs: baseProps.catch,
+              failure: {
+                debug: 'silent'
+              }
+            } as any, [], undefined, false, Object.assign({}, parentState, { error: globalError }))
+          } catch (error) {
+            globalError = error
+            throw globalError
+          }
           return
         }
 
-        if (!baseProps.failure?.ignore) throw error
-
-        let isLogError = true
-        if (typeof elemProxy.failure?.filterDebug === 'function') {
-          isLogError = await elemProxy.failure?.filterDebug(
-            error,
-            this.proxy.parentState,
-            this.proxy.parentState,
-            this.proxy.scene.localVars,
-            this.proxy.scene.localVars,
-            this.proxy.rootScene.globalUtils,
-            this.proxy.rootScene.globalUtils,
-            Constants,
-            Constants,
-            process.env,
-            process.env
-          )
-        }
+        const isLogError = baseProps.failure?.filterDebug && await baseProps.failure?.filterDebug(error,
+          this.proxy.parentState,
+          this.proxy.parentState,
+          this.proxy.scene.localVars,
+          this.proxy.scene.localVars,
+          this.proxy.rootScene.globalUtils,
+          this.proxy.rootScene.globalUtils,
+          Constants,
+          Constants,
+          process.env,
+          process.env)
         if (isLogError) {
-          let failureLogger: Logger
-          if (failure.debug) {
-            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+          if (baseProps.failure.debug) {
+            const failureDebug = (!baseProps.failure.debug || baseProps.failure.debug === true) ? 'warn' : baseProps.failure.debug
             failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
           } else {
             failureLogger = elemProxy.logger
@@ -543,6 +580,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           failureLogger.warn(error?.message)?.trace(error)
         }
       } finally {
+        if (!restartor?.next && baseProps.finally?.length) {
+          await this.execElement({
+            runs: baseProps.finally,
+            failure: {
+              debug: 'silent'
+            }
+          } as any, [], undefined, false, Object.assign({}, parentState, { error: globalError }))
+        }
         await elemProxy.dispose()
       }
     })()
