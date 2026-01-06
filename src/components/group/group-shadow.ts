@@ -8,7 +8,7 @@ export class GroupShadow implements Element {
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
 
-  public owner!: Element
+  public owner?: Element
 
   constructor(props: any) {
     Object.assign(this, props)
@@ -20,5 +20,6 @@ export class GroupShadow implements Element {
 
   async dispose() {
     await this.innerRunsProxy.dispose()
+    this.owner = undefined
   }
 }
