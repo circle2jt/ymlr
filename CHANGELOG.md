@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.4-alpha.6.md](#1767673150741)  -  _1/6/2026, 11:19:10 AM_
 - [1.4.4-alpha.5.md](#1767172760534)  -  _12/31/2025, 4:19:20 PM_
 - [1.4.4-alpha.4.md](#1767172708981)  -  _12/31/2025, 4:18:28 PM_
 - [1.4.4-alpha.3.md](#1767169194617)  -  _12/31/2025, 3:19:54 PM_
@@ -134,6 +135,17 @@
 
 ## Details
 
+<a id="1767673150741"></a>
+### 1.4.4-alpha.6
+
+* fix(group): not check condition (a4014e0)
+* chore: update message when assert failed (7dcabad)
+* feat: support catch, finally in group (a63487f)
+* chore(sh): optimize timeout (d4a71a9)
+* fix(log): format date time in log (337a489)
+* fix: not eval "id" and "context" in elements (6c0519b)
+* feat(sh): add resultCode and resultSignal to check after executed done (a765d95)
+  
 <a id="1767172760534"></a>
 ### 1.4.4-alpha.5
 
