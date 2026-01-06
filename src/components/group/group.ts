@@ -223,8 +223,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
     const asyncJobs = new Array<Promise<any>>()
     const result = ENVGlobal.DEBUG_GROUP_RESULT ? new Array<ElementProxy<Element>>() : undefined
-    const isPassedCondition = false
-
+    const condition = {
+      isPassedCondition: false
+    }
     const parentProxy = this instanceof InnerGroup ? this.owner?.proxy : this.proxy
 
     // Loop to execute each of tags
@@ -232,7 +233,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (parentProxy._forceStop) {
         break
       }
-      const resultCode = await this.execElement(runProps, asyncJobs, result, isPassedCondition)
+      const resultCode = await this.execElement(runProps, asyncJobs, result, condition)
       if (resultCode === ExecReturnCode.CONTINUE) {
         continue
       }
@@ -258,7 +259,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
   }
 
-  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>>, result: Array<ElementProxy<Element>> | undefined, isPassedCondition: boolean, parentState?: any) {
+  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>> | undefined, result: Array<ElementProxy<Element>> | undefined, opts: { isPassedCondition?: boolean, parentState?: any }) {
     let run: GroupItemProps
     if (typeof runProps === 'string') {
       run = { js: runProps } as any
@@ -268,11 +269,11 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     const props = cloneDeep(run)
     // when the previous step was passed valid condition
-    if (isPassedCondition) {
+    if (opts.isPassedCondition) {
       if (props.elseif || props.else === null) {
         return ExecReturnCode.CONTINUE
       }
-      isPassedCondition = false
+      opts.isPassedCondition = false
     }
 
     const { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
@@ -289,9 +290,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     // Execute
     if (loop === undefined) {
-      const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps, undefined, parentState)
+      const elemProxy = await this.createAndExecuteElement(asyncJobs, tagName, baseProps, elemProps, undefined, opts.parentState)
       if (elemProxy) {
-        isPassedCondition = !!baseProps.if || !!baseProps.elseif
+        opts.isPassedCondition = !!baseProps.if || !!baseProps.elseif
         result?.push(elemProxy)
         if (elemProxy.isSkipNext) {
           return ExecReturnCode.BREAK
@@ -311,7 +312,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               loopKey: i,
               loopValue: loopCondition[i]
             }
-          }, newProps, undefined, parentState)
+          }, newProps, undefined, opts.parentState)
           if (elemProxy) {
             result?.push(elemProxy)
           }
@@ -328,7 +329,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               loopKey: key,
               loopValue: loopCondition[key]
             }
-          }, newProps, undefined, parentState)
+          }, newProps, undefined, opts.parentState)
           if (elemProxy) {
             result?.push(elemProxy)
           }
@@ -342,7 +343,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             _loopObject: {
               loopValue: loopCondition
             }
-          }, newProps, undefined, parentState)
+          }, newProps, undefined, opts.parentState)
           if (elemProxy) {
             result?.push(elemProxy)
           }
@@ -551,7 +552,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               failure: {
                 debug: 'silent'
               }
-            } as any, [], undefined, false, Object.assign({}, parentState, { error: globalError }))
+            } as any, undefined, undefined, { parentState: Object.assign({}, parentState, { error: globalError }) })
           } catch (error) {
             globalError = error
             throw globalError
@@ -586,7 +587,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             failure: {
               debug: 'silent'
             }
-          } as any, [], undefined, false, Object.assign({}, parentState, { error: globalError }))
+          } as any, undefined, undefined, { parentState: Object.assign({}, parentState, { error: globalError }) })
         }
         await elemProxy.dispose()
       }
