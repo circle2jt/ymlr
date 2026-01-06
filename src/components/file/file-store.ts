@@ -54,7 +54,7 @@ export class FileStore implements Element {
 
   async exec() {
     this.path = this.proxy.getPath(this.path || '')
-    assert(this.path)
+    assert(this.path, 'path is required')
     this.storage = new FileStorage(this.logger, this.path, this.password)
     this.data = this.load()
     return this.data

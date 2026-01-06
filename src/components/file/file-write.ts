@@ -55,7 +55,7 @@ export class FileWrite implements Element {
     return await new Promise((resolve, reject) => {
       this.path = this.proxy.getPath(this.path || '')
       try {
-        assert(this.path)
+        assert(this.path, 'path is required')
         this.logger.debug(`Write ${this.format || ''}/${this.pretty ? '(pretty)' : ''} file to "${this.path}"`)?.trace('%s', this.content)
         const formater = this.getFormater()
         if (formater) {

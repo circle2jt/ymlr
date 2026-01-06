@@ -39,7 +39,7 @@ export class FNQueueDelete implements Element {
   }
 
   async exec() {
-    assert(this.name?.length)
+    assert(this.name?.length, 'name is required')
 
     const rs = await Promise.all(this.name.map(async name => {
       const queue = FNQueue.Caches.get(name)

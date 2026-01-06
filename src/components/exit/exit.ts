@@ -19,7 +19,7 @@ export class Exit implements Element {
 
   async exec() {
     const code = +(this.code ?? 0)
-    assert(!isNaN(code))
+    assert(!isNaN(code), 'code is required')
     this.exit(code)
     return code
   }

@@ -73,7 +73,7 @@ export class FNThrottle implements Element {
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.name?.length, 'name is required')
 
     if (ThrottleManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
@@ -81,7 +81,7 @@ export class FNThrottle implements Element {
       ThrottleManager.Instance.touch(this.name, this.throttleData)
       return
     }
-    assert(this.proxy.runs?.length)
+    assert(this.proxy.runs, 'runs is required')
 
     this.logger.trace('%s: create a new one', this.name)
 

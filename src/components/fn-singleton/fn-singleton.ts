@@ -51,13 +51,13 @@ export class FNSingleton implements Element {
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.name?.length, 'name is required')
 
     if (SingletonManager.Instance.has(this.name)) {
       SingletonManager.Instance.touch(this.name, this.singletonData)
       return
     }
-    assert(this.proxy.runs?.length)
+    assert(this.proxy.runs, 'runs is required')
 
     this.logger.trace('%s: create a new one', this.name)
 

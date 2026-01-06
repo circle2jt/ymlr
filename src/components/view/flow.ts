@@ -42,7 +42,7 @@ export class ViewFlow implements Element {
   }
 
   async exec() {
-    assert(this.file)
+    assert(this.file, 'file is required')
 
     this.file = this.proxy.getPath(this.file)
 

@@ -96,7 +96,7 @@ export class FNQueue implements Element {
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.name?.length, 'name is required')
 
     const existed = FNQueue.Caches.get(this.name)
     if (!existed) {

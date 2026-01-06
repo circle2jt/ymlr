@@ -30,7 +30,7 @@ export class Input<T extends InputProps> implements Element {
   }
 
   async exec() {
-    assert(!!this.InputClass)
+    assert(!!this.InputClass, 'InputClass is required')
     globalThis.inputIndent = this.logger.indent?.indentString || ''
     this.input = new this.InputClass(this.props)
     const value = await this.input.exec()

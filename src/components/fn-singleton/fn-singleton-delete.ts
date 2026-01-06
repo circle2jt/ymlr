@@ -29,7 +29,7 @@ export class FNSingletonDelete implements Element {
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.name?.length, 'name is required')
 
     return SingletonManager.Instance.get(this.name)?.remove()
   }

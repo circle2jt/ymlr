@@ -104,7 +104,7 @@ export class SceneThread extends Scene {
 
   override async handleFile() {
     this.path = this.proxy.getPath(this.path || '')
-    assert(this.path)
+    assert(this.path, 'path is required')
   }
 
   override async exec() {

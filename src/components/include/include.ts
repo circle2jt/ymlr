@@ -69,7 +69,7 @@ export class Include implements Element {
       this.files = []
     }
 
-    assert(this.files?.length)
+    assert(this.files?.length, 'files is required')
     this.files = this.files.flat(1).filter(f => !!f)
     if (!this.files.length) {
       this.logger.warn('"include.files" is empty')

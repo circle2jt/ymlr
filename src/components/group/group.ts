@@ -722,7 +722,7 @@ export class InnerGroup<GP extends GroupProps, GIP extends GroupItemProps> exten
   }
 
   constructor(baseProps?: GP & { owner: Element }) {
-    assert(baseProps?.owner)
+    assert(baseProps?.owner, 'owner is required')
     const { owner, ...props } = baseProps
     super(props as unknown as GP)
     this._owner = owner

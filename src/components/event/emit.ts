@@ -45,7 +45,7 @@ export class EventEmiter implements Element {
   }
 
   async exec() {
-    assert(this.names?.length)
+    assert(this.names?.length, 'name or names is required')
 
     const opts = Array.isArray(this.opts) ? this.opts : (this.opts ? [this.opts] : [])
     this.names.forEach(name => {

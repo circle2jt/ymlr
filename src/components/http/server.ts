@@ -105,7 +105,7 @@ export class HttpServer implements Element {
   }
 
   async exec() {
-    assert(this.address)
+    assert(this.address, 'addres is required')
     if (this.auth?.basic) {
       this.authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
     } else if (this.auth?.custom) {

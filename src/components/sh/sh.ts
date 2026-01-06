@@ -89,7 +89,7 @@ export class Sh implements Element {
       if (this.path.includes('/') || this.path.includes('\\')) {
         const fileRemote = new FileRemote(this.path, this.proxy)
         const script = await fileRemote.getTextContent()
-        assert(script)
+        assert(script, 'script is required')
         if (fileRemote.isRemote) {
           this.tempFile = new FileTemp()
           this.tempFile.create(script, {
@@ -104,7 +104,7 @@ export class Sh implements Element {
         this.filePath = this.path
       }
     } else {
-      assert(this.script)
+      assert(this.script, 'script is required')
     }
 
     if (this.timeout) {

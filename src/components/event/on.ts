@@ -57,7 +57,7 @@ export class EventOn implements Element {
 
   async exec() {
     if (this.t) return
-    assert(this.names?.length)
+    assert(this.names?.length, 'name or names is required')
 
     this.handlers = new Array(this.names.length)
     this.names.forEach((name, i) => {

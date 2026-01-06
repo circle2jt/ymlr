@@ -74,7 +74,7 @@ export class FNDebounce implements Element {
   }
 
   async exec() {
-    assert(this.name)
+    assert(this.name?.length, 'name is required')
 
     if (DebounceManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
@@ -82,7 +82,7 @@ export class FNDebounce implements Element {
       DebounceManager.Instance.touch(this.name, this.debounceData)
       return
     }
-    assert(this.proxy.runs?.length)
+    assert(this.proxy.runs, 'runs is required')
 
     this.logger.trace('%s: create a new one', this.name)
 

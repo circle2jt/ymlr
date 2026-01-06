@@ -43,7 +43,7 @@ export class FileRead implements Element {
   }
 
   async exec() {
-    assert(this.path)
+    assert(this.path, 'path is required')
     const file = new FileRemote(this.path, this.proxy)
     let content = await file.getTextContent()
     this.logger.debug(`Read ${this.format || ''} file "${file.uri}"`)?.trace('%s', content)

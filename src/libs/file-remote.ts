@@ -25,7 +25,7 @@ export class FileRemote {
         this.uri = resolve(this.uri)
       }
     }
-    assert(this.uri, 'File is required')
+    assert(this.uri, 'uri is required')
   }
 
   get existed() {

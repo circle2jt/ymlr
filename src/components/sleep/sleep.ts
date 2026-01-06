@@ -1,4 +1,3 @@
-import assert from 'assert'
 import { formatTextToMs } from 'src/libs/format'
 import { sleep } from 'src/libs/time'
 import { type ElementProxy } from '../element-proxy'
@@ -37,10 +36,11 @@ export class Sleep implements Element {
   async exec() {
     if (this.duration) {
       this.duration = formatTextToMs(this.duration)
-      assert(this.duration)
-      await sleep(this.duration)
-    } else if (this.duration === null) {
+    }
+    if (this.duration === null) {
       await new Promise(() => { })
+    } else if (this.duration !== undefined) {
+      await sleep(this.duration)
     }
     return this.duration
   }
