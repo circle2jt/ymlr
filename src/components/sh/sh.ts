@@ -74,9 +74,6 @@ export class Sh implements Element {
   private filePath?: string
   private tempFile?: FileTemp
   childProcess?: ChildProcess
-  private get timeoutMS() {
-    return this.timeout ? formatTextToMs(this.timeout) : undefined
-  }
 
   constructor(props: ShProps) {
     if (typeof props === 'string') {
@@ -140,7 +137,7 @@ export class Sh implements Element {
           stdio,
           env: process.env,
           cwd: this.proxy.curDir,
-          timeout: this.timeoutMS,
+          timeout: this.timeout as number | undefined,
           signal: this.abortController?.signal,
           ...this.opts
         }
@@ -216,7 +213,7 @@ export class Sh implements Element {
         const opts = {
           env: process.env,
           cwd: this.proxy.curDir,
-          timeout: this.timeoutMS,
+          timeout: this.timeout as number | undefined,
           signal: this.abortController?.signal,
           ...this.opts
         }
