@@ -11,6 +11,7 @@ import { Constants, noop } from 'src/managers/constants'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { Scene } from '../scene/scene'
+import { GroupShadow } from './group-shadow'
 import { type GroupItemProps, type GroupProps } from './group.props'
 
 enum ExecReturnCode {
@@ -104,9 +105,13 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       merge(baseProps, elem.overrideProxyProps())
     }
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
-    let tagName = (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
+    let tagName = baseProps.tag || (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
     if (elem instanceof InnerGroup) {
       tagName = `${elem.owner.proxy.tag}/inner-group`
+    }
+    let parent: any = this instanceof InnerGroup ? this.owner : (elem instanceof InnerGroup ? elem.owner : this)
+    if (parent instanceof GroupShadow) {
+      parent = parent.owner
     }
     Object.defineProperties(elemProxy, {
       tag: {
@@ -131,7 +136,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         enumerable: false,
         configurable: false,
         writable: false,
-        value: this instanceof InnerGroup ? this.owner : (elem instanceof InnerGroup ? elem.owner : this)
+        value: parent
       },
       _creator: {
         enumerable: false,
@@ -159,16 +164,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           configurable: false,
           writable: true,
           value: `${elem.proxy.tag}/inner-group-wrapper`
-        },
-        parentState: {
-          get() {
-            return elemProxy.parentState
-          },
-          set(parentState: any) {
-            elemProxy.parentState = parentState
-          }
         }
       })
+      innerGroupWrapperProxy.parentState = elemProxy.parentState
       innerGroupWrapperProxy.exec = function (parentState: any) {
         return this.$.exec(parentState)
       }
@@ -259,7 +257,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
   }
 
-  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>> | undefined, result: Array<ElementProxy<Element>> | undefined, opts: { isPassedCondition?: boolean, parentState?: any }) {
+  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>> | undefined, result: Array<ElementProxy<Element>> | undefined, opts: { shareElemPropsRef?: any, isPassedCondition?: boolean, parentState?: any }) {
     let run: GroupItemProps
     if (typeof runProps === 'string') {
       run = { js: runProps } as any
@@ -276,7 +274,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       opts.isPassedCondition = false
     }
 
-    const { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
+    let { isTemplate, tagName, elemProps, baseProps = {} } = this.preHandlerProps(props)
 
     if (isTemplate) {
       return ExecReturnCode.CONTINUE
@@ -287,6 +285,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
 
     const { loop } = baseProps
+    if (opts.shareElemPropsRef) {
+      elemProps = Object.assign({}, elemProps, opts.shareElemPropsRef)
+    }
 
     // Execute
     if (loop === undefined) {
@@ -548,11 +549,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           }
           try {
             await this.execElement({
+              "group'shadow": null,
               runs: baseProps.catch,
               failure: {
                 debug: 'silent'
               }
-            } as any, undefined, undefined, { parentState: Object.assign({}, parentState, { error: globalError }) })
+            } as any, undefined, undefined, { shareElemPropsRef: { owner: elemProxy.$ }, parentState: Object.assign({}, parentState, { error: globalError }) })
           } catch (error) {
             globalError = error
             throw globalError
@@ -583,11 +585,12 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       } finally {
         if (!restartor?.next && baseProps.finally?.length) {
           await this.execElement({
+            "group'shadow": null,
             runs: baseProps.finally,
             failure: {
               debug: 'silent'
             }
-          } as any, undefined, undefined, { parentState: Object.assign({}, parentState, { error: globalError }) })
+          } as any, undefined, undefined, { shareElemPropsRef: { owner: elemProxy.$ }, parentState: Object.assign({}, parentState, { error: globalError }) })
         }
         await elemProxy.dispose()
       }
