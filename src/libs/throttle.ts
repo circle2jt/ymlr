@@ -16,7 +16,7 @@ export function throttle(cb: (...args: any) => any, wait: number, opts: Throttle
   fn.cancel = db.cancel.bind(db)
   fn.flush = db.flush.bind(db)
   fn.waitToDone = db.waitToDone.bind(db)
-  if (opts.autoDispose) {
+  if (opts?.autoDispose) {
     const done = db.done.bind(db)
     db.done = async (isCb?: boolean) => {
       await done(isCb)
