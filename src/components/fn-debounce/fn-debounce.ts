@@ -1,6 +1,5 @@
 import assert from 'assert'
-import { type DebouncedFunc, type DebounceSettings } from 'lodash'
-import debounce from 'lodash.debounce'
+import { debounce, type DebouncedFunc, type DebounceSettings } from 'src/libs/debounce'
 import { formatTextToMs } from 'src/libs/format'
 import { DebounceManager } from 'src/managers/debounce-manager'
 import { type ElementProxy } from '../element-proxy'
@@ -56,8 +55,7 @@ export class FNDebounce implements Element {
   autoRemove?: true | string | number
   debounceData: any
 
-  private scheduleAutoRemove: any
-  private fn?: DebouncedFunc<any>
+  private fn?: DebouncedFunc
   private promsise?: {
     t: Promise<any>
     resolve: (value?: any) => void
@@ -117,14 +115,7 @@ export class FNDebounce implements Element {
       opts.maxWait = this.maxWait
     }
     const waitTime = (this.maxWait || this.wait) as number
-    if (this.autoRemove && waitTime) {
-      this.scheduleAutoRemove = debounce(() => {
-        this.logger.trace('%s: schedule auto remove after', this.name)
-        this.remove()
-      }, waitTime + 500, { leading: false, trailing: true })
-    }
     this.fn = debounce(async (debounceData: any) => {
-      this.scheduleAutoRemove?.()
       try {
         await this.innerRunsProxy.exec({
           debounceData
@@ -132,7 +123,13 @@ export class FNDebounce implements Element {
       } catch (err) {
         this.promsise?.reject(err)
       }
-    }, this.wait, opts)
+    }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
+    if (this.autoRemove && waitTime) {
+      this.fn.onDone = () => {
+        this.logger.trace('%s: schedule auto remove after', this.name)
+        this.remove()
+      }
+    }
     DebounceManager.Instance.set(this.name, this)
     this.touch(this.debounceData)
     await this.promsise?.t
@@ -148,7 +145,6 @@ export class FNDebounce implements Element {
     if (!this.fn) return
     this.logger.trace('%s: cancel', this.name)
     this.fn?.cancel()
-    this.scheduleAutoRemove?.cancel()
   }
 
   flush() {

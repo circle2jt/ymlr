@@ -38,7 +38,7 @@ test('fn-throttle should be run correctly', async () => {
   }
   await sleep(1000)
 
-  expect(Testing.vars.i).toBe(3)
+  expect(Testing.vars.i).toBe(4)
   expect(ThrottleManager.Instance.has('ttask1')).toBe(true)
   await Promise.all(elems.map(async (e) => {
     await e.dispose()

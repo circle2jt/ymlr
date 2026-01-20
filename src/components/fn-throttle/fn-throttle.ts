@@ -1,8 +1,6 @@
 import assert from 'assert'
-import { type DebouncedFunc, type ThrottleSettings } from 'lodash'
-import debounce from 'lodash.debounce'
-import throttle from 'lodash.throttle'
 import { formatTextToMs } from 'src/libs/format'
+import { throttle, type ThrottledFunc, type ThrottleSettings } from 'src/libs/throttle'
 import { ThrottleManager } from 'src/managers/throttle-manager'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -55,8 +53,8 @@ export class FNThrottle implements Element {
   autoRemove?: true | string | number
   throttleData: any
 
-  private scheduleAutoRemove: any
-  private fn?: DebouncedFunc<any>
+  private readonly scheduleAutoRemove: any
+  private fn?: ThrottledFunc
   private promsise?: {
     t: Promise<any>
     resolve: (value?: any) => void
@@ -114,12 +112,6 @@ export class FNThrottle implements Element {
       this.wait = formatTextToMs(this.wait)
     }
     const waitTime = this.wait
-    if (this.autoRemove && waitTime) {
-      this.scheduleAutoRemove = debounce(() => {
-        this.logger.trace('%s: schedule auto remove after', this.name)
-        this.remove()
-      }, waitTime + 100, { leading: false, trailing: true })
-    }
     this.fn = throttle(async (throttleData: any) => {
       this.scheduleAutoRemove?.()
       try {
@@ -130,7 +122,13 @@ export class FNThrottle implements Element {
       } catch (err) {
         this.promsise?.reject(err)
       }
-    }, this.wait, opts)
+    }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
+    if (this.autoRemove && waitTime) {
+      this.fn.onDone = () => {
+        this.logger.trace('%s: schedule auto remove after', this.name)
+        this.remove()
+      }
+    }
     ThrottleManager.Instance.set(this.name, this)
     this.touch(this.throttleData)
     await this.promsise?.t

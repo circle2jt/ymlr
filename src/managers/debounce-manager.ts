@@ -1,4 +1,5 @@
 import { type FNDebounce } from 'src/components/fn-debounce/fn-debounce'
+import { debounce } from 'src/libs/debounce'
 
 export class DebounceManager extends Map<string, FNDebounce> {
   private static _Instance: DebounceManager
@@ -8,6 +9,10 @@ export class DebounceManager extends Map<string, FNDebounce> {
       this._Instance = new DebounceManager()
     }
     return this._Instance
+  }
+
+  new() {
+    return debounce
   }
 
   touch(name: string, debounceData?: any) {

@@ -1,4 +1,5 @@
 import { type FNThrottle } from 'src/components/fn-throttle/fn-throttle'
+import { throttle } from 'src/libs/throttle'
 
 export class ThrottleManager extends Map<string, FNThrottle> {
   static _Instance: ThrottleManager
@@ -8,6 +9,10 @@ export class ThrottleManager extends Map<string, FNThrottle> {
       this._Instance = new ThrottleManager()
     }
     return this._Instance
+  }
+
+  new() {
+    return throttle
   }
 
   touch(name: string, throttleData?: any) {
