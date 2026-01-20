@@ -66,16 +66,20 @@ export class TagsManager {
         // Load from native
         try {
           ElementModule = await import(`../components/${path}`)
-        } catch (err) {
-          errors.push(new Error(`Could not found module at ../components/${path}`))
+        } catch (err: any) {
+          const error: any = new Error(`[baseTags] Could not found module at ../components/${path}`)
+          error.details = err
+          errors.push(error)
         }
         if (ElementModule) break
 
         // Load from ext tags
         try {
           ElementModule = await import(`../node_modules/${path}`)
-        } catch {
-          errors.push(new Error(`Could not found module at ../node_modules/${path}`))
+        } catch (err: any) {
+          const error: any = new Error(`[extTags] Could not found module at ../node_modules/${path}`)
+          error.details = err
+          errors.push(error)
         }
         if (ElementModule) break
 
@@ -84,8 +88,10 @@ export class TagsManager {
           const modulePath = proxy.getPath(join(dir, path))
           try {
             ElementModule = await import(modulePath)
-          } catch {
-            errors.push(new Error(`Could not found module at "${modulePath}"`))
+          } catch (err: any) {
+            const error: any = new Error(`[tagDirs] Could not found module at "${modulePath}"`)
+            error.details = err
+            errors.push(error)
           }
           if (ElementModule) break
         }
@@ -95,16 +101,20 @@ export class TagsManager {
         try {
           ElementModule = await this.getTag(path)
           tagName = path
-        } catch (err) {
-          errors.push(err)
+        } catch (err: any) {
+          const error: any = new Error(`[tagRegister] Could not found module at "${path}"`)
+          error.details = err
+          errors.push(error)
         }
         if (ElementModule) break
 
         // Load from global modules
         try {
           ElementModule = await import(path)
-        } catch {
-          errors.push(new Error(`Could not found global module "${path}"`))
+        } catch (err) {
+          const error: any = new Error(`[globalModules] Could not found global module "${path}"`)
+          error.details = err
+          errors.push(error)
         }
         if (ElementModule) break
 
