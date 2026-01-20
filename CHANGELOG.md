@@ -2,6 +2,7 @@
 
 ## History
 
+- [1.4.4-alpha.8.md](#1768907866308)  -  _1/20/2026, 6:17:46 PM_
 - [1.4.4-alpha.7.md](#1767686352089)  -  _1/6/2026, 2:59:12 PM_
 - [1.4.4-alpha.6.md](#1767673150741)  -  _1/6/2026, 11:19:10 AM_
 - [1.4.4-alpha.5.md](#1767172760534)  -  _12/31/2025, 4:19:20 PM_
@@ -136,6 +137,13 @@
 
 ## Details
 
+<a id="1768907866308"></a>
+### 1.4.4-alpha.8
+
+* fix: replace lodash.debounce, lodash.throttle by native function (b27005e)
+* fix(tags-manager): print error when a new tag install error (6d83c4b)
+* fix(group-shadow): clean owner after done (ab714fd)
+  
 <a id="1767686352089"></a>
 ### 1.4.4-alpha.7
 
