@@ -5,6 +5,7 @@ import ENVGlobal from 'src/env-global'
 import { GlobalEvent } from 'src/libs/global-event'
 import { StyleFactory } from 'src/libs/logger/console/styles/style-factory'
 import { LoggerFactory } from 'src/libs/logger/logger-factory'
+import { noop } from 'src/managers/constants'
 import { TagsManager } from 'src/managers/tags-manager'
 import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { WorkerManager } from 'src/managers/worker-manager'
@@ -44,7 +45,7 @@ Root scene file includes all of steps to run
 */
 
 // const TAG_REGEX = /^[a-zA-Z0-9]/
-const QUICK_TAG_REGEX = /^([~;]*)([a-zA-Z0-9].*)/
+export const QUICK_TAG_REGEX = /^([a-zA-Z0-9].*)/
 export class RootScene extends Scene {
   override readonly isRootScene = true
   override readonly isScene = true
@@ -135,10 +136,22 @@ export class RootScene extends Scene {
 
   override async exec() {
     const rs = await super.exec()
-    await Promise.all([
-      this._workerManager?.exec(),
-      ...this.backgroundJobs
-    ])
+
+    // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
+    await new Promise(async (resolve, reject) => {
+      const tm = setInterval(noop, 24 * 60 * 60 * 1000)
+      try {
+        while (this.backgroundJobs.length) {
+          await this.backgroundJobs.shift()
+        }
+        await this._workerManager?.exec()
+        resolve(undefined)
+      } catch (err) {
+        reject(err)
+      } finally {
+        clearInterval(tm)
+      }
+    })
     return rs
   }
 
@@ -158,32 +171,19 @@ export class RootScene extends Scene {
 
   getTagName(props: any) {
     let tagName: string | undefined
-    Object.keys(props).forEach(key => {
-      if (props[key] === undefined) return
-
-      const m = key.match(QUICK_TAG_REGEX)
-      if (!m) return
-
-      if (m[2]) {
-        if (m[1]) {
-          if (!props.async && m[1].includes('~')) {
-            props.async = true
-          }
-          if (!props.template && m[1].includes(';')) {
-            props.template = true
-          }
-          props[m[2]] = props[key]
-          props[key] = undefined
-          key = m[2]
-        }
-        if (!ElementBaseKeys.has(key)) {
+    if (ENVGlobal.IS_PROD) {
+      tagName = Object.keys(props)
+        .find(key => !ElementBaseKeys.has(key) && props[key] !== undefined && QUICK_TAG_REGEX.test(key))
+    } else {
+      Object.keys(props)
+        .filter(key => !ElementBaseKeys.has(key) && props[key] !== undefined && QUICK_TAG_REGEX.test(key))
+        .forEach(key => {
           if (tagName) {
             throw new Error(`Could not declare multiple tags "${tagName}"`)
           }
           tagName = key
-        }
-      }
-    })
+        })
+    }
     return tagName
   }
 
