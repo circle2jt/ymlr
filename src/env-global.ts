@@ -1,4 +1,8 @@
 const ENVGlobal = {
+  _prod: undefined as boolean | undefined,
+  get IS_PROD() {
+    return this._prod ?? (this._prod = (process.env.NODE_ENV === 'production'))
+  },
   get MODE() {
     // flow => display flows in application
     return process.env.MODE

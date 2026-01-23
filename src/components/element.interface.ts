@@ -14,6 +14,6 @@ export interface Element {
   dispose: () => void | Promise<void>
 }
 
-export const ElementBaseKeys = new Set(['->', '<-', 'id', 'runs', 'template', 'props', 'placeholder', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack', 'catch', 'finally'])
-export type ElementBaseProps = Pick<ElementProxy<Element>, 'id' | 'if' | 'elseif' | 'failure' | 'debug' | 'vars' | 'async' | 'detach' | 'loop' | 'name' | 'icon' | 'skip' | 'context' | 'skipNext' | 'runs' | 'errorStack' | '_curDir' | 'placeholder' | 'catch' | 'finally'>
+export const ElementBaseKeys = new Set(['->', '<-', 'id', 'runs', 'template', 'props', 'placeholder', 'case', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack', 'catch', 'finally'])
+export type ElementBaseProps = Pick<ElementProxy<Element>, 'id' | 'case' | 'if' | 'elseif' | 'failure' | 'debug' | 'vars' | 'async' | 'detach' | 'loop' | 'name' | 'icon' | 'skip' | 'context' | 'skipNext' | 'runs' | 'errorStack' | '_curDir' | 'placeholder' | 'catch' | 'finally'>
 export type ElementClass = new (props?: any) => Element

@@ -15,6 +15,8 @@ import { GroupShadow } from './group-shadow'
 import { type GroupItemProps, type GroupProps } from './group.props'
 import { Restartor } from './restartor'
 
+export const QUICK_TAG_REGEX = /^([~;]*)([a-zA-Z0-9].*)/
+
 enum ExecReturnCode {
   CONTINUE = 1,
   BREAK = 2,
@@ -68,7 +70,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (Array.isArray(props)) {
       this.runs = props
     } else if (props) {
-      this.resolveShortcutAsync(props)
+      props = this.normalizeProps(props) as GP
       const { runs, ..._props } = props
       this.runs = runs
       Object.assign(this, _props)
@@ -236,15 +238,40 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     }
   }
 
-  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>> | undefined, result: Array<ElementProxy<Element>> | undefined, opts: { shareElemPropsRef?: any, isPassedCondition?: boolean, parentState?: any }) {
-    let run: GroupItemProps
+  private normalizeProps(runProps: any): any {
+    let props = runProps
     if (typeof runProps === 'string') {
-      run = { js: runProps } as any
+      props = { js: runProps } as any
     } else {
-      run = runProps
-    }
+      Object.keys(props).forEach(key => {
+        if (props[key] === undefined) return
 
-    const props = cloneDeep(run)
+        const m = key.match(QUICK_TAG_REGEX)
+        if (!m) return
+
+        if (m[1] && m[2]) {
+          if (!props.async && m[1].includes('~')) {
+            props.async = true
+          }
+          if (!props.template && m[1].includes(';')) {
+            props.template = true
+          }
+          props[m[2]] = props[key]
+          props[key] = undefined
+        }
+      })
+    }
+    if (props.case !== undefined) {
+      props.if = props.case
+      props.skipNext = true
+      props.case = undefined
+    }
+    return props
+  }
+
+  private async execElement(runProps: GroupItemProps, asyncJobs: Array<Promise<any>> | undefined, result: Array<ElementProxy<Element>> | undefined, opts: { shareElemPropsRef?: any, isPassedCondition?: boolean, parentState?: any }) {
+    const _props = this.normalizeProps(runProps)
+    const props = cloneDeep(_props)
     // when the previous step was passed valid condition
     if (opts.isPassedCondition) {
       if (props.elseif || props.else === null) {
@@ -533,7 +560,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               failure: {
                 debug: 'silent'
               }
-            } as any, undefined, undefined, { shareElemPropsRef: { owner: elemProxy.$ }, parentState: Object.assign({}, parentState, { error: globalError }) })
+            } as any, undefined, undefined, { shareElemPropsRef: { owner: props }, parentState: Object.assign({}, parentState, { error: globalError }) })
           } catch (error) {
             globalError = error
             throw globalError
@@ -569,7 +596,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             failure: {
               debug: 'silent'
             }
-          } as any, undefined, undefined, { shareElemPropsRef: { owner: elemProxy.$ }, parentState: Object.assign({}, parentState, { error: globalError }) })
+          } as any, undefined, undefined, { shareElemPropsRef: { owner: props }, parentState: Object.assign({}, parentState, { error: globalError }) })
         }
         await elemProxy.dispose()
       }

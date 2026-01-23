@@ -554,6 +554,25 @@ export class ElementProxy<T extends Element> {
     ```
   */
   elseif?: boolean | string
+  /** |**  case
+    shortcut for if + skipNext
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - vars:
+          number: 11
+
+      - case: ${$vars.number === 11}        # When reach the conditional then execute and skip the next steps
+        echo: Value is 11
+
+      - case: ${$vars.number > 10}
+        echo: Value is greater than 10      # When reach the conditional then execute and skip the next steps
+
+      - echo: Done                          # Never echo when reach the any conditional
+    ```
+  */
+  case?: boolean | string
   /** |**  if
     Check condition before run the item
     @position top
