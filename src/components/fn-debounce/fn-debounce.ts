@@ -53,14 +53,9 @@ export class FNDebounce implements Element {
   trailing = true
   leading = false
   autoRemove?: true | string | number
-  debounceData: any
+  debounceData?: any
 
   private fn?: DebouncedFunc
-  private promsise?: {
-    t: Promise<any>
-    resolve: (value?: any) => void
-    reject: (reason?: any) => void
-  }
 
   constructor(props: any) {
     if (typeof props === 'string') {
@@ -76,25 +71,12 @@ export class FNDebounce implements Element {
 
     if (DebounceManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
-      // DebounceManager.Instance.touch(this.name)
       DebounceManager.Instance.touch(this.name, this.debounceData)
       return
     }
     assert(this.proxy.runs, 'runs is required')
 
     this.logger.trace('%s: create a new one', this.name)
-
-    const promsise = {
-      t: undefined,
-      resolve: (_value?: any) => { },
-      reject: (_reason?: any) => { }
-    }
-    const t = new Promise<any>((resolve, reject) => {
-      promsise.resolve = resolve
-      promsise.reject = reject
-    })
-    promsise.t = t as any
-    this.promsise = promsise as any
 
     this.wait ?? assert.fail('wait is required')
     let wait = 0
@@ -109,22 +91,16 @@ export class FNDebounce implements Element {
       trailing: this.trailing,
       leading: this.leading
     }
-
     if (this.maxWait && typeof this.maxWait === 'string') {
       this.maxWait = formatTextToMs(this.maxWait)
       opts.maxWait = this.maxWait
     }
-    const waitTime = (this.maxWait || this.wait) as number
     this.fn = debounce(async (debounceData: any) => {
-      try {
-        await this.innerRunsProxy.exec({
-          debounceData
-        })
-      } catch (err) {
-        this.promsise?.reject(err)
-      }
+      await this.innerRunsProxy.exec({
+        debounceData
+      })
     }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
-    if (this.autoRemove && waitTime) {
+    if (this.autoRemove) {
       this.fn.onDone = () => {
         this.logger.trace('%s: schedule auto remove after', this.name)
         this.remove()
@@ -132,7 +108,7 @@ export class FNDebounce implements Element {
     }
     DebounceManager.Instance.set(this.name, this)
     this.touch(this.debounceData)
-    await this.promsise?.t
+    await this.fn?.waitToDispose()
   }
 
   touch(debounceData?: any) {
@@ -158,16 +134,11 @@ export class FNDebounce implements Element {
     this.logger.trace('%s: remove', this.name)
     DebounceManager.Instance.delete(this.name)
     this.cancel()
-    this.debounceData = undefined
-    this.promsise?.resolve()
+    this.fn.dispose()
   }
 
   async dispose() {
-    if (!this.fn) return
     this.logger.trace('%s: dispose', this.name)
-    this.remove()
     await this.innerRunsProxy.dispose()
-    this.promsise = undefined
-    this.fn = undefined
   }
 }

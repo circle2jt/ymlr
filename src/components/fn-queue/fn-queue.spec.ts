@@ -27,12 +27,12 @@ test('fn-queue should be run correctly', async () => {
     ]
   })
   try {
-    await fn.exec()
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setImmediate(async () => await fn.exec())
     await setTimeout(200)
     expect(Testing.vars.key1 === 'value 1')
   } finally {
-    await fn.$.remove()
-    await fn.dispose()
+    fn.$.remove()
   }
 })
 
@@ -64,11 +64,11 @@ test('fn-queue with concurrent > 1', async () => {
     fn.$.push({ key1: 'value 5' })
     fn.$.push({ key1: 'value 6' })
     fn.$.push({ key1: 'value 7' })
-    fn.$.start()
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setImmediate(async () => { await fn.$.start() })
     await setTimeout(1000)
     expect(Testing.vars.rs).toHaveLength(5)
   } finally {
-    await fn.$.remove()
-    await fn.dispose()
+    fn.$.remove()
   }
 })

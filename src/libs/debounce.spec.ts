@@ -100,13 +100,13 @@ describe('debounce', () => {
     expect(fn).toBeCalledWith(1)
   })
 
-  test('waitToDone should resolve after execution', async () => {
+  test('waitToDispose should resolve after autoDispose', async () => {
     const fn = jest.fn()
-    const d = debounce(fn, 50, { trailing: true })
+    const d = debounce(fn, 50, { trailing: true, autoDispose: true })
 
     d(1)
 
-    await d.waitToDone()
+    await d.waitToDispose()
 
     expect(fn).toBeCalledTimes(1)
   })

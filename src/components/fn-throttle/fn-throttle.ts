@@ -51,16 +51,9 @@ export class FNThrottle implements Element {
   leading = true
   trailing = true
   autoRemove?: true | string | number
-  throttleData: any
+  throttleData?: any
 
-  private readonly scheduleAutoRemove: any
   private fn?: ThrottledFunc
-  private promsise?: {
-    t: Promise<any>
-    resolve: (value?: any) => void
-    reject: (reason?: any) => void
-  }
-
   constructor(props: any) {
     if (typeof props === 'string') {
       props = {
@@ -75,25 +68,12 @@ export class FNThrottle implements Element {
 
     if (ThrottleManager.Instance.has(this.name)) {
       this.logger.trace('%s: reused', this.name)
-      // ThrottleManager.Instance.touch(this.name)
       ThrottleManager.Instance.touch(this.name, this.throttleData)
       return
     }
     assert(this.proxy.runs, 'runs is required')
 
     this.logger.trace('%s: create a new one', this.name)
-
-    const promsise = {
-      t: undefined,
-      resolve: (_value?: any) => { },
-      reject: (_reason?: any) => { }
-    }
-    const t = new Promise<any>((resolve, reject) => {
-      promsise.resolve = resolve
-      promsise.reject = reject
-    })
-    promsise.t = t as any
-    this.promsise = promsise as any
 
     this.wait ?? assert.fail('wait is required')
     let wait = 0
@@ -108,22 +88,13 @@ export class FNThrottle implements Element {
       trailing: this.trailing,
       leading: this.leading
     }
-    if (typeof this.wait === 'string') {
-      this.wait = formatTextToMs(this.wait)
-    }
-    const waitTime = this.wait
     this.fn = throttle(async (throttleData: any) => {
-      this.scheduleAutoRemove?.()
-      try {
-        this.logger.trace('%s: run', this.name)
-        await this.innerRunsProxy.exec({
-          throttleData
-        })
-      } catch (err) {
-        this.promsise?.reject(err)
-      }
+      this.logger.trace('%s: run', this.name)
+      await this.innerRunsProxy.exec({
+        throttleData
+      })
     }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
-    if (this.autoRemove && waitTime) {
+    if (this.autoRemove) {
       this.fn.onDone = () => {
         this.logger.trace('%s: schedule auto remove after', this.name)
         this.remove()
@@ -131,7 +102,7 @@ export class FNThrottle implements Element {
     }
     ThrottleManager.Instance.set(this.name, this)
     this.touch(this.throttleData)
-    await this.promsise?.t
+    await this.fn?.waitToDispose()
   }
 
   touch(throttleData?: any) {
@@ -144,7 +115,6 @@ export class FNThrottle implements Element {
     if (!this.fn) return
     this.logger.trace('%s: cancel', this.name)
     this.fn?.cancel()
-    this.scheduleAutoRemove?.cancel()
   }
 
   flush() {
@@ -158,16 +128,11 @@ export class FNThrottle implements Element {
     this.logger.trace('%s: remove', this.name)
     ThrottleManager.Instance.delete(this.name)
     this.cancel()
-    this.throttleData = undefined
-    this.promsise?.resolve()
+    this.fn.dispose()
   }
 
   async dispose() {
-    if (!this.fn) return
     this.logger.trace('%s: dispose', this.name)
-    this.remove()
     await this.innerRunsProxy.dispose()
-    this.promsise = undefined
-    this.fn = undefined
   }
 }

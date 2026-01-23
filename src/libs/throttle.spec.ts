@@ -92,13 +92,13 @@ describe('throttle', () => {
     expect(fn).toBeCalledWith(1)
   })
 
-  test('waitToDone should resolve after execution', async () => {
+  test('waitToDispose should resolve after autoDispose', async () => {
     const fn = jest.fn()
     const t = throttle(fn, 50, { trailing: true })
 
     t(1)
 
-    await t.waitToDone()
+    await t.waitToDispose()
 
     expect(fn).toBeCalledTimes(1)
   })
