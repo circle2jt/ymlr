@@ -30,6 +30,12 @@ import { type Element } from '../element.interface'
         opts:
           - params 1
           - params 2
+
+    - name: quick to emit multiple event with eventData is empty
+      event'emit: [test-event1, test-event2]
+
+    - name: quick to emit an event with eventData is empty
+      event'emit: test-event1
   ```
 */
 export class EventEmiter implements Element {
@@ -39,7 +45,16 @@ export class EventEmiter implements Element {
   data?: any
   opts?: any
 
-  constructor({ name, names = [], ...props }: any) {
+  constructor(rawProps: any) {
+    if (typeof rawProps === 'string') {
+      Object.assign(this, { names: [rawProps] })
+      return
+    }
+    if (Array.isArray(rawProps)) {
+      Object.assign(this, { names: rawProps })
+      return
+    }
+    const { name, names = [], ...props } = rawProps
     if (name) names.push(name)
     Object.assign(this, { names, ...props })
   }
