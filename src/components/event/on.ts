@@ -42,8 +42,18 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
 export class EventOn implements Element {
   readonly proxy!: ElementProxy<this>
   readonly innerRunsProxy!: ElementProxy<Group<GroupProps, GroupItemProps>>
+  get logger() {
+    return this.proxy.logger
+  }
+
+  overrideProxyProps() {
+    return {
+      detach: true
+    }
+  }
 
   names!: string[]
+  autoRemove = false
 
   private handlers!: any[]
   private resolve?: (_: any) => void
@@ -75,6 +85,10 @@ export class EventOn implements Element {
           })
         } catch (err: any) {
           this.reject?.(err as Error)
+        } finally {
+          if (this.autoRemove) {
+            this.stop()
+          }
         }
       }
       this.proxy.globalEvent.on(name, this.handlers[i])
@@ -87,21 +101,22 @@ export class EventOn implements Element {
     await this.t
   }
 
-  async stop() {
-    if (this.t) {
-      this.names.forEach((name, i) => {
-        this.proxy.logger.trace('Off %s', name)
-        this.proxy.globalEvent.off(name, this.handlers[i])
-      })
-      this.resolve?.(undefined)
-      this.handlers = []
-      this.t = undefined
-      this.resolve = undefined
-      this.reject = undefined
-    }
+  stop() {
+    if (!this.t) return
+    this.names.forEach((name, i) => {
+      this.proxy.logger.trace('Off %s', name)
+      this.proxy.globalEvent.off(name, this.handlers[i])
+    })
+    this.resolve?.(undefined)
+    this.handlers = []
+    this.t = undefined
+    this.resolve = undefined
+    this.reject = undefined
   }
 
   async dispose() {
-    await this.stop()
+    this.logger.debug('Dispose the event "%s"', this.names)
+    this.stop()
+    await this.innerRunsProxy.dispose()
   }
 }
