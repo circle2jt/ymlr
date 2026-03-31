@@ -42,18 +42,17 @@ export class JobsManager {
         setImmediate(async (job: Job) => {
           this.runningJobsCount++
           this.logger.debug('Pulled a job')?.trace('%j', job)
+          let isRetry = false
           try {
             if (this.jobHandler?.onJobRun) await this.jobHandler.onJobRun(job)
             await job.jobExecute()
             this.logger.debug('Job successed      ')?.trace('%j', job)
             if (this.jobHandler?.onJobSuccess) await this.jobHandler.onJobSuccess(job)
-            this.dbJobs.splice(this.dbJobs.indexOf(job), 1)
-            await this.storage?.save(this.dbJobs)
           } catch (err1: any) {
             this.logger.warn(job, 'Job failed         \t%s', err1?.message)
             try {
               if (!this.jobHandler?.onJobFailure) throw err1
-              const isRetry = await this.jobHandler.onJobFailure(err1, job)
+              isRetry = await this.jobHandler.onJobFailure(err1, job)
               if (isRetry) this.queueJobs.push(job)
             } catch (err2: any) {
               this.logger.error(job, 'Jobs manager stoped\t%s', err2?.message)
@@ -61,6 +60,13 @@ export class JobsManager {
               this.error = err2
             }
           } finally {
+            if (!isRetry) {
+              const idx = this.dbJobs.indexOf(job)
+              if (idx !== -1) {
+                this.dbJobs.splice(idx, 1)
+                await this.storage?.save(this.dbJobs)
+              }
+            }
             this.runningJobsCount--
             if (this.jobHandler?.onJobDone) await this.jobHandler.onJobDone(job)
           }

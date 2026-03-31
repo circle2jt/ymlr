@@ -2,12 +2,10 @@ import { type FNThrottle } from 'src/components/fn-throttle/fn-throttle'
 import { throttle } from 'src/libs/throttle'
 
 export class ThrottleManager extends Map<string, FNThrottle> {
-  static _Instance: ThrottleManager
+  private static _Instance: ThrottleManager
 
   static get Instance() {
-    if (!this._Instance) {
-      this._Instance = new ThrottleManager()
-    }
+    this._Instance ??= new ThrottleManager()
     return this._Instance
   }
 

@@ -14,9 +14,7 @@ import { ThrottleManager } from './throttle-manager'
 export class UtilityFunctionManager {
   private static _Instance: UtilityFunctionManager
   static get Instance() {
-    if (!this._Instance) {
-      this._Instance = new UtilityFunctionManager()
-    }
+    this._Instance ??= new UtilityFunctionManager()
     return this._Instance
   }
 
@@ -82,7 +80,7 @@ export class UtilityFunctionManager {
     return new MD5()
   }
 
-  /** |**  $utils.base64
+  /** |**  $utils.aes
     AES encrypt/decrypt a string
     @position bottom
     @tag Utility function

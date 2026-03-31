@@ -5,9 +5,7 @@ export class DebounceManager extends Map<string, FNDebounce> {
   private static _Instance: DebounceManager
 
   static get Instance() {
-    if (!this._Instance) {
-      this._Instance = new DebounceManager()
-    }
+    this._Instance ??= new DebounceManager()
     return this._Instance
   }
 

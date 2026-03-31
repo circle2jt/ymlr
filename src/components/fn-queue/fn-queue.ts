@@ -3,6 +3,7 @@ import { FileTemp } from 'src/libs/file-temp'
 import { FileStorage } from 'src/libs/storage/file-storage'
 import { MemStorage } from 'src/libs/storage/mem-storage'
 import { type StorageInterface } from 'src/libs/storage/storage.interface'
+import { timeout } from 'src/libs/timeout'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
@@ -18,6 +19,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         name: My Queue 1        # Use stateless queue, not reload after startup
         concurrent: 2
         startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
+        timeout: 1000           # Timeout for each job. Default is 0 (no timeout)
         queueFilter:
           expiredJobAfter: 6000 # When jobs are pending after 6s, then auto be removed
         autoRemove: true        # Auto remove queue after finshed all of jobs. Default is false
@@ -77,6 +79,7 @@ export class FNQueue implements Element {
   name!: string
   startup = true
   concurrent = 1
+  timeout?: number
   skipError = false
   autoRemove = false
   queueData: any
@@ -175,13 +178,24 @@ export class FNQueue implements Element {
         this.logger.debug('Run a job in #queue "%s"\t%j', this.name, queueData)
         let isStop = false
         try {
-          await this.innerRunsProxy.exec({
-            queueName: this.name,
-            queueData,
-            queueCount: this.availQueue.length + this.taskCount,
-            queueErrorCount: queue.errorCount,
-            queueCreatedAt: queue.createdAt
-          })
+          const timeoutMS = this.timeout
+          if (timeoutMS && timeoutMS > 0) {
+            await timeout(this.innerRunsProxy.exec({
+              queueName: this.name,
+              queueData,
+              queueCount: this.availQueue.length + this.taskCount,
+              queueErrorCount: queue.errorCount,
+              queueCreatedAt: queue.createdAt
+            }), timeoutMS)
+          } else {
+            await this.innerRunsProxy.exec({
+              queueName: this.name,
+              queueData,
+              queueCount: this.availQueue.length + this.taskCount,
+              queueErrorCount: queue.errorCount,
+              queueCreatedAt: queue.createdAt
+            })
+          }
         } catch (err: any) {
           ++queue.errorCount
           if (!this.skipError) {

@@ -12,8 +12,7 @@ import { LoggerLevel } from './libs/logger/logger-level'
 import { PackagesManagerFactory } from './managers/packages-manager-factory'
 
 export async function RunCLI() {
-  let t = Promise.resolve()
-  program.name(name)
+  await program.name(name)
     .aliases(Object.keys(bin).filter(e => e !== name))
     .description(description)
     .version(version, '-v, --version')
@@ -37,45 +36,37 @@ export async function RunCLI() {
     .option('-e, --env <key=value...>', 'environment variables')
     .option('-ef, --env-file <path...>', 'environment variables files')
     .action(async (path: string, password?: string, opts: any = {}) => {
-      // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-      t = new Promise(async (resolve, reject) => {
-        try {
-          const { debug, autoInstall, style = 'color16', flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
-          if (envFile.length) {
-            for (const efile of envFile) {
-              const fileRemote = new FileRemote(efile, null)
-              const envFileContent = await fileRemote.getTextContent()
-              env.splice(0, 0, ...envFileContent
-                .split('\n')
-                .filter((e: string) => e?.trim().length)
-              )
-            }
-          }
-          env.forEach((line: string) => {
-            const [key, value] = Env.ParseEnvLine(line, true)
-            process.env[key] = value
-          })
-          if (debug) ENVGlobal.DEBUG = debug
-          if (flow) ENVGlobal.MODE = 'flow'
-          if (autoInstall) ENVGlobal.AUTO_INSTALL = '1'
-          if (debugContextFilter) ENVGlobal.DEBUG_CONTEXT_FILTER = debugContextFilter
-
-          LoggerFactory.LoadFromEnv()
-          StyleFactory.SetLogStyle(style)
-
-          const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level)
-          appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
-          const app = new App(appLogger, {
-            path,
-            password
-          })
-          if (tagDirs?.length) app.setDirTags(tagDirs)
-          await app.exec()
-          resolve(undefined)
-        } catch (err) {
-          reject(err)
+      const { debug, autoInstall, style = 'color16', flow, env = [], tagDirs, envFile = [], debugContextFilter } = opts
+      if (envFile.length) {
+        for (const efile of envFile) {
+          const fileRemote = new FileRemote(efile, null)
+          const envFileContent = await fileRemote.getTextContent()
+          env.splice(0, 0, ...envFileContent
+            .split('\n')
+            .filter((e: string) => e?.trim().length)
+          )
         }
+      }
+      env.forEach((line: string) => {
+        const [key, value] = Env.ParseEnvLine(line, true)
+        process.env[key] = value
       })
+      if (debug) ENVGlobal.DEBUG = debug
+      if (flow) ENVGlobal.MODE = 'flow'
+      if (autoInstall) ENVGlobal.AUTO_INSTALL = '1'
+      if (debugContextFilter) ENVGlobal.DEBUG_CONTEXT_FILTER = debugContextFilter
+
+      LoggerFactory.LoadFromEnv()
+      StyleFactory.SetLogStyle(style)
+
+      const appLogger = LoggerFactory.NewLogger(LoggerFactory.DEBUG?.level)
+      appLogger.info(`🚀 ${chalk.yellow(`${name}`)}${chalk.gray(`@${version}`)}`)
+      const app = new App(appLogger, {
+        path,
+        password
+      })
+      if (tagDirs?.length) app.setDirTags(tagDirs)
+      await app.exec()
     })
     .addCommand(program
       .createCommand('add')
@@ -83,18 +74,10 @@ export async function RunCLI() {
       .description('add external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-        t = new Promise(async (resolve, reject) => {
-          try {
-            assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
-            const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
-            resolve(undefined)
-          } catch (err) {
-            reject(err)
-          }
-        })
+        assert(packages?.length, '"package(s)" is requried')
+        const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
+        const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
+        await PackagesManagerFactory.GetInstance(appLogger).install(...packages)
       })
     )
     .addCommand(program
@@ -103,18 +86,10 @@ export async function RunCLI() {
       .description('upgrade external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-        t = new Promise(async (resolve, reject) => {
-          try {
-            assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
-            const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
-            resolve(undefined)
-          } catch (err) {
-            reject(err)
-          }
-        })
+        assert(packages?.length, '"package(s)" is requried')
+        const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
+        const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
+        await PackagesManagerFactory.GetInstance(appLogger).upgrade(...packages)
       })
     )
     .addCommand(program
@@ -123,18 +98,10 @@ export async function RunCLI() {
       .description('remove external tags version')
       .argument('[package_name...]', 'packages in npm registry')
       .action(async (packages: string[]) => {
-        // eslint-disable-next-line no-async-promise-executor,@typescript-eslint/no-misused-promises
-        t = new Promise(async (resolve, reject) => {
-          try {
-            assert(packages?.length, '"package(s)" is requried')
-            const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
-            const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
-            await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
-            resolve(undefined)
-          } catch (err) {
-            reject(err)
-          }
-        })
+        assert(packages?.length, '"package(s)" is requried')
+        const appLogger = LoggerFactory.NewLogger(LoggerLevel.all)
+        const { PackagesManagerFactory } = await import('./managers/packages-manager-factory')
+        await PackagesManagerFactory.GetInstance(appLogger).uninstall(...packages)
       })
     )
     .addHelpText('after', () => {
@@ -165,6 +132,5 @@ export async function RunCLI() {
 ✔ Npm package   : https://www.npmjs.com/package/${name}
 ✔ Docker Image  : https://hub.docker.com/repository/docker/circle2jt/${name}
 `)
-    .parse(process.argv)
-  await t
+    .parseAsync(process.argv)
 }

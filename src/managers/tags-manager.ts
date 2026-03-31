@@ -35,7 +35,7 @@ export class TagsManager {
       assert(path, `Could not found tag "${name}" in the modules`)
       const Clazz = await import(path)
       return Clazz
-    } catch (err: any) {
+    } catch (err: unknown) {
       const tag = this.tags[name]
       if (!tag) {
         throw err
@@ -66,9 +66,9 @@ export class TagsManager {
         // Load from native
         try {
           ElementModule = await import(`../components/${path}`)
-        } catch (err: any) {
+        } catch (err: unknown) {
           const error: any = new Error(`[baseTags] Could not found module at ../components/${path}`)
-          error.details = err
+          error.details = err instanceof Error ? err.message : err
           errors.push(error)
         }
         if (ElementModule) break
@@ -76,9 +76,9 @@ export class TagsManager {
         // Load from ext tags
         try {
           ElementModule = await import(`../node_modules/${path}`)
-        } catch (err: any) {
+        } catch (err: unknown) {
           const error: any = new Error(`[extTags] Could not found module at ../node_modules/${path}`)
-          error.details = err
+          error.details = err instanceof Error ? err.message : err
           errors.push(error)
         }
         if (ElementModule) break
@@ -88,9 +88,9 @@ export class TagsManager {
           const modulePath = proxy.getPath(join(dir, path))
           try {
             ElementModule = await import(modulePath)
-          } catch (err: any) {
+          } catch (err: unknown) {
             const error: any = new Error(`[tagDirs] Could not found module at "${modulePath}"`)
-            error.details = err
+            error.details = err instanceof Error ? err.message : err
             errors.push(error)
           }
           if (ElementModule) break
@@ -101,9 +101,9 @@ export class TagsManager {
         try {
           ElementModule = await this.getTag(path)
           tagName = path
-        } catch (err: any) {
+        } catch (err: unknown) {
           const error: any = new Error(`[tagRegister] Could not found module at "${path}"`)
-          error.details = err
+          error.details = err instanceof Error ? err.message : err
           errors.push(error)
         }
         if (ElementModule) break
@@ -111,9 +111,9 @@ export class TagsManager {
         // Load from global modules
         try {
           ElementModule = await import(path)
-        } catch (err) {
+        } catch (err: unknown) {
           const error: any = new Error(`[globalModules] Could not found global module "${path}"`)
-          error.details = err
+          error.details = err instanceof Error ? err.message : err
           errors.push(error)
         }
         if (ElementModule) break

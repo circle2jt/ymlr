@@ -51,3 +51,23 @@ test('emit/on in global event', async () => {
   await sleep(500)
   expect(name).toBe('thanh')
 })
+
+test('format objects to yaml string', () => {
+  const obj = { key: 'value', complex: { deep: true } }
+  const yamlStr = globalUtils.format.yaml(obj, {})
+  expect(typeof yamlStr).toBe('string')
+  expect(yamlStr).toContain('key: value')
+})
+
+test('parses correct yaml string', () => {
+  const yamlStr = 'key: value\ncomplex:\n  deep: true'
+  const parsed: any = globalUtils.parse.yaml(yamlStr)
+  expect(parsed).toBeDefined()
+  expect(parsed.key).toBe('value')
+  expect(parsed.complex?.deep).toBe(true)
+})
+
+test('returns undefined when parsing empty yaml string', () => {
+  const parsed = globalUtils.parse.yaml()
+  expect(parsed).toBeUndefined()
+})

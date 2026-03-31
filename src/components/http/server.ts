@@ -98,7 +98,7 @@ export class HttpServer implements Element {
   cors?: CorsOptions
 
   private authVerifier?: IVerify
-  private server?: Server
+  server?: Server
 
   constructor({ address, auth, type, ...props }: any) {
     Object.assign(this, { address, auth, type, ...props })

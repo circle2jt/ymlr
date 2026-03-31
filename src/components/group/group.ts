@@ -555,7 +555,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
             }
             if (failure.restart.sleep) {
               this.logger.debug(`sleep ${failure.restart.sleep}`)
-              delayRetry.t = delayRetry.t?.then(() => sleep(failure.restart.sleep))
+              delayRetry.t = delayRetry.t?.then(async () => { await sleep(failure.restart.sleep) })
             }
             let sequence: Sequence | undefined
             if (failure.restart.sequence) {
@@ -564,7 +564,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
                 sequence = new Sequence(failure.restart.sequence.sleep)
                 Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
               }
-              delayRetry.t = delayRetry.t?.then(() => sequence?.wait(this))
+              delayRetry.t = delayRetry.t?.then(async () => await sequence?.wait(this))
             }
             this.logger.debug('wait my turn')
             this.logger.debug('ok, it\'s my turn. Restarting...')
@@ -574,7 +574,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               t: new Promise((resolve) => {
                 this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
               }),
-              msg: `Waiting retry event "${retryEvent}"`,
+              msg: `Waiting retry event "${retryEvent}"`
             }
             this.logger.debug(`Received retry event "${failure.retryEvent}"`)
           }
@@ -605,16 +605,15 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           }
         }
         await elemProxy.dispose()
+      }
+      if (delayRetry.t) {
+        this.logger.debug(delayRetry.msg)
+        await delayRetry.t
 
-        if (delayRetry.t) {
-          this.logger.debug(delayRetry.msg)
-          await delayRetry.t
-
-          if (baseProps.async) baseProps.async = false
-          if (baseProps.detach) baseProps.detach = false
-          if (!restartor) throw new Error('Why restartor is null ???')
-          restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
-        }
+        if (baseProps.async) baseProps.async = false
+        if (baseProps.detach) baseProps.detach = false
+        if (!restartor) throw new Error('Why restartor is null ???')
+        restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
       }
     })()
 

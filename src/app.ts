@@ -4,6 +4,8 @@ import { ElementProxy } from './components/element-proxy'
 import { type RootSceneProps } from './components/root-scene.props'
 import { type Logger } from './libs/logger'
 import { LoggerFactory } from './libs/logger/logger-factory'
+import { DebounceManager } from './managers/debounce-manager'
+import { ThrottleManager } from './managers/throttle-manager'
 
 export class App {
   static ThreadID = 'main'
@@ -51,9 +53,11 @@ export class App {
       await this.rootSceneProxy.exec()
     } catch (err: any) {
       this.logger.fatal(err)
-      setImmediate(process.exit, 1)
+      process.exitCode = 1
     } finally {
       await this.rootSceneProxy.dispose()
+      DebounceManager.Instance.clear()
+      ThrottleManager.Instance.clear()
       LoggerFactory.Dispose()
     }
   }

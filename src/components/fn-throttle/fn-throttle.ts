@@ -133,6 +133,7 @@ export class FNThrottle implements Element {
 
   async dispose() {
     this.logger.trace('%s: dispose', this.name)
+    this.remove()
     await this.innerRunsProxy.dispose()
   }
 }
