@@ -36,6 +36,8 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   'errorStack'
 ])
 
+const CreatorMap = new WeakMap<object, any>()
+
 export class ElementProxy<T extends Element> {
   static DEBUG_LIFE_CIRCLE = false
 
@@ -723,6 +725,28 @@ export class ElementProxy<T extends Element> {
             - params 2
     ```
   */
+  _weakParentState: any | null
+  private weakParentState!: WeakRef<any>
+  get wps() {
+    if (this.weakParentState) return this.weakParentState
+    if (this._creator) return this._creator.proxy.wps
+    this.wps = {}
+    return this.weakParentState
+  }
+
+  set wps(weakParentState: any) {
+    this._weakParentState = weakParentState
+    CreatorMap.set(this._weakParentState, this)
+    if (!Object.getOwnPropertyDescriptor(this._weakParentState, '$wps')) {
+      Object.defineProperty(this._weakParentState, '$wps', {
+        get() {
+          return CreatorMap.get(this)?._creator?.proxy.wps
+        }
+      })
+    }
+    this.weakParentState = new WeakRef(this._weakParentState)
+  }
+
   private _parentState?: any
   get parentState(): any {
     const ps = this._parentState || this._creator?.proxy.parentState
@@ -732,7 +756,8 @@ export class ElementProxy<T extends Element> {
     if (!(this.$ instanceof RootScene) && this.rootScene) {
       this.logger.warn(`Parent state is wrong [${this.tag}]`)
     }
-    return (this._parentState = {})
+    this.parentState = {}
+    return this._parentState
   }
 
   set parentState(parentState: any) {
@@ -845,14 +870,53 @@ export class ElementProxy<T extends Element> {
   }
 
   get contextExpose() {
-    return {
-      $loopKey: this.loopKey,
-      $loopValue: this.loopValue,
-      $parentState: this.parentState,
-      $lk: this.loopKey,
-      $lv: this.loopValue,
-      $ps: this.parentState
-    }
+    const ctx = {}
+    CreatorMap.set(ctx, this)
+    Object.defineProperties(ctx, {
+      $wps: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.wps
+        }
+      },
+      $loopKey: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.loopKey
+        }
+      },
+      $loopValue: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.loopValue
+        }
+      },
+      $parentState: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.parentState
+        }
+      },
+      $lk: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.loopKey
+        }
+      },
+      $lv: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.loopValue
+        }
+      },
+      $ps: {
+        enumerable: true,
+        get() {
+          return CreatorMap.get(this)?.parentState
+        }
+      }
+    })
+    return ctx
   }
 
   result?: any
@@ -907,6 +971,7 @@ export class ElementProxy<T extends Element> {
         'error',
         '$parentState',
         '$ps',
+        '$wps',
         '$vars',
         '$v',
         '$utils',
@@ -918,8 +983,7 @@ export class ElementProxy<T extends Element> {
       )
     }
 
-    const that = this as any
-    const { element } = that
+    const { element } = this as any
     const proms = Object.keys(element)
       .filter(key =>
         REGEX_VALIDATE_VARS_NAME.test(key) &&
@@ -934,10 +998,10 @@ export class ElementProxy<T extends Element> {
     proms.push(...baseProps
       .filter(key =>
         DEFAULT_AUTO_EVAL_BASE_PROPS.has(key) &&
-        isGetEvalExp(that[key])
+        isGetEvalExp((this as any)[key])
       )
       .map(async key => {
-        that[key] = await this.scene.getVars(that[key], this)
+        (this as any)[key] = await this.scene.getVars((this as any)[key], this)
       }))
     if (proms.length) {
       await Promise.all(proms)
@@ -961,7 +1025,7 @@ export class ElementProxy<T extends Element> {
   }
 
   async exec(parentState: Record<string, any> = {}) {
-    Object.assign(this.parentState, parentState)
+    // Object.assign(this.parentState, parentState)
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.elementAsyncProps)
       this.elementAsyncProps = undefined
@@ -984,7 +1048,7 @@ export class ElementProxy<T extends Element> {
         if (isContinue === false) {
           return null
         }
-        const result = await this.element.exec()
+        const result = await this.element.exec(parentState)
         if (this.result instanceof Returns) {
           this.result = this.result.result
         } else {
@@ -1050,11 +1114,8 @@ export class ElementProxy<T extends Element> {
       await this.element.innerRunsProxy?.dispose()
       await this.element.dispose?.()
       this._logger?.dispose()
-      this._logger = null
-      // Only release parentState if it's owner
-      if (this._parentState) {
-        this._parentState = null
-      }
+      this._logger = this._parentState = this._weakParentState = null;
+      (this.weakParentState as any) = null
     } finally {
       ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:dispose.1', this)
     }
@@ -1067,8 +1128,7 @@ export class BaseElementProxy<T extends Element> extends ElementProxy<T> {
   }
 
   override async exec(parentState: Record<string, any>) {
-    Object.assign(this.parentState, parentState)
-    const rs = await this.element.exec()
+    const rs = await this.element.exec(parentState)
     return rs
   }
 
