@@ -1,5 +1,4 @@
 import assert from 'assert'
-import chalk from 'chalk'
 import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
@@ -144,10 +143,14 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           enumerable: false,
           configurable: false,
           writable: true,
-          value: `${elem.proxy.tag}/inner-group-wrapper`
+          value: `${elemProxy.tag}/inner-group-wrapper`
         }
+        // parentState: {
+        //   get() {
+        //     return elemProxy.parentState
+        //   }
+        // }
       })
-      innerGroupWrapperProxy.parentState = elemProxy.parentState
       innerGroupWrapperProxy.exec = function (parentState: any) {
         return this.$.exec(parentState)
       }
@@ -219,6 +222,9 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       if (resultCode === ExecReturnCode.BREAK) {
         break
       }
+    }
+    if (parentProxy._forceStop) {
+      setImmediate(() => (parentProxy.$ as any)?.stop?.())
     }
     if (asyncJobs.length) {
       await Promise.all(asyncJobs)
@@ -467,138 +473,148 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
     if (!isContinue) return undefined
 
     const t = (async () => {
-      let globalError: any
+      let delayRetry: { t?: Promise<any> | undefined, msg?: string } = {}
       try {
         await elemProxy.exec(parentState)
-      } catch (error: any) {
-        let failureLogger = elemProxy.logger.clone()
+      } catch (err: any) {
+        let error = err
+        let failureLogger = elemProxy.logger
+        const elementProxyFailure = elemProxy.failure
+        const elementProxyErrorStack = elemProxy.logger.errorStack
+
+        if (baseProps.catch?.length) {
+          elemProxy.parentState.error = error
+          let innerGroupWrapperProxy: ElementProxy<Element> | undefined
+          try {
+            const groupProxyProps = {
+              runs: baseProps.catch,
+              failure: {
+                debug: 'silent'
+              }
+            }
+            innerGroupWrapperProxy = await this.newElementProxy(InnerGroupWrapper, {
+              creator: this,
+              owner: elemProxy.$,
+              groupProps: {},
+              groupProxyProps
+            }, groupProxyProps)
+            await innerGroupWrapperProxy.exec(elemProxy.parentState)
+          } catch (catchError) {
+            error = catchError
+          } finally {
+            await innerGroupWrapperProxy?.dispose()
+          }
+        } else if (baseProps.finally?.length) {
+          elemProxy.parentState.error = error
+        }
 
         if (baseProps.failure) {
           const { filterDebug, ...failureProps } = baseProps.failure
 
-          if (baseProps.failure.restart && elemProxy.failure?.restart) {
-            baseProps.failure.restart.count = elemProxy.failure.restart.count || 0
+          if (baseProps.failure.restart && elementProxyFailure?.restart) {
+            baseProps.failure.restart.count = elementProxyFailure.restart.count || 0
           }
 
           const failure = await this.scene.getVars(cloneDeep(failureProps), this)
           if (failure.debug) {
             const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
-            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
-          }
-          let canRestart = failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))
-          let waitRetry: Promise<any> | undefined
-          if (!canRestart && failure.retryEvent) {
-            const retryEvent = failure.retryEvent
-            this.logger.debug(`Waiting retry event "${retryEvent}"`)
-            waitRetry = new Promise((resolve) => {
-              this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
-            })
-            canRestart = true
-            this.logger.debug(`Received retry event "${retryEvent}"`)
+            failureLogger = failureLogger.clone(failureLogger.context, GetLoggerLevel(failureDebug), elementProxyErrorStack)
           }
 
+          const isLogError = !filterDebug || await filterDebug(
+            error,
+            this.proxy.parentState,
+            this.proxy.parentState,
+            this.proxy.scene.localVars,
+            this.proxy.scene.localVars,
+            this.proxy.rootScene.globalUtils,
+            this.proxy.rootScene.globalUtils,
+            Constants,
+            Constants,
+            process.env,
+            process.env)
+          if (isLogError) {
+            const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
+            if (failureDebug) {
+              failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
+            }
+          }
+
+          if (isLogError) failureLogger.debug(error?.message)?.trace(error)
+
+          const canRestart = failure.restart?.max && (failure.restart.max < 0 || (failure.restart.count + 1 <= failure.restart.max))
           if (canRestart) {
             ++failure.restart.count
             if (baseProps.failure.restart) {
               baseProps.failure.restart.count = failure.restart.count
             }
 
-            const isLogError = filterDebug && await filterDebug(
-              error,
-              this.proxy.parentState,
-              this.proxy.parentState,
-              this.proxy.scene.localVars,
-              this.proxy.scene.localVars,
-              this.proxy.rootScene.globalUtils,
-              this.proxy.rootScene.globalUtils,
-              Constants,
-              Constants,
-              process.env,
-              process.env)
-            if (isLogError && error) {
-              const title = elemProxy.name ? chalk.gray(`(${elemProxy.name})`) : ''
-              failureLogger
-                // .error(error?.message)
-                ?.warn(`Restart ${failure.restart.count}/${failure.restart.max} after ${failure.restart.sleep} \t ${title}`)
-                ?.trace(error)
+            delayRetry = {
+              t: Promise.resolve(true),
+              msg: `Restart after ${failure.restart.sleep || '0s'}(${failure.restart.count}/${failure.restart.max}) \t ${error.message}`
             }
-
-            if (!waitRetry) {
-              if (failure.restart.sleep) {
-                await sleep(failure.restart.sleep)
-              }
-              let sequence: Sequence | undefined
-              if (failure.restart.sequence) {
-                sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
-                if (!sequence) {
-                  sequence = new Sequence(failure.restart.sequence.sleep)
-                  Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
-                }
-              }
-              await sequence?.wait(this)
-            } else {
-              await waitRetry
+            if (failure.restart.sleep) {
+              this.logger.debug(`sleep ${failure.restart.sleep}`)
+              delayRetry.t = delayRetry.t?.then(() => sleep(failure.restart.sleep))
             }
-
-            if (baseProps.async) baseProps.async = false
-            if (baseProps.detach) baseProps.detach = false
-            if (!restartor) throw new Error('Why restartor is null ???')
-            restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
-            return
-          }
-        }
-        if (!baseProps.failure?.ignore) {
-          globalError = error
-          if (!baseProps.catch?.length) {
-            failureLogger.error(globalError?.message)
-            throw globalError
-          }
-          try {
-            await this.execElement({
-              "group'shadow": null,
-              runs: baseProps.catch,
-              failure: {
-                debug: 'silent'
+            let sequence: Sequence | undefined
+            if (failure.restart.sequence) {
+              sequence = Group.SequenceRestartJob.get(failure.restart.sequence.name)
+              if (!sequence) {
+                sequence = new Sequence(failure.restart.sequence.sleep)
+                Group.SequenceRestartJob.set(failure.restart.sequence.name, sequence)
               }
-            } as any, undefined, undefined, { shareElemPropsRef: { owner: props }, parentState: Object.assign({}, parentState, { error: globalError }) })
-          } catch (error) {
-            globalError = error
-            throw globalError
+              delayRetry.t = delayRetry.t?.then(() => sequence?.wait(this))
+            }
+            this.logger.debug('wait my turn')
+            this.logger.debug('ok, it\'s my turn. Restarting...')
+          } else if (failure.retryEvent) {
+            const retryEvent = failure.retryEvent
+            delayRetry = {
+              t: new Promise((resolve) => {
+                this.proxy.globalEvent.once(retryEvent, () => { resolve(true) })
+              }),
+              msg: `Waiting retry event "${retryEvent}"`,
+            }
+            this.logger.debug(`Received retry event "${failure.retryEvent}"`)
           }
-          return
+          if (delayRetry.t) return
         }
-
-        const isLogError = baseProps.failure?.filterDebug && await baseProps.failure?.filterDebug(error,
-          this.proxy.parentState,
-          this.proxy.parentState,
-          this.proxy.scene.localVars,
-          this.proxy.scene.localVars,
-          this.proxy.rootScene.globalUtils,
-          this.proxy.rootScene.globalUtils,
-          Constants,
-          Constants,
-          process.env,
-          process.env)
-        if (isLogError) {
-          if (baseProps.failure.debug) {
-            const failureDebug = (!baseProps.failure.debug || baseProps.failure.debug === true) ? 'warn' : baseProps.failure.debug
-            failureLogger = elemProxy.logger.clone(elemProxy.context, GetLoggerLevel(failureDebug), elemProxy.logger.errorStack)
-          } else {
-            failureLogger = elemProxy.logger
-          }
-          failureLogger.warn(error?.message)?.trace(error)
+        if (!(baseProps?.failure as any)?.ignore) {
+          throw error
         }
       } finally {
         if (!restartor?.next && baseProps.finally?.length) {
-          await this.execElement({
-            "group'shadow": null,
-            runs: baseProps.finally,
-            failure: {
-              debug: 'silent'
+          let innerGroupWrapperProxy: ElementProxy<Element> | undefined
+          try {
+            const groupProxyProps = {
+              runs: baseProps.finally,
+              failure: {
+                debug: 'silent'
+              }
             }
-          } as any, undefined, undefined, { shareElemPropsRef: { owner: props }, parentState: Object.assign({}, parentState, { error: globalError }) })
+            innerGroupWrapperProxy = await this.newElementProxy(InnerGroupWrapper, {
+              creator: this,
+              owner: elemProxy.$,
+              groupProps: {},
+              groupProxyProps
+            }, groupProxyProps)
+            await innerGroupWrapperProxy.exec(elemProxy.parentState)
+          } finally {
+            await innerGroupWrapperProxy?.dispose()
+          }
         }
         await elemProxy.dispose()
+
+        if (delayRetry.t) {
+          this.logger.debug(delayRetry.msg)
+          await delayRetry.t
+
+          if (baseProps.async) baseProps.async = false
+          if (baseProps.detach) baseProps.detach = false
+          if (!restartor) throw new Error('Why restartor is null ???')
+          restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
+        }
       }
     })()
 
@@ -607,7 +623,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return elemProxy
     }
 
-    const supportRestart = baseProps.failure?.restart
+    const supportRestart = baseProps.failure?.restart || baseProps.failure?.retryEvent
     if (supportRestart) {
       restartor = new Restartor(name)
       restartor.t = t
@@ -706,14 +722,15 @@ export class InnerGroupWrapper implements Element {
     this._groupProxyProps = props.groupProxyProps
   }
 
-  async exec(parentState: any) {
+  async exec(parentState = {}) {
     const innerGroupProxy = await this._creator.newElementProxy(InnerGroup, {
       owner: this._owner
     }, {
       runs: this._groupProxyProps?.runs
     })
     try {
-      innerGroupProxy.parentState = { ...this.proxy.parentState }
+      innerGroupProxy.parentState = { ...this.proxy.parentState, ...parentState }
+      innerGroupProxy.wps = parentState
       const rs = await innerGroupProxy.exec(parentState)
       return rs
     } finally {
