@@ -484,6 +484,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
         if (baseProps.catch?.length) {
           elemProxy.parentState.error = error
+          error = undefined
           let innerGroupWrapperProxy: ElementProxy<Element> | undefined
           try {
             const groupProxyProps = {
@@ -580,7 +581,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           }
           if (delayRetry.t) return
         }
-        if (!(baseProps?.failure as any)?.ignore) {
+        if (error && !(baseProps?.failure as any)?.ignore) {
           throw error
         }
       } finally {
@@ -605,15 +606,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           }
         }
         await elemProxy.dispose()
-      }
-      if (delayRetry.t) {
-        this.logger.debug(delayRetry.msg)
-        await delayRetry.t
+        if (delayRetry.t) {
+          this.logger.debug(delayRetry.msg)
+          await delayRetry.t
 
-        if (baseProps.async) baseProps.async = false
-        if (baseProps.detach) baseProps.detach = false
-        if (!restartor) throw new Error('Why restartor is null ???')
-        restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
+          if (baseProps.async) baseProps.async = false
+          if (baseProps.detach) baseProps.detach = false
+          // eslint-disable-next-line no-unsafe-finally
+          if (!restartor) throw new Error('Why restartor is null ???')
+          restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
+        }
       }
     })()
 

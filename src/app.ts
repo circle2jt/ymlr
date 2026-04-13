@@ -1,4 +1,5 @@
 import assert from 'assert'
+import { exit } from 'process'
 import { RootScene } from 'src/components/root-scene'
 import { ElementProxy } from './components/element-proxy'
 import { type RootSceneProps } from './components/root-scene.props'
@@ -49,16 +50,18 @@ export class App {
     this.rootSceneProxy.$.asyncConstructor = async function () {
       await asyncConstructor.call(this)
     }
+    let exitCode = 0
     try {
       await this.rootSceneProxy.exec()
     } catch (err: any) {
       this.logger.fatal(err)
-      process.exitCode = 1
+      exitCode = 1
     } finally {
       await this.rootSceneProxy.dispose()
       DebounceManager.Instance.clear()
       ThrottleManager.Instance.clear()
       LoggerFactory.Dispose()
     }
+    exit(exitCode)
   }
 }
