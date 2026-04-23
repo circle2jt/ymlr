@@ -182,8 +182,12 @@ export class Sh implements Element {
         })
       })
       return rs
-    } catch (err) {
+    } catch (err: any) {
       if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
+        err.more = {
+          file: this.filePath,
+          script: this.script
+        }
         throw err
       }
     } finally {
@@ -226,8 +230,12 @@ export class Sh implements Element {
           }, cb)
         }
       })
-    } catch (err) {
+    } catch (err: any) {
       if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
+        err.more = {
+          file: this.filePath,
+          script: this.script
+        }
         throw err
       }
     } finally {
