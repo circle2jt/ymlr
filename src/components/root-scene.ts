@@ -41,6 +41,10 @@ Root scene file includes all of steps to run
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props
+  catch:
+    - name: handle error here ${ $wps.deref().error }
+  finally:
+    - name: always handle these steps before exit
 ```
 */
 
