@@ -417,6 +417,26 @@ export class ElementProxy<T extends Element> {
           MainName: global var      # Is used in all of scenes
           mainName: local var       # Only used in this scene
 
+      - name: test weak ref variables in parent state
+        runs:
+          - vars:
+              url@wps: http://localhost/data.json
+          - fetch'get:
+              url: ${ $wps.deref().url }                        # Refer to "url@wps". It will be revoked after "test weak ref variables" finished
+            vars:
+              weakResponseData@wps: ${ this.$.response.data }   # Create a "weakResponseData" weakref state which is only available in "test weak ref variables" lifecycle
+
+          - echo: ${ $wps.deref().weakResponseData }
+
+      - name: test weak ref variables
+        runs:
+          - vars:
+              url@wps: http://localhost/data.json
+          - fetch'get:
+              url: ${ $wps.deref().url }                        # Refer to "url@wps". It will be revoked after "test weak ref variables" finished
+            vars:
+              weakResponseData@wps: ${ this.$.response.data }   # Create a "weakResponseData" weakref state which is only available in "test weak ref variables" lifecycle
+
       - scene:
           path: ./child.scene.yaml
 

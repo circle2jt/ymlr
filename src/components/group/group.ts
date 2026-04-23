@@ -567,8 +567,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               }
               delayRetry.t = delayRetry.t?.then(async () => await sequence?.wait(this))
             }
-            this.logger.debug('wait my turn')
-            this.logger.debug('ok, it\'s my turn. Restarting...')
           } else if (failure.retryEvent) {
             const retryEvent = failure.retryEvent
             delayRetry = {
