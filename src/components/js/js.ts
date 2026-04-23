@@ -49,8 +49,15 @@ export class Js implements Element {
       this.script = await fileRemote.getTextContent()
     }
     assert(this.script?.length, 'script is required')
-    const rs = await this.proxy.callFunctionScript(this.script)
-    return rs
+    try {
+      const rs = await this.proxy.callFunctionScript(this.script)
+      return rs
+    } catch (err: any) {
+      err.more = {
+        script: this.script
+      }
+      throw err
+    }
   }
 
   dispose() { }
