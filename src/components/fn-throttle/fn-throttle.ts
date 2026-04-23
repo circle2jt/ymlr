@@ -105,7 +105,7 @@ export class FNThrottle implements Element {
     await this.fn?.waitToDispose()
   }
 
-  touch(throttleData?: any) {
+  touch(throttleData = this.throttleData) {
     if (!this.fn) return
     this.logger.trace('%s: touch', this.name)
     this.fn?.(throttleData)

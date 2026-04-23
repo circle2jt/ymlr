@@ -94,7 +94,7 @@ export class FNSingleton implements Element {
     await this.promsise?.t
   }
 
-  touch(singleData?: any) {
+  touch(singleData = this.singletonData) {
     if (!this.fn) return
     this.logger.trace('%s: touch', this.name)
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

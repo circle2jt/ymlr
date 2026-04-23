@@ -111,7 +111,7 @@ export class FNDebounce implements Element {
     await this.fn?.waitToDispose()
   }
 
-  touch(debounceData?: any) {
+  touch(debounceData = this.debounceData) {
     if (!this.fn) return
     this.logger.trace('%s: touch', this.name)
     this.fn?.(debounceData)
