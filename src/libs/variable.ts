@@ -6,9 +6,13 @@ const PATTERN_JS_CODE_BLOCK = /^[\r\n\s\t]*\$\{(.*?)\}[\r\n\s\t]*$/gs
 
 export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (!varObj) return
-  const $vars = others.$vars
   if (typeof varObj === 'string') {
-    $vars[varObj] = vl
+    const [name, scope] = varObj.split('@')
+    if (!scope) {
+      others.$vars[name] = vl
+    } else if (scope === 'wps') {
+      others.$wps.deref()[name] = vl
+    }
     return [varObj]
   }
   const keys = Object.keys(varObj)
@@ -16,7 +20,12 @@ export async function setVars(varObj: any, vl: any, ctx: any, others: any) {
   if (keys.length) {
     await Promise.all(keys.map(async (k) => {
       if (k !== '_') {
-        $vars[k] = await getVars(varObj[k], ctx, others)
+        const [name, scope] = k.split('@')
+        if (!scope) {
+          others.$vars[k] = await getVars(varObj[k], ctx, others)
+        } else if (scope === 'wps') {
+          others.$wps.deref()[name] = await getVars(varObj[k], ctx, others)
+        }
       } else {
         await getVars(varObj[k], ctx, others)
       }
