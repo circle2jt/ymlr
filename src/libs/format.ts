@@ -1,5 +1,6 @@
-export function formatNumber(n: number, opts?: Intl.NumberFormatOptions) {
-  return Number(n).toLocaleString(undefined, opts)
+export function formatNumber(n: number, _opts?: Intl.NumberFormatOptions & { locale?: Intl.LocalesArgument }) {
+  const { locale, ...opts } = _opts || {}
+  return Number(n).toLocaleString(locale, opts)
 }
 
 export function formatDate(date: Date, format = 'YYYY/MM/DD hh:mm:ss.ms') {

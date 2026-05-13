@@ -105,7 +105,7 @@ export class UtilityFunctionManager {
 
     - echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
 
-    - echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
+    - echo: ${ $utils.format.number(1000000, {locale:'vi-VN'}) }                        # => 1.000.000
 
     - echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
     - echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
