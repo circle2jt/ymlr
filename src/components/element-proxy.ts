@@ -7,7 +7,7 @@ import { type Logger } from 'src/libs/logger'
 import { LevelFactory } from 'src/libs/logger/level-factory'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
-import { Constants } from 'src/managers/constants'
+import { Constants, noop } from 'src/managers/constants'
 import { type Element } from './element.interface'
 import { type GroupItemProps, type GroupProps } from './group/group.props'
 import { RootScene } from './root-scene'
@@ -35,8 +35,6 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
   // 'runs',
   'errorStack'
 ])
-
-const CreatorMap = new WeakMap<object, any>()
 
 export class ElementProxy<T extends Element> {
   static DEBUG_LIFE_CIRCLE = false
@@ -745,7 +743,7 @@ export class ElementProxy<T extends Element> {
             - params 2
     ```
   */
-  _weakParentState: any | null
+  private _weakParentState: any | null
   private weakParentState!: WeakRef<any>
   get wps() {
     if (this.weakParentState) return this.weakParentState
@@ -756,14 +754,6 @@ export class ElementProxy<T extends Element> {
 
   set wps(weakParentState: any) {
     this._weakParentState = weakParentState
-    CreatorMap.set(this._weakParentState, this)
-    if (!Object.getOwnPropertyDescriptor(this._weakParentState, '$wps')) {
-      Object.defineProperty(this._weakParentState, '$wps', {
-        get() {
-          return CreatorMap.get(this)?._creator?.proxy.wps
-        }
-      })
-    }
     this.weakParentState = new WeakRef(this._weakParentState)
   }
 
@@ -890,49 +880,58 @@ export class ElementProxy<T extends Element> {
   }
 
   get contextExpose() {
-    const ctx = {}
-    CreatorMap.set(ctx, this)
+    const ctx: any = {
+      $ws: this.wps?.deref.bind(this.wps) ?? noop
+    }
+    const that = new WeakRef(this)
     Object.defineProperties(ctx, {
       $wps: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.wps
+          return that.deref()?.wps
         }
       },
       $loopKey: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.loopKey
+          return that.deref()?.loopKey
         }
       },
       $loopValue: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.loopValue
+          return that.deref()?.loopValue
         }
       },
       $parentState: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.parentState
+          return that.deref()?.parentState
         }
       },
       $lk: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.loopKey
+          return that.deref()?.loopKey
         }
       },
       $lv: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.loopValue
+          return that.deref()?.loopValue
         }
       },
       $ps: {
         enumerable: true,
+        configurable: false,
         get() {
-          return CreatorMap.get(this)?.parentState
+          return that.deref()?.parentState
         }
       }
     })
@@ -991,6 +990,7 @@ export class ElementProxy<T extends Element> {
         'error',
         '$parentState',
         '$ps',
+        '$ws',
         '$wps',
         '$vars',
         '$v',
