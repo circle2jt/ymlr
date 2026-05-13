@@ -101,7 +101,7 @@ export class HttpServer implements Element {
   server?: Server
 
   constructor({ address, auth, type, ...props }: any) {
-    Object.assign(this, { address, auth, type, ...props })
+    globalThis.copyProps(this, { address, auth, type, ...props })
   }
 
   async exec() {

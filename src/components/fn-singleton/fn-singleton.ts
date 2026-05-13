@@ -47,7 +47,7 @@ export class FNSingleton implements Element {
   }
 
   constructor(props: any) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

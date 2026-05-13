@@ -39,7 +39,7 @@ export class FileRead implements Element {
   format?: 'json' | 'yaml'
 
   constructor(props: FileReadProps) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

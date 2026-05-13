@@ -53,7 +53,7 @@ export class Get extends Head {
 
   constructor({ responseType, saveTo, ...props }: GetProps) {
     super(props)
-    Object.assign(this, { responseType, saveTo })
+    globalThis.copyProps(this, { responseType, saveTo })
   }
 
   override async send(moreOptions: any = {}) {

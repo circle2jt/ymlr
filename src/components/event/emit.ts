@@ -47,16 +47,16 @@ export class EventEmiter implements Element {
 
   constructor(rawProps: any) {
     if (typeof rawProps === 'string') {
-      Object.assign(this, { names: [rawProps] })
+      globalThis.copyProps(this, { names: [rawProps] })
       return
     }
     if (Array.isArray(rawProps)) {
-      Object.assign(this, { names: rawProps })
+      globalThis.copyProps(this, { names: rawProps })
       return
     }
     const { name, names = [], ...props } = rawProps
     if (name) names.push(name)
-    Object.assign(this, { names, ...props })
+    globalThis.copyProps(this, { names, ...props })
   }
 
   async exec() {

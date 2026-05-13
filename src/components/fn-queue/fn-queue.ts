@@ -111,7 +111,7 @@ export class FNQueue implements Element {
   }
 
   constructor(props: any) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

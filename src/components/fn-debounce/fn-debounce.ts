@@ -63,7 +63,7 @@ export class FNDebounce implements Element {
         name: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

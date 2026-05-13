@@ -62,7 +62,7 @@ export class EventOn implements Element {
 
   constructor({ name, names = [], ...props }: any) {
     if (name) names.push(name)
-    Object.assign(this, { names, ...props })
+    globalThis.copyProps(this, { names, ...props })
   }
 
   async exec() {

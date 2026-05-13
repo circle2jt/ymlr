@@ -81,9 +81,9 @@ export class YmlrLoad implements Element {
 
   constructor(readonly opts?: YmlrLoadProps) {
     if (typeof opts === 'string') {
-      Object.assign(this, { path: opts })
+      globalThis.copyProps(this, { path: opts })
     } else {
-      Object.assign(this, opts)
+      globalThis.copyProps(this, opts)
     }
   }
 

@@ -49,7 +49,7 @@ export class FileStore implements Element {
   private storage?: FileStorage
 
   constructor(props?: FileStoreProps) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

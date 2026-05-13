@@ -17,7 +17,7 @@ export class JobsManager {
   private readonly storage?: StorageInterface
 
   constructor(private readonly logger: Logger, opts: JobsManagerOption) {
-    Object.assign(this, opts)
+    globalThis.copyProps(this, opts)
   }
 
   async add(job: Job) {

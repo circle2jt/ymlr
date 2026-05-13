@@ -38,7 +38,7 @@ export class ViewFlow implements Element {
         check: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

@@ -7,7 +7,7 @@ export class InputMultiSelect extends InputAbstract<InputMultiSelectInterface> {
 
   constructor({ choices, ...props }: Partial<InputMultiSelectInterface>) {
     super(props)
-    Object.assign(this, { choices })
+    globalThis.copyProps(this, { choices })
   }
 
   override async exec(): Promise<boolean | null | undefined> {

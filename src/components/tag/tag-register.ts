@@ -20,7 +20,7 @@ import { type TagRegisterProps } from './tag-register.props'
         newOne: |
           {
             constructor(props) {
-              Object.assign(this, props)
+              copyProps(this, props)
             },
             async asyncConstructor(props) {
               // Do async job to init data
@@ -43,7 +43,7 @@ import { type TagRegisterProps } from './tag-register.props'
         newOne: |
           class {
             constructor(props) {
-              Object.assign(this, props)
+              copyProps(this, props)
             }
             async asyncConstructor(props) {
               // Do async job to init data
@@ -69,7 +69,7 @@ export class TagRegister implements Element {
   tags?: Record<string, string>
 
   constructor(tags: TagRegisterProps) {
-    Object.assign(this, { tags })
+    globalThis.copyProps(this, { tags })
   }
 
   async exec() {

@@ -48,7 +48,7 @@ export class FileWrite implements Element {
   opts: WriteFileOptions = {}
 
   constructor(props: FileWriteProps) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

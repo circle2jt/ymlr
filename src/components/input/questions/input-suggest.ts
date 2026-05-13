@@ -46,7 +46,7 @@ export class InputSuggest extends InputAbstract<InputSuggestInterface> {
 
   constructor({ choices, limit, style, suggestType, ...props }: Partial<InputSuggestInterface>) {
     super(props)
-    Object.assign(this, { choices, limit, style, suggestType })
+    globalThis.copyProps(this, { choices, limit, style, suggestType })
   }
 
   override async exec(): Promise<boolean | null | undefined> {

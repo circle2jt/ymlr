@@ -38,7 +38,7 @@ test('Register a tag from an object', async () => {
   const trProxy = await Testing.createElementProxy(TagRegister, {
     tag1: `{
         constructor(props) {
-          Object.assign(this, props)
+          copyProps(this, props)
         },
         exec() {
           this.logger.debug(this.name)
@@ -59,7 +59,7 @@ test('Register a tag from a class', async () => {
   const trProxy = await Testing.createElementProxy(TagRegister, {
     tag1: `class MyTag {
         constructor(props) {
-          Object.assign(this, props)
+          copyProps(this, props)
         }
         exec() {
           this.logger.debug(this.name)

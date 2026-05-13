@@ -1,5 +1,4 @@
 import assert from 'assert'
-import merge from 'lodash.merge'
 import { type AppEvent } from 'src/app-event'
 import ENVGlobal from 'src/env-global'
 import { GetLoggerLevel } from 'src/libs/logger/logger-level'
@@ -72,7 +71,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       props = this.normalizeProps(props) as GP
       const { runs, ..._props } = props
       this.runs = runs
-      Object.assign(this, _props)
+      globalThis.copyProps(this, _props)
       if (runs?.length && !(this instanceof Scene)) {
         console.warn('Should use "runs" in proxy, not in the tag %j', this.proxy.tag)
       }
@@ -82,7 +81,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
   async newElementProxy<T extends Element>(nameOrClass: string | ElementClass, props: any, baseProps: any = {}) {
     const elem = await this.newElement(nameOrClass, props)
     if (elem.overrideProxyProps) {
-      merge(baseProps, elem.overrideProxyProps())
+      globalThis.copyProps(baseProps, elem.overrideProxyProps())
     }
     const elemProxy = new ElementProxy(elem, baseProps) as ElementProxy<T>
     let tagName = baseProps.tag || (typeof nameOrClass === 'string' ? nameOrClass : ((nameOrClass as any).tag || nameOrClass.name))
@@ -298,7 +297,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     const { loop } = baseProps
     if (opts.shareElemPropsRef) {
-      elemProps = Object.assign({}, elemProps, opts.shareElemPropsRef)
+      elemProps = globalThis.copyProps({}, elemProps, opts.shareElemPropsRef)
     }
 
     // Execute
@@ -474,17 +473,17 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
     const t = (async () => {
       let delayRetry: { t?: Promise<any> | undefined, msg?: string } = {}
+      let error
       try {
         await elemProxy.exec(parentState)
       } catch (err: any) {
-        let error = err
+        error = err
         let failureLogger = elemProxy.logger
         const elementProxyFailure = elemProxy.failure
         const elementProxyErrorStack = elemProxy.logger.errorStack
 
         if (baseProps.catch?.length) {
-          elemProxy.parentState.error = error
-          error = undefined
+          // elemProxy.parentState.error = error
           let innerGroupWrapperProxy: ElementProxy<Element> | undefined
           try {
             const groupProxyProps = {
@@ -499,14 +498,16 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               groupProps: {},
               groupProxyProps
             }, groupProxyProps)
-            await innerGroupWrapperProxy.exec(elemProxy.parentState)
+            await innerGroupWrapperProxy.exec({
+              ...elemProxy.parentState,
+              error
+            })
+            error = undefined
           } catch (catchError) {
             error = catchError
           } finally {
             await innerGroupWrapperProxy?.dispose()
           }
-        } else if (baseProps.finally?.length) {
-          elemProxy.parentState.error = error
         }
 
         if (baseProps.failure) {
@@ -575,7 +576,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               }),
               msg: `Waiting retry event "${retryEvent}"`
             }
-            this.logger.debug(`Received retry event "${failure.retryEvent}"`)
           }
           if (delayRetry.t) return
         }
@@ -598,7 +598,10 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               groupProps: {},
               groupProxyProps
             }, groupProxyProps)
-            await innerGroupWrapperProxy.exec(elemProxy.parentState)
+            await innerGroupWrapperProxy.exec({
+              ...elemProxy.parentState,
+              error
+            })
           } finally {
             await innerGroupWrapperProxy?.dispose()
           }
@@ -607,6 +610,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         if (delayRetry.t) {
           this.logger.debug(delayRetry.msg)
           await delayRetry.t
+          this.logger.debug('Continue')
 
           if (baseProps.async) baseProps.async = false
           if (baseProps.detach) baseProps.detach = false

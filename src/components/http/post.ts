@@ -60,7 +60,7 @@ export class Post extends Get {
 
   constructor({ type, body, ...props }: PostProps) {
     super(props)
-    Object.assign(this, { type, body })
+    globalThis.copyProps(this, { type, body })
   }
 
   override async send(moreOptions: any = {}) {

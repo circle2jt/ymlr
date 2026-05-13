@@ -81,7 +81,7 @@ export class Sh implements Element {
         script: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

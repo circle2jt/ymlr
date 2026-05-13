@@ -11,7 +11,7 @@ export class GroupShadow implements Element {
   public owner?: Element
 
   constructor(props: any) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec(parentState?: any) {

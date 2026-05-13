@@ -67,7 +67,7 @@ export class Head implements Element {
   }
 
   constructor(props: HeadProps) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   abort() {
@@ -219,7 +219,7 @@ export class Head implements Element {
     if (queryString) {
       if (!this.query) this.query = {}
       const query = decode(queryString)
-      Object.assign(this.query, query)
+      globalThis.copyProps(this.query, query)
     }
     this.query = this.checkEmpty(this.query)
     this.query && this.logger.debug('%s  \t%j', chalk.gray('⇾ Query'), this.query)

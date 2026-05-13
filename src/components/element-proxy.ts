@@ -945,7 +945,7 @@ export class ElementProxy<T extends Element> {
   private elementAsyncProps?: any
 
   constructor(public element: T, props: any = {}) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
     Object.defineProperty(element, 'proxy', {
       enumerable: false,
       configurable: false,
@@ -1045,7 +1045,6 @@ export class ElementProxy<T extends Element> {
   }
 
   async exec(parentState: Record<string, any> = {}) {
-    // Object.assign(this.parentState, parentState)
     if (this.element.asyncConstructor) {
       await this.element.asyncConstructor(this.elementAsyncProps)
       this.elementAsyncProps = undefined
@@ -1097,7 +1096,9 @@ export class ElementProxy<T extends Element> {
   }
 
   async isValid() {
-    this.placeholder && await this.scene.getVars(this.placeholder, this)
+    if (this.placeholder) {
+      await this.scene.getVars(this.placeholder, this)
+    }
     const condition = this.elseif ?? this.if
     const isValid = (condition === undefined) || await this.scene.getVars(condition, this)
     if (!isValid) {

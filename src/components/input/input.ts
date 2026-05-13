@@ -19,7 +19,7 @@ export class Input<T extends InputProps> implements Element {
 
   constructor(inputProps: T) {
     const { vars, title: label, ...props } = inputProps
-    Object.assign(this, {
+    globalThis.copyProps(this, {
       vars,
       props: { label, ...props }
     })

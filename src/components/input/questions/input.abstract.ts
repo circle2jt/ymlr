@@ -35,7 +35,7 @@ export abstract class InputAbstract<T extends InputInterface> implements InputIn
   question?: Answers<any>
 
   constructor(props: Partial<T>) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec(opts?: any) {

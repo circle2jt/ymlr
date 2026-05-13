@@ -60,7 +60,7 @@ export class FNThrottle implements Element {
         name: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

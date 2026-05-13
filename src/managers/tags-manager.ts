@@ -147,7 +147,7 @@ export class TagsManager {
           exec() { }
           dispose() { }
         }
-        Object.assign(ElementClazz.prototype, objProps)
+        globalThis.copyProps(ElementClazz.prototype, objProps)
       }
     }
     assert(ElementClazz?.prototype, `Could not found the tag "${path}.${className}"`)

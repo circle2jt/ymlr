@@ -30,4 +30,18 @@ function registerModulePlatform() {
   }
 }
 
+globalThis.copyProps = function (target: any, ...sources: any[]) {
+  sources.forEach(source => {
+    if (source && typeof source === 'object') {
+      Object.keys(source).forEach(key => {
+        const value = source[key]
+        if (value !== undefined) {
+          target[key] = value
+        }
+      })
+    }
+  })
+  return target
+}
+
 registerModulePlatform()

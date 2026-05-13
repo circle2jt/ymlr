@@ -119,12 +119,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     super(props)
     this.password = password
     this.content = content
-    Object.assign(this, { path, vars })
+    globalThis.copyProps(this, { path, vars })
     this.ignoreEvalProps.push('curDir', 'password', 'templatesManager')
   }
 
   async asyncConstructor() {
-    Object.assign(this.templatesManager, this.scene.templatesManager)
+    globalThis.copyProps(this.templatesManager, this.scene.templatesManager)
     await this.handleFile()
   }
 
@@ -147,7 +147,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         for (const envFile of envArrFiles) {
           const fm = new FileRemote(envFile, this.proxy)
           const content = await fm.getTextContent()
-          Object.assign(envObject, Env.ParseEnvContent(content, true))
+          globalThis.copyProps(envObject, Env.ParseEnvContent(content, true))
         }
       }
 
@@ -250,7 +250,7 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
   }
 
   private mergeVars(obj: any) {
-    Object.assign(this.localVars, obj)
+    globalThis.copyProps(this.localVars, obj)
   }
 
   protected async getRemoteFileProps() {
@@ -297,11 +297,12 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
       if (!cached) {
         throw new Error(`Could not found element with id "${id}"`)
       }
-      const { tagName: _tagName, ...props } = cached
+      const { tagName: _tagName, ...newProps } = cloneDeep(cached)
       if (!tagName) {
         tagName = _tagName
       }
-      return merge(rs, cloneDeep(props))
+      merge(rs, newProps)
+      return rs
     }, {})
 
     if (tagName) {
@@ -310,10 +311,14 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
         baseProps[tagName] = baseProps.props
       }
       tempProps.props = baseProps.props = undefined
-      return merge(tempProps, baseProps)
     }
-    return merge(tempProps, baseProps)
-    // this.logger.trace('extends id "%s": %j', ids, baseProps)
+    merge(tempProps, baseProps)
+    if (tempProps.placeholder) {
+      if (tempProps.runs?.length) replace3Dots(tempProps.runs, tempProps.placeholder)
+      if (tempProps.catch?.length) replace3Dots(tempProps.catch, tempProps.placeholder)
+      if (tempProps.finally?.length) replace3Dots(tempProps.finally, tempProps.placeholder)
+    }
+    return tempProps
   }
 
   export(tagName: string | undefined, allProps: any, id: string) {
@@ -416,5 +421,22 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
     await Env.LoadEnvToBase(this.proxy, this.localVars,
       ...envFiles.filter(f => f),
       process.env)
+  }
+}
+
+function replace3Dots(runs: any[], placeholder?: Record<string, any>) {
+  if (!runs?.length || !placeholder) return
+  for (let i = runs.length - 1; i >= 0; i--) {
+    const run = runs[i]
+    if (typeof run === 'string') {
+      const newRuns = placeholder[run]
+      if (Array.isArray(newRuns)) {
+        runs.splice(i, 1, ...newRuns)
+        placeholder[run] = undefined
+      }
+      continue
+    }
+    if (!run.runs?.length) continue
+    replace3Dots(run.runs, placeholder)
   }
 }

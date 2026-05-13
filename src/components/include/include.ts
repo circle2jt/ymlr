@@ -51,11 +51,11 @@ export class Include implements Element {
 
   constructor(opts: IncludeProps) {
     if (typeof opts === 'string') {
-      Object.assign(this, { files: [opts] })
+      globalThis.copyProps(this, { files: [opts] })
     } else if (Array.isArray(opts)) {
-      Object.assign(this, { files: opts })
+      globalThis.copyProps(this, { files: opts })
     } else {
-      Object.assign(this, opts)
+      globalThis.copyProps(this, opts)
     }
   }
 

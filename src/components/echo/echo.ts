@@ -51,7 +51,7 @@ export class Echo implements Element, Formater {
         content: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

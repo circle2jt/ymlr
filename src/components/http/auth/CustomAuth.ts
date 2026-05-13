@@ -4,7 +4,7 @@ export class CustomAuth implements IVerify {
   [prop: string]: any
 
   constructor(props: any) {
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   verify(_: Record<string, any>) {

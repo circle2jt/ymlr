@@ -32,7 +32,7 @@ export class FNQueueDelete implements Element {
         name: props
       }
     }
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
     if (this.name && !Array.isArray(this.name)) {
       this.name = [this.name]
     }

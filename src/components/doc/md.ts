@@ -52,7 +52,7 @@ export class MDDoc implements Element {
     if (!Array.isArray(props.includeDirs)) props.includeDirs = [props.includeDirs]
     if (!Array.isArray(props.excludeDirs)) props.excludeDirs = [props.excludeDirs]
     if (props.includePattern) props.includePattern = new RegExp(props.includePattern)
-    Object.assign(this, props)
+    globalThis.copyProps(this, props)
   }
 
   async exec() {

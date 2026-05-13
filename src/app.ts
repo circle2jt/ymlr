@@ -42,7 +42,7 @@ export class App {
   }
 
   setTemplates(cached: Record<string, any>) {
-    Object.assign(this.rootSceneProxy.element.templatesManager, cached)
+    globalThis.copyProps(this.rootSceneProxy.element.templatesManager, cached)
   }
 
   async exec() {
