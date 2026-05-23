@@ -53,13 +53,14 @@ runs:
       if (!$v.commitFormat) $v.commitFormat = `chore[^:]*: ${$v.matchVersion}([^ ]+)`
       $v.changeDir = this.getPath($v.changeDir)
       $v.changeFile = this.getPath($v.changeFile)
-  - name: Get new version ${$v.matchVersion}
+  - name: npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${$v.preid} ${$v.versionName}
     sh: |
       mkdir -p "${$v.changeDir}"
       npm version --no-commit-hooks --no-git-tag-version --tag-version-prefix="" --preid=${$v.preid} ${$v.versionName}
     vars:
-      lastCommit: "chore${$v.versionName === 'major' ? '!' : ''}: ${$v.versionName} ${this.result}"
-      version: ${this.result.trim().replace(/\r|\n/g, '')}
+      version: ${ this.result.trim().match(/^(\d+\.\d+\.\d+)/)?.[1] }
+  - vars:
+      lastCommit: "chore${$v.versionName === 'major' ? '!' : ''}: ${$v.versionName} ${$v.version}"
 
   - name: Commit information
     runs:
@@ -93,7 +94,7 @@ runs:
             $v.scan = false
             this.logger.debug('scan: stoped when end')
           }
-  - name: Write logs to changelog files
+  - name: Write logs to changelog files ${$v.changeDir}/${Date.now()}--${$v.version}.md
     file'write:
       path: ${$v.changeDir}/${Date.now()}--${$v.version}.md
       content: |
