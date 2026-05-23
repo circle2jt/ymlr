@@ -217,12 +217,12 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [clear](#clear) | Clear console screen |
 | [event'emit](#event'emit) | Send data via global event |
 | [event'on](#event'on) | Handle global events in app |
-| [fn-#queue](#fn-#queue) | Register a #queue job |
 | [fn-debounce](#fn-debounce) | Debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'cancel](#fn-debounce'cancel) | Cancel debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'del](#fn-debounce'del) | Cancel & remove debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
 | [fn-debounce'touch](#fn-debounce'touch) | touch debounce function. Reused last agruments(#Ref: lodash.debounce) |
+| [fn-queue](#fn-queue) | Register a queue job |
 | [fn-queue'del](#fn-queue'del) | Stop and remove a queue |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
 | [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
@@ -300,6 +300,10 @@ Example:
   runs:                             # Defined all of steps which will be run in the scene
     - echo: Hello world
     - test: test props
+  catch:
+    - name: handle error here ${ $wps.deref().error }
+  finally:
+    - name: always handle these steps before exit
 ```  
 
 
@@ -428,7 +432,7 @@ Example:
       number: 11
 
   - case: ${$vars.number === 11}        # When reach the conditional then execute and skip the next steps
-    echo: Value is 11                   
+    echo: Value is 11
 
   - case: ${$vars.number > 10}
     echo: Value is greater than 10      # When reach the conditional then execute and skip the next steps
@@ -449,8 +453,8 @@ Example:
     failure:
       restart: 2
     catch:
-      - name: Print the rror is ${ $ps.error.message } after retried 2 times    # => Should error here
-        js: throw $ps.error                                                     # Throw error
+      - name: Print the rror is ${ $ws().error.message } after retried 2 times    # => Should error here
+        js: throw $ws().error                                                     # Throw error
 ```  
 
 
@@ -620,10 +624,10 @@ Example:
     failure:
       restart: 2
     catch:
-      - name: Print the error is ${ $ps.error.message } after retried 2 times     # => Should error here
+      - name: Print the error is ${ $ws().error.message } after retried 2 times     # => Should error here
         js: throw new Error('Error in catch')
     finally:
-      - name: Should show error in catch is ${ $ps.error.message }                # => Error in catch
+      - name: Should show error in catch is ${ $ws().error.message }                # => Error in catch
 ```  
 
 
@@ -790,7 +794,7 @@ Example:
 `It's used in js code`  
 - Set/Get value to context variables. Used in tags support `runs` and support parentState
 Variables:
-- `$ps`, `$parentState`: Reference to context state  
+- `$wps.deref()`, `$ws()`: Reference to context state  
 
 Example:  
 
@@ -799,8 +803,8 @@ Example:
     event'on:
       name: test-event
     runs:
-      - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-      - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+      - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+      - echo: ${ $ws().eventOpts }            # => [ params 1, params 2 ]
 
   - event'emit:
       name: test-event
@@ -811,7 +815,7 @@ Example:
         - params 1
         - params 2
 ```
-Acess $parentState incursive
+Access $ws() incursive
 ```yaml
   - name: Connect to redis
     ymlr-redis:
@@ -819,18 +823,18 @@ Acess $parentState incursive
     runs:
       - name: access redis
         js: |
-          await $ps.redis.client.publish('test-event/ping', 'level 1')
+          await $ws().redis.client.publish('test-event/ping', 'level 1')
 
       - name: after redis is connected, start listening to handle an events
         event'on:
           name: test-event
         runs:
-          - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-          - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+          - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+          - echo: ${ $ws().eventOpts }            # => [ params 1, params 2 ]
 
           - name: access redis
             js: |
-              await $ps.$ps.redis.client.publish('test-event/ping', 'level 2')
+              await $ws().redis.client.publish('test-event/ping', 'level 2')
 
   - event'emit:
       name: test-event
@@ -994,6 +998,26 @@ A main scene file
       MainName: global var      # Is used in all of scenes
       mainName: local var       # Only used in this scene
 
+  - name: test weak ref variables in parent state
+    runs:
+      - vars:
+          url@wps: http://localhost/data.json
+      - fetch'get:
+          url: ${ $wps.deref().url }                        # Refer to "url@wps". It will be revoked after "test weak ref variables" finished
+        vars:
+          weakResponseData@wps: ${ this.$.response.data }   # Create a "weakResponseData" weakref state which is only available in "test weak ref variables" lifecycle
+
+      - echo: ${ $wps.deref().weakResponseData }
+
+  - name: test weak ref variables
+    runs:
+      - vars:
+          url@wps: http://localhost/data.json
+      - fetch'get:
+          url: ${ $wps.deref().url }                        # Refer to "url@wps". It will be revoked after "test weak ref variables" finished
+        vars:
+          weakResponseData@wps: ${ this.$.response.data }   # Create a "weakResponseData" weakref state which is only available in "test weak ref variables" lifecycle
+
   - scene:
       path: ./child.scene.yaml
 
@@ -1002,7 +1026,7 @@ A main scene file
     vars:
       myResponseData: ${ this.$.response.data }                         # Assign response data to scene variable
       MyResponseData: ${ this.$.response.data }                         # Assign response data to global variable
-      _: ${ $parentState.responseDataInContext = this.$.response.data } # Assign response data to context variable
+      _: ${ $ws().responseDataInContext = this.$.response.data } # Assign response data to context variable
 
   - echo: ${$vars.MainName}      # => global var
   - echo: ${$vars.mainName}      # => local var
@@ -1140,6 +1164,12 @@ Example:
       opts:
         - params 1
         - params 2
+
+  - name: quick to emit multiple event with eventData is empty
+    event'emit: [test-event1, test-event2]
+
+  - name: quick to emit an event with eventData is empty
+    event'emit: test-event1
 ```  
 
 
@@ -1154,8 +1184,8 @@ Example:
     event'on:
       name: test-event
     runs:
-      - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-      - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+      - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+      - echo: ${ $ws().eventOpts }   # => [ params 1, params 2 ]
 
   - name: listen to handle multiple events
     event'on:
@@ -1164,9 +1194,9 @@ Example:
         - test-event2
         - test-event3
     runs:
-      - echo: ${ $parentState.eventName }   # => test-event1 or test-event2 or test-event3
-      - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-      - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+      - echo: ${ $ws().eventName }   # => test-event1 or test-event2 or test-event3
+      - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+      - echo: ${ $ws().eventOpts }   # => [ params 1, params 2 ]
 ```
 ```yaml
   - event'emit:
@@ -1177,56 +1207,6 @@ Example:
       opts:
         - params 1
         - params 2
-```  
-
-
-## <a id="fn-#queue"></a>fn-#queue  
-  
-Register a #queue job  
-
-Example:  
-
-```yaml
-  - id: myQueue
-    fn-#queue:
-      name: My Queue 1        # Use stateless #queue, not reload after startup
-      concurrent: 2
-      startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
-      queueData:              # Pass input data to #queue to do async task
-        dataFromParentState: ${ $ps.channelData.name }
-    runs:
-      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
-      - echo: ${ $parentState.queueData.dataFromParentState }
-
-      - echo: ${ $ps.queueData }    # Queue data
-      - echo: ${ $ps.queueInStore } # Describe this job #queue is loaded from store, not added later
-      - echo: ${ $ps.queueIndex }   # Queue index. Start from 0, reload when restart
-      - echo: ${ $ps.queueCount }   # Count of #queue which not done
-      - echo: ${ $ps.queueName }    # Queue name
-
-  - fn-#queue:
-      name: My Queue 1
-      queueData:
-        key1: value1
-        key2: value 2
-```
-
-```yaml
-  - fn-#queue:
-      name: My Queue 1
-      concurrent: 2
-      skipError: false       # Not throw error when a job failed
-      db:                    # Optional: Statefull #queue, it's will reload after startup
-        path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
-        password: abc        #  - Optional: Default is no encrypted by password
-    runs:
-      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
-
-  - fn-#queue:
-      name: My Queue 1
-      queueData:
-        key1: value1
-        key2: value 2
 ```  
 
 
@@ -1247,10 +1227,10 @@ Example:
       maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
       autoRemove: true        # Auto remove it when reached the event. Default is false.
       debounceData:           # Pass input debounceData to debounce to do async task
-        dataFromParentState: ${ $ps.channelData.name }
+        dataFromParentState: ${ $ws().channelData.name }
     runs:
       - name: Do this when it's free for 1s
-        echo: ${ $ps.debounceData.dataFromParentState }
+        echo: ${ $ws().debounceData.dataFromParentState }
 
   # touch if debounce is existed
   - fn-debounce:                          # Touch the existed throttle with last agruments
@@ -1332,6 +1312,82 @@ Example:
 ```  
 
 
+## <a id="fn-queue"></a>fn-queue  
+  
+Register a queue job  
+
+Example:  
+
+```yaml
+  - id: myQueue
+    fn-queue:
+      name: My Queue 1        # Use stateless queue, not reload after startup
+      concurrent: 2
+      startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
+      timeout: 1000           # Timeout for each job. Default is 0 (no timeout)
+      queueFilter:
+        expiredJobAfter: 6000 # When jobs are pending after 6s, then auto be removed
+      autoRemove: true        # Auto remove queue after finshed all of jobs. Default is false
+      queueData:              # Pass input data to queue to do async task
+        dataFromParentState: ${ $ws().channelData.name }
+    runs:
+      - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
+      - echo: ${ $ws().queueData.dataFromParentState }
+
+      - echo: ${ $ws().queueData }        # Queue data
+      - echo: ${ $ws().queueErrorCount }  # Num of error when retry this job
+      - echo: ${ $ws().queueCreatedAt }   # Time which a queue is created for the first time
+      - echo: ${ $ws().queueCount }       # Count of queue which not done
+      - echo: ${ $ws().queueName }        # Queue name
+
+  - fn-queue:
+      name: My Queue 1
+      queueData:
+        key1: value1
+        key2: value 2
+```
+File Store
+```yaml
+  - fn-queue:
+      name: My Queue 1
+      concurrent: 2
+      skipError: false       # Not throw error when a job failed
+      db:                    # Optional: Statefull queue, it's will reload after startup
+        path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
+        password: abc        #  - Optional: Default is no encrypted by password
+    runs:
+      - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
+
+  - fn-queue:
+      name: My Queue 1
+      queueData:
+        key1: value1
+        key2: value 2
+```
+External Store
+```yaml
+  - id: fileDataStore
+    file'store:
+      path: /tmp/data.json      # Path to store data
+      password:                 # Password to encrypt/decrypt data content
+      initData: []              # Default data will be stored when file not found
+
+  - fn-queue:
+      name: My Queue 1
+      concurrent: 2
+      skipError: false       # Not throw error when a job failed
+      store: ${ $v.fileDataStore.$.store }
+    runs:
+      - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
+
+  - fn-queue:
+      name: My Queue 1
+      queueData:
+        key1: value1
+        key2: value 2
+```  
+
+
 ## <a id="fn-queue'del"></a>fn-queue'del  
   
 Stop and remove a queue  
@@ -1362,7 +1418,7 @@ Example:
       trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
       autoRemove: true            # Auto remove after done
       singletonData:              # Pass input data to singleton to do async task
-        dataFromParentState: ${ $ps.channelData.name }
+        dataFromParentState: ${ $ws().channelData.name }
     runs:
       - echo: Do this when it's free for 1s
 ```  
@@ -1398,10 +1454,10 @@ Example:
       leading: true       # Specify invoking on the leading edge of the timeout. Default is true
       autoRemove: true    # Auto remove it when reached the event. Default is false
       throttleData:       # Pass input debounceData to debounce to do async task
-        dataFromParentState: ${ $ps.channelData.name }
+        dataFromParentState: ${ $ws().channelData.name }
     runs:
       - name: Do this ASAP and do again when it's called more than 1 times
-        echo: ${ $ps.throttleData.dataFromParentState }
+        echo: ${ $ws().throttleData.dataFromParentState }
 
   # Call if throttle is existed
   - fn-throttle:                         # Touch the existed throttle with last agruments
@@ -2072,7 +2128,7 @@ Example:
           secret: 'SERVER_SECRET_TOKEN'
           secretKey: SECRET_HEADER_KEY
           onCheck: |
-            return $ps.headers[this.secretKey] === this.secret
+            return $ws().headers[this.secretKey] === this.secret
       // cors: {}                           # enable all cors requests
       cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
         origin: '*'
@@ -2092,23 +2148,23 @@ Example:
         maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
         requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
     runs:                                   # Execute when a request comes
-      - echo: ${ $ps.httpRequest.path }     # Get request path
-      - echo: ${ $ps.httpRequest.method }   # Get request method
-      - echo: ${ $ps.httpRequest.headers }  # Get request headers
-      - echo: ${ $ps.httpRequest.query }    # Get request query string
-      - echo: ${ $ps.httpRequest.body }     # Get request body
-      - echo: ${ $ps.httpRequest.response } # Set response data
+      - echo: ${ $ws().httpRequest.path }     # Get request path
+      - echo: ${ $ws().httpRequest.method }   # Get request method
+      - echo: ${ $ws().httpRequest.headers }  # Get request headers
+      - echo: ${ $ws().httpRequest.query }    # Get request query string
+      - echo: ${ $ws().httpRequest.body }     # Get request body
+      - echo: ${ $ws().httpRequest.response } # Set response data
                                             # - status: 200       - http response status
                                             # - statusMessage: OK - http response status message
                                             # - headers: {}       - Set response headers
                                             # - data: {}          - Set response data
-      - echo: ${ $ps.httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
-      - echo: ${ $ps.httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
-      - js: |                               # Handle response by yourself (When $ps.response is undefined)
-          $ps.httpRequest.res.status = 200
-          $ps.httpRequest.res.statusMessage = 'OK'
-          $ps.httpRequest.res.write('OK')
-          $ps.httpRequest.res.end()
+      - echo: ${ $ws().httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
+      - echo: ${ $ws().httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
+      - js: |                               # Handle response by yourself (When $ws().response is undefined)
+          $ws().httpRequest.res.status = 200
+          $ws().httpRequest.res.statusMessage = 'OK'
+          $ws().httpRequest.res.write('OK')
+          $ws().httpRequest.res.end()
 ```  
 
 
@@ -2505,8 +2561,8 @@ Send data via global event between threads and each others. (Includes main threa
       ~event'on:
         name: ${ $c.FROM_GLOBAL_EVENT }
       runs:
-        - name: Received data from thread ID ${ $parentState.eventOpt.fromID }
-          echo: ${ $parentState.eventData }
+        - name: Received data from thread ID ${ $ws().eventOpt.fromID }
+          echo: ${ $ws().eventData }
 
     - name: Emit data to childs threads
       ~event'emit:
@@ -2523,8 +2579,8 @@ Send data via global event between threads and each others. (Includes main threa
     - event'on:
         name: ${ $c.FROM_GLOBAL_EVENT }
       runs:
-        - name: Thread ${ $vars.name } is received data from thread ID ${ $parentState.eventOpt.fromID }
-          echo: ${ $parentState.eventData }
+        - name: Thread ${ $vars.name } is received data from thread ID ${ $ws().eventOpt.fromID }
+          echo: ${ $ws().eventData }
 
         - name: Thead ${ $vars.name } sent data to global event
           event'emit:
@@ -2637,7 +2693,7 @@ Register custom tags from an object
       newOne: |
         {
           constructor(props) {
-            Object.assign(this, props)
+            copyProps(this, props)
           },
           async asyncConstructor(props) {
             // Do async job to init data
@@ -2660,7 +2716,7 @@ Register custom tags from a class
       newOne: |
         class {
           constructor(props) {
-            Object.assign(this, props)
+            copyProps(this, props)
           }
           async asyncConstructor(props) {
             // Do async job to init data
@@ -2783,6 +2839,19 @@ file `test.done.stack.yaml`
 
 
 
+## <a id="$utils.aes"></a>$utils.aes  
+`Utility function`  
+AES encrypt/decrypt a string  
+
+Example:  
+
+```yaml
+  - echo: ${ $utils.aes.encrypt('hello world') }
+
+  - echo: ${ $utils.aes.decrypt('$ENCRYPTED_STRING') }
+```  
+
+
 ## <a id="$utils.base64"></a>$utils.base64  
 `Utility function`  
 Base64 encrypt/decrypt a string  
@@ -2793,19 +2862,6 @@ Example:
   - echo: ${ $utils.base64.encode('hello world') }
 
   - echo: ${ $utils.base64.decrypt('$ENCODED_STRING') }
-```  
-
-
-## <a id="$utils.base64"></a>$utils.base64  
-`Utility function`  
-AES encrypt/decrypt a string  
-
-Example:  
-
-```yaml
-  - echo: ${ $utils.aes.encrypt('hello world') }
-
-  - echo: ${ $utils.aes.decrypt('$ENCRYPTED_STRING') }
 ```  
 
 
@@ -2838,7 +2894,7 @@ Example:
 
 - echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
 
-- echo: ${ $utils.format.number(1000000) }                                          # => 1,000,000
+- echo: ${ $utils.format.number(1000000, {locale:'vi-VN'}) }                        # => 1.000.000
 
 - echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
 - echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
