@@ -1,4 +1,4 @@
-title: Auto update package version
+name: Auto update package version
 description: Update package version and collect git logs into commit
 # debug: all
 vars:

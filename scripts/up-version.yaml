@@ -1,4 +1,4 @@
-title: Prerelease the version
+name: Prerelease the version
 vars:
   preid: alpha
   versionName: prerelease

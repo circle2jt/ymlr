@@ -1,10 +1,10 @@
-title: Create a new release on github
+name: Create a new release on github
 vars:
   githubToken: ""
   lastCommitSHA: ""
 runs:
   - scene:
-      title: Create a new release
+      name: Create a new release
       path: ../shares/github.release.yaml
       vars:
         token: ${ $vars.githubToken }

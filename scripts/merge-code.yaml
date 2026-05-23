@@ -1,11 +1,11 @@
-title: Create a new tag on github
+name: Create a new tag on github
 vars:
   githubToken: ""
   from: dev
   to: main
 runs:
   - scene:
-      title: Merge code
+      name: Merge code
       path: ../shares/github.merge.yaml
       vars:
         title: "Auto create a pull request"

@@ -1,4 +1,4 @@
-title: Create a new release on github
+name: Create a new release on github
 vars:
   token: ""
   owner: ""

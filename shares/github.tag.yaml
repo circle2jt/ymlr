@@ -1,4 +1,4 @@
-title: Create a new tag on github
+name: Create a new tag on github
 vars:
   token: ""
   owner: ""

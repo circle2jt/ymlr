@@ -1,4 +1,4 @@
-title: Create a pull request on github
+name: Create a pull request on github
 vars:
   title: "Auto create a pull request"
   body: "Please merge code"

@@ -1,10 +1,10 @@
-title: Create a new tag on github
+name: Create a new tag on github
 vars:
   githubToken: ""
   lastCommitSHA: ""
 runs:
   - scene:
-      title: Create a new tag
+      name: Create a new tag
       path: ../shares/github.tag.yaml
       vars:
         token: ${ $vars.githubToken }
