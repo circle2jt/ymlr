@@ -10,7 +10,7 @@ import { isGetEvalExp } from 'src/libs/variable'
 import { Constants, noop } from 'src/managers/constants'
 import { type Element } from './element.interface'
 import { type GroupItemProps, type GroupProps } from './group/group.props'
-import { RootScene } from './root-scene'
+import { type RootScene } from './root-scene'
 import { Returns } from './scene/returns'
 import { type VarsProps } from './vars.props'
 
@@ -253,8 +253,8 @@ export class ElementProxy<T extends Element> {
         failure:
           restart: 2
         catch:
-          - name: Print the rror is ${ $ps.error.message } after retried 2 times    # => Should error here
-            js: throw $ps.error                                                     # Throw error
+          - name: Print the rror is ${ $ws().error.message } after retried 2 times    # => Should error here
+            js: throw $ws().error                                                     # Throw error
     ```
   */
 
@@ -269,10 +269,10 @@ export class ElementProxy<T extends Element> {
         failure:
           restart: 2
         catch:
-          - name: Print the error is ${ $ps.error.message } after retried 2 times     # => Should error here
+          - name: Print the error is ${ $ws().error.message } after retried 2 times     # => Should error here
             js: throw new Error('Error in catch')
         finally:
-          - name: Should show error in catch is ${ $ps.error.message }                # => Error in catch
+          - name: Should show error in catch is ${ $ws().error.message }                # => Error in catch
     ```
   */
   finally?: Array<GroupProps | GroupItemProps>
@@ -443,7 +443,7 @@ export class ElementProxy<T extends Element> {
         vars:
           myResponseData: ${ this.$.response.data }                         # Assign response data to scene variable
           MyResponseData: ${ this.$.response.data }                         # Assign response data to global variable
-          _: ${ $parentState.responseDataInContext = this.$.response.data } # Assign response data to context variable
+          _: ${ $ws().responseDataInContext = this.$.response.data } # Assign response data to context variable
 
       - echo: ${$vars.MainName}      # => global var
       - echo: ${$vars.mainName}      # => local var
@@ -691,7 +691,7 @@ export class ElementProxy<T extends Element> {
   /** |**  parentState
     - Set/Get value to context variables. Used in tags support `runs` and support parentState
     Variables:
-      - `$ps`, `$parentState`: Reference to context state
+      - `$wps.deref()`, `$ws()`: Reference to context state
     @position top
     @tag It's used in js code
     @example
@@ -700,8 +700,8 @@ export class ElementProxy<T extends Element> {
         event'on:
           name: test-event
         runs:
-          - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-          - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+          - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+          - echo: ${ $ws().eventOpts }            # => [ params 1, params 2 ]
 
       - event'emit:
           name: test-event
@@ -712,7 +712,7 @@ export class ElementProxy<T extends Element> {
             - params 1
             - params 2
     ```
-    Acess $parentState incursive
+    Access $ws() incursive
     ```yaml
       - name: Connect to redis
         ymlr-redis:
@@ -720,18 +720,18 @@ export class ElementProxy<T extends Element> {
         runs:
           - name: access redis
             js: |
-              await $ps.redis.client.publish('test-event/ping', 'level 1')
+              await $ws().redis.client.publish('test-event/ping', 'level 1')
 
           - name: after redis is connected, start listening to handle an events
             event'on:
               name: test-event
             runs:
-              - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-              - echo: ${ $ps.eventOpts }            # => [ params 1, params 2 ]
+              - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+              - echo: ${ $ws().eventOpts }            # => [ params 1, params 2 ]
 
               - name: access redis
                 js: |
-                  await $ps.$ps.redis.client.publish('test-event/ping', 'level 2')
+                  await $ws().redis.client.publish('test-event/ping', 'level 2')
 
       - event'emit:
           name: test-event
@@ -755,23 +755,6 @@ export class ElementProxy<T extends Element> {
   set wps(weakParentState: any) {
     this._weakParentState = weakParentState
     this.weakParentState = new WeakRef(this._weakParentState)
-  }
-
-  private _parentState?: any
-  get parentState(): any {
-    const ps = this._parentState || this._creator?.proxy.parentState
-    if (ps) {
-      return ps
-    }
-    if (!(this.$ instanceof RootScene) && this.rootScene) {
-      this.logger.warn(`Parent state is wrong [${this.tag}]`)
-    }
-    this.parentState = {}
-    return this._parentState
-  }
-
-  set parentState(parentState: any) {
-    this._parentState = parentState
   }
 
   _curDir?: string
@@ -906,13 +889,6 @@ export class ElementProxy<T extends Element> {
           return that.deref()?.loopValue
         }
       },
-      $parentState: {
-        enumerable: true,
-        configurable: false,
-        get() {
-          return that.deref()?.parentState
-        }
-      },
       $lk: {
         enumerable: true,
         configurable: false,
@@ -925,13 +901,6 @@ export class ElementProxy<T extends Element> {
         configurable: false,
         get() {
           return that.deref()?.loopValue
-        }
-      },
-      $ps: {
-        enumerable: true,
-        configurable: false,
-        get() {
-          return that.deref()?.parentState
         }
       }
     })
@@ -987,19 +956,7 @@ export class ElementProxy<T extends Element> {
   async evalPropsBeforeExec() {
     if (this.failure?.filterDebug && typeof this.failure.filterDebug === 'string') {
       this.failure.filterDebug = await bindFunctionScript(this.failure.filterDebug, this,
-        'error',
-        '$parentState',
-        '$ps',
-        '$ws',
-        '$wps',
-        '$vars',
-        '$v',
-        '$utils',
-        '$u',
-        '$const',
-        '$c',
-        '$env',
-        '$e'
+        'error'
       )
     }
 
@@ -1135,7 +1092,7 @@ export class ElementProxy<T extends Element> {
       await this.element.innerRunsProxy?.dispose()
       await this.element.dispose?.()
       this._logger?.dispose()
-      this._logger = this._parentState = this._weakParentState = null;
+      this._logger = this._weakParentState = null;
       (this.weakParentState as any) = null
     } finally {
       ElementProxy.DEBUG_LIFE_CIRCLE && this.globalEvent.emit('@elementProxy:dispose.1', this)

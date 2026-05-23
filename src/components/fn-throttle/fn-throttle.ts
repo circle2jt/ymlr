@@ -21,10 +21,10 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         leading: true       # Specify invoking on the leading edge of the timeout. Default is true
         autoRemove: true    # Auto remove it when reached the event. Default is false
         throttleData:       # Pass input debounceData to debounce to do async task
-          dataFromParentState: ${ $ps.channelData.name }
+          dataFromParentState: ${ $ws().channelData.name }
       runs:
         - name: Do this ASAP and do again when it's called more than 1 times
-          echo: ${ $ps.throttleData.dataFromParentState }
+          echo: ${ $ws().throttleData.dataFromParentState }
 
     # Call if throttle is existed
     - fn-throttle:                         # Touch the existed throttle with last agruments

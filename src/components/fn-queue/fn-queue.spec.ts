@@ -22,7 +22,7 @@ test('fn-queue should be run correctly', async () => {
   }, {
     runs: [
       {
-        js: '$vars.key1 = $parentState.queueData.key1'
+        js: '$vars.key1 = $ws().queueData.key1'
       }
     ]
   })
@@ -48,7 +48,7 @@ test('fn-queue with concurrent > 1', async () => {
         sleep: 800
       },
       {
-        js: '$vars.rs.push($parentState.queueData.key1)'
+        js: '$vars.rs.push($ws().queueData.key1)'
       }
     ]
   })

@@ -16,7 +16,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
         autoRemove: true            # Auto remove after done
         singletonData:              # Pass input data to singleton to do async task
-          dataFromParentState: ${ $ps.channelData.name }
+          dataFromParentState: ${ $ws().channelData.name }
       runs:
         - echo: Do this when it's free for 1s
   ```

@@ -5,7 +5,7 @@ import { GetLoggerLevel } from 'src/libs/logger/logger-level'
 import { Sequence } from 'src/libs/sequence'
 import { sleep } from 'src/libs/time'
 import { cloneDeep } from 'src/libs/variable'
-import { Constants, noop } from 'src/managers/constants'
+import { noop } from 'src/managers/constants'
 import { ElementProxy } from '../element-proxy'
 import { type Element, type ElementBaseProps, type ElementClass } from '../element.interface'
 import { Scene } from '../scene/scene'
@@ -144,11 +144,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           writable: true,
           value: `${elemProxy.tag}/inner-group-wrapper`
         }
-        // parentState: {
-        //   get() {
-        //     return elemProxy.parentState
-        //   }
-        // }
       })
       innerGroupWrapperProxy.exec = function (parentState: any) {
         return this.$.exec(parentState)
@@ -483,7 +478,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
         const elementProxyErrorStack = elemProxy.logger.errorStack
 
         if (baseProps.catch?.length) {
-          // elemProxy.parentState.error = error
           let innerGroupWrapperProxy: ElementProxy<Element> | undefined
           try {
             const groupProxyProps = {
@@ -499,7 +493,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               groupProxyProps
             }, groupProxyProps)
             await innerGroupWrapperProxy.exec({
-              ...elemProxy.parentState,
               error
             })
             error = undefined
@@ -524,17 +517,8 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
           }
 
           const isLogError = !filterDebug || await filterDebug(
-            error,
-            this.proxy.parentState,
-            this.proxy.parentState,
-            this.proxy.scene.localVars,
-            this.proxy.scene.localVars,
-            this.proxy.rootScene.globalUtils,
-            this.proxy.rootScene.globalUtils,
-            Constants,
-            Constants,
-            process.env,
-            process.env)
+            error
+          )
           if (isLogError) {
             const failureDebug = (!failure.debug || failure.debug === true) ? 'warn' : failure.debug
             if (failureDebug) {
@@ -599,7 +583,6 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
               groupProxyProps
             }, groupProxyProps)
             await innerGroupWrapperProxy.exec({
-              ...elemProxy.parentState,
               error
             })
           } finally {
@@ -732,8 +715,7 @@ export class InnerGroupWrapper implements Element {
       runs: this._groupProxyProps?.runs
     })
     try {
-      innerGroupProxy.parentState = { ...this.proxy.parentState, ...parentState }
-      innerGroupProxy.wps = parentState
+      innerGroupProxy.wps = { ...this.proxy.wps?.deref(), ...parentState }
       const rs = await innerGroupProxy.exec(parentState)
       return rs
     } finally {

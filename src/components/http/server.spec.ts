@@ -24,8 +24,8 @@ test('Listen to handle a request', async () => {
     runs: [
       {
         vars: {
-          method: '${ $ps.httpRequest.method }',
-          body: '${ $ps.httpRequest.body }'
+          method: '${ $ws().httpRequest.method }',
+          body: '${ $ws().httpRequest.body }'
         }
       }
     ]
@@ -48,8 +48,8 @@ test('Force quit server', async () => {
     runs: [
       {
         vars: {
-          method: '${ $ps.httpRequest.method }',
-          body: '${ $ps.httpRequest.body }'
+          method: '${ $ws().httpRequest.method }',
+          body: '${ $ws().httpRequest.body }'
         }
       },
       {
@@ -79,7 +79,7 @@ test('Check custom authentication', async () => {
         secret: 'SERVER_SECRET_TOKEN',
         secretKey: 'SECRET_HEADER_KEY',
         onCheck: `
-          return $ps.httpRequest.headers[this.secretKey.toLowerCase()] === this.secret
+          return $ws().httpRequest.headers[this.secretKey.toLowerCase()] === this.secret
         `
       }
     }
@@ -87,8 +87,8 @@ test('Check custom authentication', async () => {
     runs: [
       {
         vars: {
-          method: '${ $ps.httpRequest.method }',
-          body: '${ $ps.httpRequest.body }'
+          method: '${ $ws().httpRequest.method }',
+          body: '${ $ws().httpRequest.body }'
         }
       }
     ]
@@ -127,8 +127,8 @@ test('Check basic authentication via headers', async () => {
     runs: [
       {
         vars: {
-          method: '${ $ps.httpRequest.method }',
-          body: '${ $ps.httpRequest.body }'
+          method: '${ $ws().httpRequest.method }',
+          body: '${ $ws().httpRequest.body }'
         }
       }
     ]
@@ -161,10 +161,10 @@ test('Test response by code', async () => {
       {
         js: `
           await new Promise(r => setTimeout(r, 500))
-          $ps.httpRequest.res.writeHead(200, {
+          $ws().httpRequest.res.writeHead(200, {
             key1: 'value 1'
           })
-          $ps.httpRequest.res.write('ok')
+          $ws().httpRequest.res.write('ok')
         `
       },
       {
@@ -191,7 +191,7 @@ test('Test response by return data', async () => {
       {
         js: `
           await new Promise(r => setTimeout(r, 500))
-          $ps.httpRequest.response = {
+          $ws().httpRequest.response = {
             status: 200,
             headers: {
               key1: 'value 1'

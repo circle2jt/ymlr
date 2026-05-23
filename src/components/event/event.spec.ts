@@ -13,7 +13,7 @@ test('emit/on data via global event', async () => {
     runs: [
       {
         vars: {
-          myEventData: '${ $parentState.eventData }'
+          myEventData: '${ $ws().eventData }'
         }
       }, {
         stop: null

@@ -1,5 +1,6 @@
 import assert from 'assert'
-import { FileStorage } from 'src/libs/storage/file-storage'
+import { type FileStorage } from 'src/libs/storage/file-storage'
+import { StoreFactory } from 'src/libs/storage/store-factory'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
 import { type FileStoreProps } from './file-store.props'
@@ -33,11 +34,15 @@ import { type FileStoreProps } from './file-store.props'
   ```
 */
 export class FileStore implements Element {
-  readonly ignoreEvalProps = ['data']
+  readonly ignoreEvalProps = ['data', 'store']
   readonly proxy!: ElementProxy<this>
 
   get logger() {
     return this.proxy.logger
+  }
+
+  get store() {
+    return this._storage
   }
 
   path?: string
@@ -46,7 +51,7 @@ export class FileStore implements Element {
 
   data: any
 
-  private storage?: FileStorage
+  private _storage?: FileStorage
 
   constructor(props?: FileStoreProps) {
     globalThis.copyProps(this, props)
@@ -55,17 +60,21 @@ export class FileStore implements Element {
   async exec() {
     this.path = this.proxy.getPath(this.path || '')
     assert(this.path, 'path is required')
-    this.storage = new FileStorage(this.logger, this.path, this.password)
+    this._storage = StoreFactory.Create<FileStorage>(this.logger, {
+      type: 'file',
+      file: this.path,
+      pwd: this.password
+    })
     this.data = this.load()
     return this.data
   }
 
   load() {
-    return this.storage?.load(this.initData)
+    return this._storage?.load(this.initData)
   }
 
   save() {
-    this.storage?.save(this.data)
+    this._storage?.save(this.data)
   }
 
   dispose() { }

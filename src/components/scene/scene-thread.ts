@@ -53,8 +53,8 @@ import { type SceneThreadProps } from './scene-thread.props'
         ~event'on:
           name: ${ $c.FROM_GLOBAL_EVENT }
         runs:
-          - name: Received data from thread ID ${ $parentState.eventOpt.fromID }
-            echo: ${ $parentState.eventData }
+          - name: Received data from thread ID ${ $ws().eventOpt.fromID }
+            echo: ${ $ws().eventData }
 
       - name: Emit data to childs threads
         ~event'emit:
@@ -71,8 +71,8 @@ import { type SceneThreadProps } from './scene-thread.props'
       - event'on:
           name: ${ $c.FROM_GLOBAL_EVENT }
         runs:
-          - name: Thread ${ $vars.name } is received data from thread ID ${ $parentState.eventOpt.fromID }
-            echo: ${ $parentState.eventData }
+          - name: Thread ${ $vars.name } is received data from thread ID ${ $ws().eventOpt.fromID }
+            echo: ${ $ws().eventData }
 
           - name: Thead ${ $vars.name } sent data to global event
             event'emit:

@@ -217,12 +217,12 @@ After install the extension, please open a scenario file then press `shift+alt+r
 | [clear](#clear) | Clear console screen |
 | [event'emit](#event'emit) | Send data via global event |
 | [event'on](#event'on) | Handle global events in app |
+| [fn-#queue](#fn-#queue) | Register a #queue job |
 | [fn-debounce](#fn-debounce) | Debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'cancel](#fn-debounce'cancel) | Cancel debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'del](#fn-debounce'del) | Cancel & remove debounce function (#Ref: lodash.debounce) |
 | [fn-debounce'flush](#fn-debounce'flush) | Force to call debounce function ASAP if it's called before that (#Ref: lodash.debounce) |
 | [fn-debounce'touch](#fn-debounce'touch) | touch debounce function. Reused last agruments(#Ref: lodash.debounce) |
-| [fn-queue](#fn-queue) | Register a queue job |
 | [fn-queue'del](#fn-queue'del) | Stop and remove a queue |
 | [fn-singleton](#fn-singleton) | This is locked before run and unlock after done. When it's called many time, this is only run after unlock |
 | [fn-singleton'del](#fn-singleton'del) | Remove singleton function |
@@ -414,6 +414,26 @@ Example:
     vars: product
 
   - name: The product ${$vars.product.name} is in the categories ${$vars.categories.map(c => c.name)}
+```  
+
+
+## <a id="case"></a>case  
+`It's a property in a tag`  
+shortcut for if + skipNext  
+
+Example:  
+
+```yaml
+  - vars:
+      number: 11
+
+  - case: ${$vars.number === 11}        # When reach the conditional then execute and skip the next steps
+    echo: Value is 11                   
+
+  - case: ${$vars.number > 10}
+    echo: Value is greater than 10      # When reach the conditional then execute and skip the next steps
+
+  - echo: Done                          # Never echo when reach the any conditional
 ```  
 
 
@@ -1160,6 +1180,56 @@ Example:
 ```  
 
 
+## <a id="fn-#queue"></a>fn-#queue  
+  
+Register a #queue job  
+
+Example:  
+
+```yaml
+  - id: myQueue
+    fn-#queue:
+      name: My Queue 1        # Use stateless #queue, not reload after startup
+      concurrent: 2
+      startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
+      queueData:              # Pass input data to #queue to do async task
+        dataFromParentState: ${ $ps.channelData.name }
+    runs:
+      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+      - echo: ${ $parentState.queueData.dataFromParentState }
+
+      - echo: ${ $ps.queueData }    # Queue data
+      - echo: ${ $ps.queueInStore } # Describe this job #queue is loaded from store, not added later
+      - echo: ${ $ps.queueIndex }   # Queue index. Start from 0, reload when restart
+      - echo: ${ $ps.queueCount }   # Count of #queue which not done
+      - echo: ${ $ps.queueName }    # Queue name
+
+  - fn-#queue:
+      name: My Queue 1
+      queueData:
+        key1: value1
+        key2: value 2
+```
+
+```yaml
+  - fn-#queue:
+      name: My Queue 1
+      concurrent: 2
+      skipError: false       # Not throw error when a job failed
+      db:                    # Optional: Statefull #queue, it's will reload after startup
+        path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
+        password: abc        #  - Optional: Default is no encrypted by password
+    runs:
+      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+
+  - fn-#queue:
+      name: My Queue 1
+      queueData:
+        key1: value1
+        key2: value 2
+```  
+
+
 ## <a id="fn-debounce"></a>fn-debounce  
   
 Debounce function (#Ref: lodash.debounce)
@@ -1259,56 +1329,6 @@ Example:
   - fn-debounce'touch:
       - delay1
       - delay2
-```  
-
-
-## <a id="fn-queue"></a>fn-queue  
-  
-Register a queue job  
-
-Example:  
-
-```yaml
-  - id: myQueue
-    fn-queue:
-      name: My Queue 1        # Use stateless queue, not reload after startup
-      concurrent: 2
-      startup: true           # Run ASAP. Default is true. If its false then it only declare job, not run yet, need call $v.myQueue.$.start() to manual start.
-      queueData:              # Pass input data to queue to do async task
-        dataFromParentState: ${ $ps.channelData.name }
-    runs:
-      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
-      - echo: ${ $parentState.queueData.dataFromParentState }
-
-      - echo: ${ $ps.queueData }    # Queue data
-      - echo: ${ $ps.queueInStore } # Describe this job queue is loaded from store, not added later
-      - echo: ${ $ps.queueIndex }   # Queue index. Start from 0, reload when restart
-      - echo: ${ $ps.queueCount }   # Count of queue which not done
-      - echo: ${ $ps.queueName }    # Queue name
-
-  - fn-queue:
-      name: My Queue 1
-      queueData:
-        key1: value1
-        key2: value 2
-```
-
-```yaml
-  - fn-queue:
-      name: My Queue 1
-      concurrent: 2
-      skipError: false       # Not throw error when a job failed
-      db:                    # Optional: Statefull queue, it's will reload after startup
-        path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
-        password: abc        #  - Optional: Default is no encrypted by password
-    runs:
-      - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
-
-  - fn-queue:
-      name: My Queue 1
-      queueData:
-        key1: value1
-        key2: value 2
 ```  
 
 

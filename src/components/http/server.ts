@@ -2,7 +2,6 @@ import assert from 'assert'
 import { type CorsOptions } from 'cors'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http'
 import { parse } from 'querystring'
-import { bindFunctionScript } from 'src/libs/async-function'
 import { Constants } from 'src/managers/constants'
 import { promisify } from 'util'
 import { type ElementProxy } from '../element-proxy'
@@ -10,7 +9,6 @@ import { type Element } from '../element.interface'
 import { type Group } from '../group/group'
 import { type GroupItemProps, type GroupProps } from '../group/group.props'
 import { BasicAuth } from './auth/BasicAuth'
-import { CustomAuth } from './auth/CustomAuth'
 import { type IVerify } from './auth/IVerify'
 
 /** |**  http'server
@@ -27,7 +25,7 @@ import { type IVerify } from './auth/IVerify'
             secret: 'SERVER_SECRET_TOKEN'
             secretKey: SECRET_HEADER_KEY
             onCheck: |
-              return $ps.headers[this.secretKey] === this.secret
+              return $ws().headers[this.secretKey] === this.secret
         // cors: {}                           # enable all cors requests
         cors:                                 # Ref: https://www.npmjs.com/package/cors#configuring-cors
           origin: '*'
@@ -47,23 +45,23 @@ import { type IVerify } from './auth/IVerify'
           maxRequestsPerSocket: 0             # The maximum number of requests socket can handle before closing keep alive connection.
           requestTimeout: 0                   # Sets the timeout value in milliseconds for receiving the entire request from the client.
       runs:                                   # Execute when a request comes
-        - echo: ${ $ps.httpRequest.path }     # Get request path
-        - echo: ${ $ps.httpRequest.method }   # Get request method
-        - echo: ${ $ps.httpRequest.headers }  # Get request headers
-        - echo: ${ $ps.httpRequest.query }    # Get request query string
-        - echo: ${ $ps.httpRequest.body }     # Get request body
-        - echo: ${ $ps.httpRequest.response } # Set response data
+        - echo: ${ $ws().httpRequest.path }     # Get request path
+        - echo: ${ $ws().httpRequest.method }   # Get request method
+        - echo: ${ $ws().httpRequest.headers }  # Get request headers
+        - echo: ${ $ws().httpRequest.query }    # Get request query string
+        - echo: ${ $ws().httpRequest.body }     # Get request body
+        - echo: ${ $ws().httpRequest.response } # Set response data
                                               # - status: 200       - http response status
                                               # - statusMessage: OK - http response status message
                                               # - headers: {}       - Set response headers
                                               # - data: {}          - Set response data
-        - echo: ${ $ps.httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
-        - echo: ${ $ps.httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
-        - js: |                               # Handle response by yourself (When $ps.response is undefined)
-            $ps.httpRequest.res.status = 200
-            $ps.httpRequest.res.statusMessage = 'OK'
-            $ps.httpRequest.res.write('OK')
-            $ps.httpRequest.res.end()
+        - echo: ${ $ws().httpRequest.req }      # Ref to req in http.IncomingMessage in nodejs
+        - echo: ${ $ws().httpRequest.res }      # Ref to res in http.ServerResponse in nodejs
+        - js: |                               # Handle response by yourself (When $ws().response is undefined)
+            $ws().httpRequest.res.status = 200
+            $ws().httpRequest.res.statusMessage = 'OK'
+            $ws().httpRequest.res.write('OK')
+            $ws().httpRequest.res.end()
   ```
 */
 export class HttpServer implements Element {
@@ -108,22 +106,18 @@ export class HttpServer implements Element {
     assert(this.address, 'addres is required')
     if (this.auth?.basic) {
       this.authVerifier = new BasicAuth(this.auth.basic.username, this.auth.basic.password)
-    } else if (this.auth?.custom) {
-      const { onCheck, ...props } = this.auth.custom
-      this.authVerifier = new CustomAuth(props)
-      this.authVerifier.verify = bindFunctionScript<IVerify['verify']>(onCheck, this.authVerifier,
-        '$parentState',
-        '$ps',
-        '$vars',
-        '$v',
-        '$utils',
-        '$u',
-        '$const',
-        '$c',
-        '$env',
-        '$e'
-      )
     }
+    // else if (this.auth?.custom) {
+    //   const { onCheck, ...props } = this.auth.custom
+    //   this.authVerifier = new CustomAuth(props)
+    //   this.authVerifier.verify = bindFunctionScript<IVerify['verify']>(onCheck, this.authVerifier,
+    //     '$parentState',
+    //     '$vars',
+    //     '$utils',
+    //     '$const',
+    //     '$env',
+    //   )
+    // }
     await new Promise((resolve, reject) => {
       const [host, port] = this.address.trim().split(':')
       let handler: any
@@ -181,14 +175,9 @@ export class HttpServer implements Element {
       if (this.authVerifier) {
         const code = await this.authVerifier.verify(
           parentState,
-          parentState,
-          this.proxy.scene.localVars,
           this.proxy.scene.localVars,
           this.proxy.rootScene.globalUtils,
-          this.proxy.rootScene.globalUtils,
           Constants,
-          Constants,
-          process.env,
           process.env
         )
         if (code === false) {

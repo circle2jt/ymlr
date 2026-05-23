@@ -1,6 +1,7 @@
+import { Testing } from './testing'
+
 import { ElementProxy } from './components/element-proxy'
 import { Group } from './components/group/group'
-import { Testing } from './testing'
 
 beforeEach(async () => {
   await Testing.reset()

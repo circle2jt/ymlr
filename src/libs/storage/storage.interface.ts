@@ -1,5 +1,7 @@
-export interface StorageInterface {
-  load: (defaultData: any) => any
-  save: (data: any) => any
+export interface StorageInterface<T = any> {
+  // new(logger: Logger, config?: any): any
+
+  load: <T>(defaultData: any) => T
+  save: (data: T) => any
   clean: () => any
 }

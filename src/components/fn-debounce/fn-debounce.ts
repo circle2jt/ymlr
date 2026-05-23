@@ -22,10 +22,10 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
         autoRemove: true        # Auto remove it when reached the event. Default is false.
         debounceData:           # Pass input debounceData to debounce to do async task
-          dataFromParentState: ${ $ps.channelData.name }
+          dataFromParentState: ${ $ws().channelData.name }
       runs:
         - name: Do this when it's free for 1s
-          echo: ${ $ps.debounceData.dataFromParentState }
+          echo: ${ $ws().debounceData.dataFromParentState }
 
     # touch if debounce is existed
     - fn-debounce:                          # Touch the existed throttle with last agruments

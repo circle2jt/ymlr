@@ -14,8 +14,8 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
       event'on:
         name: test-event
       runs:
-        - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-        - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+        - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+        - echo: ${ $ws().eventOpts }   # => [ params 1, params 2 ]
 
     - name: listen to handle multiple events
       event'on:
@@ -24,9 +24,9 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           - test-event2
           - test-event3
       runs:
-        - echo: ${ $parentState.eventName }   # => test-event1 or test-event2 or test-event3
-        - echo: ${ $parentState.eventData }   # => { name: Test event, data: Hello }
-        - echo: ${ $parentState.eventOpts }   # => [ params 1, params 2 ]
+        - echo: ${ $ws().eventName }   # => test-event1 or test-event2 or test-event3
+        - echo: ${ $ws().eventData }   # => { name: Test event, data: Hello }
+        - echo: ${ $ws().eventOpts }   # => [ params 1, params 2 ]
   ```
   ```yaml
     - event'emit:

@@ -1,8 +1,9 @@
 import assert from 'assert'
 import { FileTemp } from 'src/libs/file-temp'
-import { FileStorage } from 'src/libs/storage/file-storage'
-import { MemStorage } from 'src/libs/storage/mem-storage'
+import { type FileStorage } from 'src/libs/storage/file-storage'
+import { type MemStorage } from 'src/libs/storage/mem-storage'
 import { type StorageInterface } from 'src/libs/storage/storage.interface'
+import { StoreFactory } from 'src/libs/storage/store-factory'
 import { timeout } from 'src/libs/timeout'
 import { type ElementProxy } from '../element-proxy'
 import { type Element } from '../element.interface'
@@ -24,16 +25,16 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           expiredJobAfter: 6000 # When jobs are pending after 6s, then auto be removed
         autoRemove: true        # Auto remove queue after finshed all of jobs. Default is false
         queueData:              # Pass input data to queue to do async task
-          dataFromParentState: ${ $ps.channelData.name }
+          dataFromParentState: ${ $ws().channelData.name }
       runs:
-        - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
-        - echo: ${ $parentState.queueData.dataFromParentState }
+        - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
+        - echo: ${ $ws().queueData.dataFromParentState }
 
-        - echo: ${ $ps.queueData }        # Queue data
-        - echo: ${ $ps.queueErrorCount }  # Num of error when retry this job
-        - echo: ${ $ps.queueCreatedAt }   # Time which a queue is created for the first time
-        - echo: ${ $ps.queueCount }       # Count of #queue which not done
-        - echo: ${ $ps.queueName }        # Queue name
+        - echo: ${ $ws().queueData }        # Queue data
+        - echo: ${ $ws().queueErrorCount }  # Num of error when retry this job
+        - echo: ${ $ws().queueCreatedAt }   # Time which a queue is created for the first time
+        - echo: ${ $ws().queueCount }       # Count of queue which not done
+        - echo: ${ $ws().queueName }        # Queue name
 
     - fn-queue:
         name: My Queue 1
@@ -41,7 +42,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           key1: value1
           key2: value 2
   ```
-
+  File Store
   ```yaml
     - fn-queue:
         name: My Queue 1
@@ -51,7 +52,29 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
           path: /tmp/db        #  - Optional: Default is "tempdir/queuename"
           password: abc        #  - Optional: Default is no encrypted by password
       runs:
-        - echo: ${ $parentState.queueData.key1 } is ${ $parentState.queueData.value1 }
+        - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
+
+    - fn-queue:
+        name: My Queue 1
+        queueData:
+          key1: value1
+          key2: value 2
+  ```
+  External Store
+  ```yaml
+    - id: fileDataStore
+      file'store:
+        path: /tmp/data.json      # Path to store data
+        password:                 # Password to encrypt/decrypt data content
+        initData: []              # Default data will be stored when file not found
+
+    - fn-queue:
+        name: My Queue 1
+        concurrent: 2
+        skipError: false       # Not throw error when a job failed
+        store: ${ $v.fileDataStore.$.store }
+      runs:
+        - echo: ${ $ws().queueData.key1 } is ${ $ws().queueData.value1 }
 
     - fn-queue:
         name: My Queue 1
@@ -93,21 +116,21 @@ export class FNQueue implements Element {
     password?: string
   }
 
-  #queue = new Array<QueueData>()
+  store?: StorageInterface
 
-  private taskCount = 0
-  private store?: StorageInterface
-  private isStoped?: boolean
-  private t?: Promise<any>
-  private resolve?: any
+  private _queue = new Array<QueueData>()
+  private _taskCount = 0
+  private _isStoped?: boolean
+  private _t?: Promise<any>
+  private _resolve?: any
 
   get availQueue() {
-    this.#queue = this.#queue.filter(data => {
+    this._queue = this._queue.filter(data => {
       if (!data.createdAt) return false
       if (!this.queueFilter.expiredJobAfter) return true
       return (Date.now() - data.createdAt <= this.queueFilter.expiredJobAfter) && this.queueFilter.filter?.(data) !== false
     })
-    return this.#queue
+    return this._queue
   }
 
   constructor(props: any) {
@@ -120,18 +143,24 @@ export class FNQueue implements Element {
     const existed = FNQueue.Caches.get(this.name)
     if (!existed) {
       FNQueue.Caches.set(this.name, this)
-      if (this.db !== undefined) {
-        if (this.db === null) {
-          this.db = {
-            path: ''
+      if (!this.store) {
+        if (this.db !== undefined) {
+          if (this.db === null) {
+            this.db = {
+              path: ''
+            }
           }
+          if (!this.db.path) {
+            this.db.path = new FileTemp('-' + this.name).file
+          }
+          this.store = StoreFactory.Create<FileStorage>(this.logger, {
+            type: 'file',
+            file: this.db.path,
+            pwd: this.db.password
+          })
+        } else {
+          this.store = StoreFactory.Create<MemStorage>(this.logger)
         }
-        if (!this.db.path) {
-          this.db.path = new FileTemp('-' + this.name).file
-        }
-        this.store = new FileStorage(this.logger, this.db.path, this.db.password)
-      } else {
-        this.store = new MemStorage(this.logger)
       }
       this.load()
       if (this.queueData !== undefined) this.push(this.queueData)
@@ -147,18 +176,18 @@ export class FNQueue implements Element {
   }
 
   push(queueData: any) {
-    this.logger.debug('Add a job in #queue "%s"\t%j', this.name, queueData)
-    this.#queue.push({ queueData, createdAt: Date.now(), errorCount: 0 })
+    this.logger.debug('Add a job in queue "%s"\t%j', this.name, queueData)
+    this._queue.push({ queueData, createdAt: Date.now(), errorCount: 0 })
     this.save()
-    if (this.isStoped === false) {
+    if (this._isStoped === false) {
       this.run()
     }
   }
 
   run() {
-    while (this.isStoped === false) {
-      if (this.taskCount >= this.concurrent) {
-        this.logger.debug('Concurent is full %d/%d', this.taskCount, this.concurrent)
+    while (this._isStoped === false) {
+      if (this._taskCount >= this.concurrent) {
+        this.logger.debug('Concurent is full %d/%d', this._taskCount, this.concurrent)
         break
       }
       if (!this.availQueue.length) {
@@ -168,14 +197,14 @@ export class FNQueue implements Element {
         }
         break
       }
-      ++this.taskCount
+      ++this._taskCount
       const queue = this.availQueue.shift()
       if (!queue) continue
 
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
       setImmediate(async (queue: QueueData) => {
         const queueData = queue.queueData
-        this.logger.debug('Run a job in #queue "%s"\t%j', this.name, queueData)
+        this.logger.debug('Run a job in queue "%s"\t%j', this.name, queueData)
         let isStop = false
         try {
           const timeoutMS = this.timeout
@@ -183,7 +212,7 @@ export class FNQueue implements Element {
             await timeout(this.innerRunsProxy.exec({
               queueName: this.name,
               queueData,
-              queueCount: this.availQueue.length + this.taskCount,
+              queueCount: this.availQueue.length + this._taskCount,
               queueErrorCount: queue.errorCount,
               queueCreatedAt: queue.createdAt
             }), timeoutMS)
@@ -191,7 +220,7 @@ export class FNQueue implements Element {
             await this.innerRunsProxy.exec({
               queueName: this.name,
               queueData,
-              queueCount: this.availQueue.length + this.taskCount,
+              queueCount: this.availQueue.length + this._taskCount,
               queueErrorCount: queue.errorCount,
               queueCreatedAt: queue.createdAt
             })
@@ -200,22 +229,22 @@ export class FNQueue implements Element {
           ++queue.errorCount
           if (!this.skipError) {
             this.logger
-              .error('Job in #queue "%s" error, retry later', this.name, err)
+              .error('Job in queue "%s" error, retry later', this.name, err)
             isStop = true
-            this.#queue.push(queue)
+            this._queue.push(queue)
             this.save()
           } else {
             this.logger
-              .warn('Job in #queue "%s" error, skiped', this.name, err)
+              .warn('Job in queue "%s" error, skiped', this.name, err)
           }
         } finally {
           this.save()
-          --this.taskCount
+          --this._taskCount
           if (isStop) {
-            // Job error then force stop #queue
+            // Job error then force stop queue
             this.stop()
           } else {
-            // Job done then there are some waiting jobs in the #queue
+            // Job done then there are some waiting jobs in the queue
             this.run()
           }
         }
@@ -224,23 +253,23 @@ export class FNQueue implements Element {
   }
 
   private load() {
-    this.logger.debug('Load #queue jobs ' + this.name)
-    this.#queue = this.store?.load([]) || []
-    this.taskCount = 0
-    this.isStoped = undefined
-    this.t = undefined
+    this.logger.debug('Load queue jobs ' + this.name)
+    this._queue = this.store?.load([]) || []
+    this._taskCount = 0
+    this._isStoped = undefined
+    this._t = undefined
   }
 
   async start() {
-    if (this.isStoped === false) return
+    if (this._isStoped === false) return
 
-    this.t = new Promise((resolve) => {
-      this.resolve = resolve
+    this._t = new Promise((resolve) => {
+      this._resolve = resolve
     })
-    this.logger.debug('Start #queue ' + this.name)
-    this.isStoped = false
+    this.logger.debug('Start queue ' + this.name)
+    this._isStoped = false
     this.run()
-    await this.t
+    await this._t
   }
 
   filter(filter: (queue: any) => boolean) {
@@ -248,29 +277,29 @@ export class FNQueue implements Element {
   }
 
   stop() {
-    if (this.isStoped) return
-    this.logger.debug('Stoped #queue ' + this.name)
-    this.isStoped = true
+    if (this._isStoped) return
+    this.logger.debug('Stoped queue ' + this.name)
+    this._isStoped = true
   }
 
   remove() {
-    if (!this.t) return
-    this.logger.debug('Removed #queue ' + this.name)
+    if (!this._t) return
+    this.logger.debug('Removed queue ' + this.name)
     FNQueue.Caches.delete(this.name)
     this.stop()
-    this.#queue = []
+    this._queue = []
     this.store?.clean()
-    this.resolve?.()
-    this.t = undefined
+    this._resolve?.()
+    this._t = undefined
   }
 
   async dispose() {
-    this.logger.debug('Dispose the #queue "%s"', this.name)
+    this.logger.debug('Dispose the queue "%s"', this.name)
     await this.innerRunsProxy.dispose()
   }
 
   private save() {
-    this.logger.debug('Saved #queue ' + this.name)
+    this.logger.debug('Saved queue ' + this.name)
     this.store?.save(this.availQueue)
   }
 }
