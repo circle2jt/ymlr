@@ -26,6 +26,7 @@ const DEFAULT_IGNORE_EVAL_ELEMENT_PROPS = new Set([
 
   // Injected by user so need to ignore handle them
   'placeholder',
+  'cached',
   'context',
   'failure',
   'hideName',
@@ -349,6 +350,27 @@ export class ElementProxy<T extends Element> {
     ```
   */
   // _name?: string
+  /** |**  cached
+    Share value after restart.
+    Without cached, after restart on failed then all of variable is re-eval
+    @position top
+    @tag It's a property in a tag
+    @example
+    ```yaml
+      - loop: ${ [1,2,3] }
+        runs:
+          - if: ${ $lv === 2 }
+            cached:                                             # Cached value to reuse after restart
+              lv: ${ $lv }
+            js: throw new Error('error here ' + this.cached.lv)
+            failure:
+              ignore: true
+              restart:
+                max: 1
+                sleep: 10s
+    ```
+  */
+  cached?: any
   /** |**  placeholder
     It store values which are overrided when inherit a template
     @position top
@@ -1055,6 +1077,9 @@ export class ElementProxy<T extends Element> {
   async isValid() {
     if (this.placeholder) {
       await this.scene.getVars(this.placeholder, this)
+    }
+    if (this.cached) {
+      await this.scene.getVars(this.cached, this)
     }
     const condition = this.elseif ?? this.if
     const isValid = (condition === undefined) || await this.scene.getVars(condition, this)

@@ -388,7 +388,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       return { isTemplate: true }
     }
 
-    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context, placeholder, catch: catchHandler, finally: finallyHandler } = eProps
+    let { if: condition, runs, errorStack, _curDir, elseif: elseIfCondition, else: elseCondition, failure, debug, vars, async, detach, skipNext, loop, name, icon, id, context, placeholder, cached, catch: catchHandler, finally: finallyHandler } = eProps
 
     if (elseCondition === null) {
       elseIfCondition = true
@@ -431,6 +431,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
       loop,
       context,
       placeholder,
+      cached,
       skipNext,
       _curDir,
       errorStack: {
@@ -597,6 +598,7 @@ export class Group<GP extends GroupProps, GIP extends GroupItemProps> implements
 
           if (baseProps.async) baseProps.async = false
           if (baseProps.detach) baseProps.detach = false
+          copyProps(baseProps, { cached: elemProxy.cached })
           // eslint-disable-next-line no-unsafe-finally
           if (!restartor) throw new Error('Why restartor is null ???')
           restartor.next = this.createAndExecuteElement(undefined, name, baseProps, props, restartor, parentState)
