@@ -426,17 +426,24 @@ export class Scene extends Group<GroupProps, GroupItemProps> {
 
 function replace3Dots(runs: any[], placeholder?: Record<string, any>) {
   if (!runs?.length || !placeholder) return
+  const cleanKeys = new Set<string>()
   for (let i = runs.length - 1; i >= 0; i--) {
     const run = runs[i]
     if (typeof run === 'string') {
+      if (placeholder[run] == null) throw new Error(`Placeholder "${run}" is required!`)
+      cleanKeys.add(run)
       const newRuns = placeholder[run]
       if (Array.isArray(newRuns)) {
         runs.splice(i, 1, ...newRuns)
-        placeholder[run] = undefined
+      } else {
+        runs.splice(i, 1, newRuns)
       }
       continue
     }
     if (!run.runs?.length) continue
     replace3Dots(run.runs, placeholder)
   }
+  cleanKeys.forEach(key => {
+    placeholder[key] = undefined
+  })
 }
