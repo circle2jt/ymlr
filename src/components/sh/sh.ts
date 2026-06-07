@@ -186,7 +186,8 @@ export class Sh implements Element {
       if (!this.childProcess?.exitCode || !this.exitCodes.includes(this.childProcess.exitCode)) {
         err.more = {
           file: this.filePath,
-          script: this.script
+          script: this.script,
+          args: this.args
         }
         throw err
       }
