@@ -18,6 +18,12 @@ export class UtilityFunctionManager {
     return this._Instance
   }
 
+  [key: string]: any
+
+  get uuid() {
+    return require('crypto').randomUUID()
+  }
+
   /** |**  $utils.globalEvent
     Reference global event in application
     @position bottom
@@ -110,9 +116,9 @@ export class UtilityFunctionManager {
     - echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
     - echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
 
-    - echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
+    - echo: ${ $utils.format.textToMs('1d 1h 1m 1s 100') }                        # => 90061100
 
-    - echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
+    - echo: ${ $utils.format.date(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
 
     - echo: ${ $utils.format.yaml({name: 'yaml title'})}                                # => name: yaml title
     ```
