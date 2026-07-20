@@ -14,9 +14,8 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
-  "typescript.tsc.autoDetect": "off",
+  "js/ts.preferences.importModuleSpecifierEnding": "js",
   "npm.autoDetect": "off",
-  "typescript.tsdk": "node_modules/typescript/lib",
   "[yaml]": {
     "editor.autoIndent": "advanced",
     "editor.colorDecorators": true

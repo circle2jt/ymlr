@@ -421,6 +421,28 @@ Example:
 ```  
 
 
+## <a id="cached"></a>cached  
+`It's a property in a tag`  
+Share value after restart.
+Without cached, after restart on failed then all of variable is re-eval  
+
+Example:  
+
+```yaml
+  - loop: ${ [1,2,3] }
+    runs:
+      - if: ${ $lv === 2 }
+        cached:                                             # Cached value to reuse after restart
+          lv: ${ $lv }
+        js: throw new Error('error here ' + this.cached.lv)
+        failure:
+          ignore: true
+          restart:
+            max: 1
+            sleep: 10s
+```  
+
+
 ## <a id="case"></a>case  
 `It's a property in a tag`  
 shortcut for if + skipNext  
@@ -1226,6 +1248,7 @@ Example:
       leading: false          # Specify invoking on the leading edge of the timeout. Default is false
       maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
       autoRemove: true        # Auto remove it when reached the event. Default is false.
+      skipError: false        # Ignore error in the running
       debounceData:           # Pass input debounceData to debounce to do async task
         dataFromParentState: ${ $ws().channelData.name }
     runs:
@@ -1417,6 +1440,7 @@ Example:
       name: Only run 1 time
       trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
       autoRemove: true            # Auto remove after done
+      skipError: false            # Ignore error in the running
       singletonData:              # Pass input data to singleton to do async task
         dataFromParentState: ${ $ws().channelData.name }
     runs:
@@ -1453,6 +1477,7 @@ Example:
       trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
       leading: true       # Specify invoking on the leading edge of the timeout. Default is true
       autoRemove: true    # Auto remove it when reached the event. Default is false
+      skipError: false    # Ignore error in the running
       throttleData:       # Pass input debounceData to debounce to do async task
         dataFromParentState: ${ $ws().channelData.name }
     runs:
@@ -2899,9 +2924,9 @@ Example:
 - echo: ${ $utils.format.fixLengthNumber(1, 2) }                                    # => 001
 - echo: ${ $utils.format.fixLengthNumber(10, 2) }                                   # => 010
 
-- echo: ${ $utils.format.formatTextToMs('1d 1h 1m 1s 100') }                        # => 90061100
+- echo: ${ $utils.format.textToMs('1d 1h 1m 1s 100') }                        # => 90061100
 
-- echo: ${ $utils.format.formatTextToMs(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
+- echo: ${ $utils.format.date(new Date(), 'DD/MM/YYYY hh:mm:ss.ms') }     # => 01/12/2023 23:59:59.0
 
 - echo: ${ $utils.format.yaml({name: 'yaml title'})}                                # => name: yaml title
 ```  

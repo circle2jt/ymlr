@@ -45,6 +45,12 @@
 		},
 		{
 			"type": "npm",
+			"script": "v:major",
+			"problemMatcher": [],
+			"label": "Create a major version"
+		},
+		{
+			"type": "npm",
 			"script": "v:patch",
 			"problemMatcher": [],
 			"label": "Create a patch version"
