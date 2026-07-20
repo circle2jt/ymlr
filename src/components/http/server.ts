@@ -158,7 +158,7 @@ export class HttpServer implements Element {
         path,
         method: req.method as string,
         headers: req.headers,
-        query: parse(qstr),
+        query: qstr?.length ? parse(qstr) as any : {},
         body: undefined,
         response: undefined,
         // data: {

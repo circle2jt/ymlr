@@ -1,4 +1,4 @@
-export const Constants = {
+export const Constants: Record<string, any> = {
   FROM_GLOBAL_EVENT: 'globalEvent<',
   TO_GLOBAL_EVENT: '>globalEvent',
   LOG_EVENT: '>logsEvent<'

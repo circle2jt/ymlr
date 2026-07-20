@@ -1,4 +1,5 @@
 import assert from 'assert'
+import ENVGlobal from 'src/env-global'
 import { debounce, type DebouncedFunc, type DebounceSettings } from 'src/libs/debounce'
 import { formatTextToMs } from 'src/libs/format'
 import { DebounceManager } from 'src/managers/debounce-manager'
@@ -21,6 +22,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         leading: false          # Specify invoking on the leading edge of the timeout. Default is false
         maxWait: 2s             # The maximum time func is allowed to be delayed before it's invoked.
         autoRemove: true        # Auto remove it when reached the event. Default is false.
+        skipError: false        # Ignore error in the running
         debounceData:           # Pass input debounceData to debounce to do async task
           dataFromParentState: ${ $ws().channelData.name }
       runs:
@@ -54,6 +56,7 @@ export class FNDebounce implements Element {
   leading = false
   autoRemove?: true | string | number
   debounceData?: any
+  skipError = ENVGlobal.FN_DEBOUNCE_SKIP_ERROR
 
   private fn?: DebouncedFunc
 
@@ -96,9 +99,14 @@ export class FNDebounce implements Element {
       opts.maxWait = this.maxWait
     }
     this.fn = debounce(async (debounceData: any) => {
-      await this.innerRunsProxy.exec({
-        debounceData
-      })
+      try {
+        await this.innerRunsProxy.exec({
+          debounceData
+        })
+      } catch (err) {
+        if (!this.skipError) throw err
+        this.logger.warn(err)
+      }
     }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
     if (this.autoRemove) {
       this.fn.onDone = () => {

@@ -8,6 +8,7 @@ import { LevelFactory } from 'src/libs/logger/level-factory'
 import { GetLoggerLevel, type LoggerLevel } from 'src/libs/logger/logger-level'
 import { isGetEvalExp } from 'src/libs/variable'
 import { Constants, noop } from 'src/managers/constants'
+import { UtilityFunctionManager } from 'src/managers/utility-function-manager'
 import { type Element } from './element.interface'
 import { type GroupItemProps, type GroupProps } from './group/group.props'
 import { type RootScene } from './root-scene'
@@ -839,6 +840,18 @@ export class ElementProxy<T extends Element> {
     return GlobalEvent
   }
 
+  get $v() {
+    return this.scene.localVars
+  }
+
+  get $u() {
+    return UtilityFunctionManager.Instance
+  }
+
+  get $c() {
+    return Constants
+  }
+
   readonly parent?: Element
   errorStack?: ErrorStack
 
@@ -1037,8 +1050,12 @@ export class ElementProxy<T extends Element> {
     try {
       try {
         await this.evalPropsBeforeExec()
-        if (this.name && !this.element.hideName) {
-          if (this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.icon ? `${this.icon} ` : ''}${this.name}`)) {
+        if (!this.element.hideName) {
+          if (this.name) {
+            if (this.logger.info(`${this.runs?.length ? ICON_MULTIPLE_STEP : ICON_SINGLE_STEP}${this.icon ? `${this.icon} ` : ''}${this.name}`)) {
+              this.logger.meta = { printedName: true }
+            }
+          } else if (this.name === "") {
             this.logger.meta = { printedName: true }
           }
         }

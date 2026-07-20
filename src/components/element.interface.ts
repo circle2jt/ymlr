@@ -9,9 +9,9 @@ export interface Element {
   readonly innerRunsProxy?: ElementProxy<Group<GroupProps, GroupItemProps>>
   overrideProxyProps?: () => any
   asyncConstructor?: (props?: any) => void | Promise<void>
-  preExec?: () => boolean | Promise<boolean>
-  exec: (args?: any) => any
-  dispose: () => void | Promise<void>
+  preExec?(): boolean | Promise<boolean>
+  exec(parentState?: any): any
+  dispose(): void | Promise<void>
 }
 
 export const ElementBaseKeys = new Set(['->', '<-', 'id', 'runs', 'template', 'props', 'placeholder', 'cached', 'case', 'if', 'elseif', 'else', 'failure', 'debug', 'vars', 'async', 'detach', 'loop', 'name', 'icon', 'skip', 'context', 'skipNext', 'errorStack', 'catch', 'finally'])

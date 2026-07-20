@@ -1,4 +1,5 @@
 import assert from 'assert'
+import ENVGlobal from 'src/env-global'
 import { formatTextToMs } from 'src/libs/format'
 import { throttle, type ThrottledFunc, type ThrottleSettings } from 'src/libs/throttle'
 import { ThrottleManager } from 'src/managers/throttle-manager'
@@ -20,6 +21,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         trailing: true      # Specify invoking on the trailing edge of the timeout. Default is true
         leading: true       # Specify invoking on the leading edge of the timeout. Default is true
         autoRemove: true    # Auto remove it when reached the event. Default is false
+        skipError: false    # Ignore error in the running
         throttleData:       # Pass input debounceData to debounce to do async task
           dataFromParentState: ${ $ws().channelData.name }
       runs:
@@ -52,6 +54,7 @@ export class FNThrottle implements Element {
   trailing = true
   autoRemove?: true | string | number
   throttleData?: any
+  skipError = ENVGlobal.FN_THROTTLE_SKIP_ERROR
 
   private fn?: ThrottledFunc
   constructor(props: any) {
@@ -90,9 +93,14 @@ export class FNThrottle implements Element {
     }
     this.fn = throttle(async (throttleData: any) => {
       this.logger.trace('%s: run', this.name)
-      await this.innerRunsProxy.exec({
-        throttleData
-      })
+      try {
+        await this.innerRunsProxy.exec({
+          throttleData
+        })
+      } catch (err) {
+        if (!this.skipError) throw err
+        this.logger.warn(err)
+      }
     }, this.wait, { ...opts, autoDispose: this.autoRemove as boolean })
     if (this.autoRemove) {
       this.fn.onDone = () => {

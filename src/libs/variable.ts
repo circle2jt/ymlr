@@ -59,6 +59,8 @@ export async function getVars(exp: any, ctx: any, others: any) {
       } else {
         vl = await callFunctionScript('return `' + vl + '`', ctx, others)
       }
+      // @TODO: Check it, should not break to eval multiple level in placeholder
+      // break
     } while (typeof vl === 'string' && vl.includes('${'))
     return vl
   }

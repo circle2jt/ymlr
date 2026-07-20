@@ -1,4 +1,5 @@
 import assert from 'assert'
+import ENVGlobal from 'src/env-global'
 import { FileTemp } from 'src/libs/file-temp'
 import { type FileStorage } from 'src/libs/storage/file-storage'
 import { type MemStorage } from 'src/libs/storage/mem-storage'
@@ -103,7 +104,7 @@ export class FNQueue implements Element {
   startup = true
   concurrent = 1
   timeout?: number
-  skipError = false
+  skipError = ENVGlobal.FN_QUEUE_SKIP_ERROR
   autoRemove = false
   queueData: any
   queueFilter: {

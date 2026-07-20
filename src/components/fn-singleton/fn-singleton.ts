@@ -1,4 +1,5 @@
 import assert from 'assert'
+import ENVGlobal from 'src/env-global'
 import { singleton } from 'src/libs/singleton-function'
 import { SingletonManager } from 'src/managers/singleton-manager'
 import { type ElementProxy } from '../element-proxy'
@@ -15,6 +16,7 @@ import { type GroupItemProps, type GroupProps } from '../group/group.props'
         name: Only run 1 time
         trailing: true              # In the processing which not finished yet, if it's called by others, it keeps the last params to cached then make the last call before done
         autoRemove: true            # Auto remove after done
+        skipError: false            # Ignore error in the running
         singletonData:              # Pass input data to singleton to do async task
           dataFromParentState: ${ $ws().channelData.name }
       runs:
@@ -38,6 +40,8 @@ export class FNSingleton implements Element {
   trailing?: boolean
   autoRemove?: boolean
   singletonData?: any
+  skipError = ENVGlobal.FN_SINGLETON_SKIP_ERROR
+
   // eslint-disable-next-line @typescript-eslint/ban-types
   private fn?: Function & { cancel: () => void, onDone?: () => any }
   private promsise?: {
@@ -79,7 +83,12 @@ export class FNSingleton implements Element {
           singletonData
         })
       } catch (err) {
-        this.promsise?.reject(err)
+        if (!this.skipError) {
+          this.promsise?.reject(err)
+          return
+        }
+        this.logger.warn(err)
+        this.promsise?.resolve(undefined)
       }
     }, {
       trailing: this.trailing

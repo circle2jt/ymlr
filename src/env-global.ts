@@ -60,6 +60,27 @@ const ENVGlobal = {
   },
   set PACKAGE_MANAGERS(value) {
     process.env.PACKAGE_MANAGERS = value
-  }
+  },
+
+  _fnQueueSkipError: false,
+  get FN_QUEUE_SKIP_ERROR() {
+    return this._fnQueueSkipError ?? (this._fnQueueSkipError = toBool(process.env.FN_QUEUE_SKIP_ERROR))
+  },
+  _fnDebounceSkipError: false,
+  get FN_DEBOUNCE_SKIP_ERROR() {
+    return this._fnDebounceSkipError ?? (this._fnDebounceSkipError = toBool(process.env.FN_DEBOUNCE_SKIP_ERROR))
+  },
+  _fnThrottleSkipError: false,
+  get FN_THROTTLE_SKIP_ERROR() {
+    return this._fnThrottleSkipError ?? (this._fnThrottleSkipError = toBool(process.env.FN_THROTTLE_SKIP_ERROR))
+  },
+  _fnSingletonSkipError: false,
+  get FN_SINGLETON_SKIP_ERROR() {
+    return this._fnSingletonSkipError ?? (this._fnSingletonSkipError = toBool(process.env.FN_SINGLETON_SKIP_ERROR))
+  },
 }
 export default ENVGlobal
+
+function toBool(vl: string | undefined): boolean {
+  return vl === '1' || vl === 'true' || vl === 'yes'
+}
